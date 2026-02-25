@@ -1,0 +1,54 @@
+{{ if not .ephemeral }}
+
+{{/* --- Linux 专用工具下载 --- */}}
+{{- if eq .osid "linux-ubuntu" }}
+
+[".local/bin/age"]
+    type = "archive-file"
+    url = {{ gitHubLatestReleaseAssetURL "FiloSottile/age" (printf "age-*-%s-%s.tar.gz" .chezmoi.os .chezmoi.arch) | quote }}
+    executable = true
+    path = "age/age"
+
+[".local/bin/age-keygen"]
+    type = "archive-file"
+    url = {{ gitHubLatestReleaseAssetURL "FiloSottile/age" (printf "age-*-%s-%s.tar.gz" .chezmoi.os .chezmoi.arch) | quote }}
+    executable = true
+    path = "age/age-keygen"
+
+{{/* ... 其他 Linux 工具保留原样 ... */}}
+[".local/bin/nvim"]
+    type = "file"
+    url = "https://github.com/neovim/neovim/releases/download/stable/nvim-linux-x86_64.appimage"
+    refreshPeriod = "672h"
+    executable = true
+
+{{- end }}
+
+{{/* --- Zsh 配置 (仅限非 Windows) --- */}}
+{{- if ne .chezmoi.os "windows" }}
+
+[".oh-my-zsh"]
+    type = "archive"
+    url = "https://github.com/ohmyzsh/ohmyzsh/archive/master.tar.gz"
+    exact = true
+    stripComponents = 1
+    refreshPeriod = "168h"
+    exclude = [ "*/.*", "*/templates", "*/themes" ]
+
+[".oh-my-zsh/custom/plugins/zsh-syntax-highlighting"]
+    type = "archive"
+    url = "https://github.com/zsh-users/zsh-syntax-highlighting/archive/master.tar.gz"
+    exact = true
+    stripComponents = 1
+    refreshPeriod = "168h"
+    exclude = [ "*/.editorconfig", "*/.gitattributes", "*/.github", "*/.gitignore" ]
+
+[".oh-my-zsh/custom/themes/powerlevel10k"]
+    type = "archive"
+    url = "https://github.com/romkatv/powerlevel10k/archive/{{ (gitHubLatestRelease "romkatv/powerlevel10k").TagName }}.tar.gz"
+    exact = true
+    stripComponents = 1
+
+{{- end }}
+
+{{ end }}

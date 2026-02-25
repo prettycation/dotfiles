@@ -1,0 +1,616 @@
+{
+  "scoopBuckets": [
+    {
+      "name": "extras",
+      "url": "https://github.com/ScoopInstaller/Extras"
+    },
+    {
+      "name": "versions",
+      "url": "https://github.com/ScoopInstaller/Versions"
+    },
+    {
+      "name": "nerd-fonts",
+      "url": "https://github.com/matthewjberger/scoop-nerd-fonts"
+    },
+    {
+      "name": "nonportable",
+      "url": "https://github.com/ScoopInstaller/Nonportable"
+    },
+    {
+      "name": "java",
+      "url": "https://github.com/ScoopInstaller/Java"
+    },
+    {
+      "name": "abyss",
+      "url": "https://github.com/abgox/abyss"
+    },
+    {
+      "name": "anderlli0053_DEV-tools",
+      "url": "https://github.com/anderlli0053/DEV-tools.git"
+    },
+    {
+      "name": "dorado",
+      "url": "https://github.com/chawyehsu/dorado"
+    },
+    {
+      "name": "jam",
+      "url": "https://github.com/EFLKumo/jam"
+    },
+    {
+      "name": "lemon",
+      "url": "https://github.com/hoilc/scoop-lemon"
+    },
+    {
+      "name": "maqibg_MQBucket",
+      "url": "https://github.com/maqibg/MQBucket"
+    },
+    {
+      "name": "pamburus",
+      "url": "https://github.com/pamburus/scoop-bucket.git"
+    },
+    {
+      "name": "sdoog",
+      "url": "https://github.com/xrgzs/sdoog.git"
+    },
+    {
+      "name": "YewFence_YewNursery",
+      "url": "https://github.com/YewFence/YewNursery"
+    },
+    {
+      "name": "Ylemir_Scoop-Bucket",
+      "url": "https://github.com/Ylemir/Scoop-Bucket"
+    },
+    {
+      "name": "zed",
+      "url": "https://github.com/sonyxu/zed-loc-bucket"
+    },
+    {
+      "name": "ZhangTianrong_scoop-bucket",
+      "url": "https://github.com/ZhangTianrong/scoop-bucket"
+    }
+  ],
+  "scoopTools": [
+    {
+      "name": "1History.1History",
+      "bucket": "abyss"
+    },
+    {
+      "name": "5rahim.Seanime",
+      "bucket": "abyss"
+    },
+    {
+      "name": "7zip",
+      "bucket": "main"
+    },
+    {
+      "name": "abgox.InputTip-zip",
+      "bucket": "abyss"
+    },
+    {
+      "name": "abgox.PSCompletions",
+      "bucket": "abyss"
+    },
+    {
+      "name": "abgox.scoop-i18n",
+      "bucket": "abyss"
+    },
+    {
+      "name": "AlexanderPro.SmartContextMenu",
+      "bucket": "abyss"
+    },
+    {
+      "name": "AmN.yasb",
+      "bucket": "abyss"
+    },
+    {
+      "name": "amzxyz.rime_wanxiang.model",
+      "bucket": "abyss"
+    },
+    {
+      "name": "amzxyz.rime_wanxiang.moqi",
+      "bucket": "abyss"
+    },
+    {
+      "name": "archwsl",
+      "bucket": "extras"
+    },
+    {
+      "name": "aria2",
+      "bucket": "main"
+    },
+    {
+      "name": "BaiduPCS-Go",
+      "bucket": "anderlli0053_DEV-tools"
+    },
+    {
+      "name": "bat",
+      "bucket": "main"
+    },
+    {
+      "name": "bitwarden-cli",
+      "bucket": "main"
+    },
+    {
+      "name": "bleachbit",
+      "bucket": "extras"
+    },
+    {
+      "name": "cherry-studio",
+      "bucket": "jam"
+    },
+    {
+      "name": "chrisant996.Clink",
+      "bucket": "abyss"
+    },
+    {
+      "name": "Cishoon.md",
+      "bucket": "abyss"
+    },
+    {
+      "name": "ClashVergeRev.ClashVergeRev",
+      "bucket": "abyss"
+    },
+    {
+      "name": "Clement.bottom",
+      "bucket": "abyss"
+    },
+    {
+      "name": "CLIProxyAPI",
+      "bucket": "YewFence_YewNursery"
+    },
+    {
+      "name": "cmake",
+      "bucket": "main"
+    },
+    {
+      "name": "CopyQ",
+      "bucket": "extras"
+    },
+    {
+      "name": "curl",
+      "bucket": "main"
+    },
+    {
+      "name": "dark",
+      "bucket": "main"
+    },
+    {
+      "name": "dinoDanic.diny",
+      "bucket": "abyss"
+    },
+    {
+      "name": "direnv",
+      "bucket": "main"
+    },
+    {
+      "name": "EcoPaste.EcoPaste",
+      "bucket": "abyss"
+    },
+    {
+      "name": "emeditor-pro",
+      "bucket": "ZhangTianrong_scoop-bucket"
+    },
+    {
+      "name": "espanso",
+      "bucket": "main"
+    },
+    {
+      "name": "eza-community.eza",
+      "bucket": "abyss"
+    },
+    {
+      "name": "fancontrol",
+      "bucket": "extras"
+    },
+    {
+      "name": "faster-whisper-xxl",
+      "bucket": "anderlli0053_DEV-tools"
+    },
+    {
+      "name": "fastfetch",
+      "bucket": "main"
+    },
+    {
+      "name": "fd",
+      "bucket": "main"
+    },
+    {
+      "name": "file-converter-np",
+      "bucket": "nonportable"
+    },
+    {
+      "name": "flow-launcher",
+      "bucket": "extras"
+    },
+    {
+      "name": "Foundry376.Mailspring",
+      "bucket": "abyss"
+    },
+    {
+      "name": "freetex",
+      "bucket": "anderlli0053_DEV-tools"
+    },
+    {
+      "name": "fzf",
+      "bucket": "main"
+    },
+    {
+      "name": "gcc",
+      "bucket": "main"
+    },
+    {
+      "name": "ghostscript",
+      "bucket": "main"
+    },
+    {
+      "name": "git",
+      "bucket": "main"
+    },
+    {
+      "name": "git-filter-repo",
+      "bucket": "main"
+    },
+    {
+      "name": "GitHub.cli",
+      "bucket": "abyss"
+    },
+    {
+      "name": "glazewm",
+      "bucket": "extras"
+    },
+    {
+      "name": "gsudo",
+      "bucket": "main"
+    },
+    {
+      "name": "hfd",
+      "bucket": "anderlli0053_DEV-tools"
+    },
+    {
+      "name": "hl",
+      "bucket": "pamburus"
+    },
+    {
+      "name": "HuLaSpark.HuLa",
+      "bucket": "abyss"
+    },
+    {
+      "name": "icaros-np",
+      "bucket": "nonportable"
+    },
+    {
+      "name": "imagemagick",
+      "bucket": "main"
+    },
+    {
+      "name": "ImputNet.Helium",
+      "bucket": "abyss"
+    },
+    {
+      "name": "innounp",
+      "bucket": "main"
+    },
+    {
+      "name": "itchyny.gojq",
+      "bucket": "abyss"
+    },
+    {
+      "name": "jdx.mise",
+      "bucket": "abyss"
+    },
+    {
+      "name": "JetBrainsMono-NF",
+      "bucket": "nerd-fonts"
+    },
+    {
+      "name": "jid",
+      "bucket": "main"
+    },
+    {
+      "name": "jq",
+      "bucket": "main"
+    },
+    {
+      "name": "keepassxc",
+      "bucket": "extras"
+    },
+    {
+      "name": "keyStats",
+      "bucket": "maqibg_MQBucket"
+    },
+    {
+      "name": "kopiaui",
+      "bucket": "extras"
+    },
+    {
+      "name": "lazygit",
+      "bucket": "extras"
+    },
+    {
+      "name": "legeling.PromptHub",
+      "bucket": "abyss"
+    },
+    {
+      "name": "less",
+      "bucket": "main"
+    },
+    {
+      "name": "libreoffice",
+      "bucket": "extras"
+    },
+    {
+      "name": "lua",
+      "bucket": "main"
+    },
+    {
+      "name": "luarocks",
+      "bucket": "main"
+    },
+    {
+      "name": "lunatranslator",
+      "bucket": "extras"
+    },
+    {
+      "name": "LXGWWenKaiMonoGB",
+      "bucket": "nerd-fonts"
+    },
+    {
+      "name": "lyswhut.lx-music-desktop",
+      "bucket": "abyss"
+    },
+    {
+      "name": "make",
+      "bucket": "main"
+    },
+    {
+      "name": "Meld.Meld",
+      "bucket": "abyss"
+    },
+    {
+      "name": "Microsoft.VisualStudioCode",
+      "bucket": "abyss"
+    },
+    {
+      "name": "mihomo",
+      "bucket": "main"
+    },
+    {
+      "name": "MilkShift.GoofCord",
+      "bucket": "abyss"
+    },
+    {
+      "name": "mingw",
+      "bucket": "main"
+    },
+    {
+      "name": "mpv-config",
+      "bucket": "jam"
+    },
+    {
+      "name": "mpv-handler",
+      "bucket": "anderlli0053_DEV-tools"
+    },
+    {
+      "name": "neovim",
+      "bucket": "main"
+    },
+    {
+      "name": "nircmd",
+      "bucket": "main"
+    },
+    {
+      "name": "nodejs-lts",
+      "bucket": "main"
+    },
+    {
+      "name": "oldj.switchhosts",
+      "bucket": "abyss"
+    },
+    {
+      "name": "opencode",
+      "bucket": "<auto-generated>"
+    },
+    {
+      "name": "pandoc",
+      "bucket": "main"
+    },
+    {
+      "name": "poppler",
+      "bucket": "main"
+    },
+    {
+      "name": "pwsh",
+      "bucket": "main"
+    },
+    {
+      "name": "python312",
+      "bucket": "versions"
+    },
+    {
+      "name": "qbittorrent-enhanced",
+      "bucket": "extras"
+    },
+    {
+      "name": "regjump",
+      "bucket": "anderlli0053_DEV-tools"
+    },
+    {
+      "name": "revo-uninstaller",
+      "bucket": "sdoog"
+    },
+    {
+      "name": "Rime.Weasel",
+      "bucket": "abyss"
+    },
+    {
+      "name": "ripgrep",
+      "bucket": "main"
+    },
+    {
+      "name": "rustup",
+      "bucket": "main"
+    },
+    {
+      "name": "sandboxie-plus-np",
+      "bucket": "nonportable"
+    },
+    {
+      "name": "sc-starter",
+      "bucket": "lemon"
+    },
+    {
+      "name": "scoop-completion",
+      "bucket": "extras"
+    },
+    {
+      "name": "scoop-search",
+      "bucket": "main"
+    },
+    {
+      "name": "sfsu",
+      "bucket": "extras"
+    },
+    {
+      "name": "snibypassgui",
+      "bucket": "Ylemir_Scoop-Bucket"
+    },
+    {
+      "name": "SST.opencode",
+      "bucket": "abyss"
+    },
+    {
+      "name": "Starship.Starship",
+      "bucket": "abyss"
+    },
+    {
+      "name": "stylua",
+      "bucket": "main"
+    },
+    {
+      "name": "tacky-borders",
+      "bucket": "extras"
+    },
+    {
+      "name": "television",
+      "bucket": "extras"
+    },
+    {
+      "name": "temurin17-jdk",
+      "bucket": "java"
+    },
+    {
+      "name": "temurin8-jdk",
+      "bucket": "java"
+    },
+    {
+      "name": "tinymist",
+      "bucket": "main"
+    },
+    {
+      "name": "total-uninstaller",
+      "bucket": "sdoog"
+    },
+    {
+      "name": "tree-sitter",
+      "bucket": "main"
+    },
+    {
+      "name": "twpayne.chezmoi",
+      "bucket": "abyss"
+    },
+    {
+      "name": "typst",
+      "bucket": "main"
+    },
+    {
+      "name": "typstyle",
+      "bucket": "main"
+    },
+    {
+      "name": "unzip",
+      "bucket": "main"
+    },
+    {
+      "name": "uv-portable-cn",
+      "bucket": "anderlli0053_DEV-tools"
+    },
+    {
+      "name": "viarotel.Escrcpy",
+      "bucket": "abyss"
+    },
+    {
+      "name": "vieb",
+      "bucket": "extras"
+    },
+    {
+      "name": "voidtools.Everything",
+      "bucket": "abyss"
+    },
+    {
+      "name": "w4po.ExplorerTabUtility",
+      "bucket": "abyss"
+    },
+    {
+      "name": "websocat",
+      "bucket": "anderlli0053_DEV-tools"
+    },
+    {
+      "name": "wez.wezterm",
+      "bucket": "abyss"
+    },
+    {
+      "name": "windhawk",
+      "bucket": "extras"
+    },
+    {
+      "name": "windows-terminal",
+      "bucket": "extras"
+    },
+    {
+      "name": "wood3n.biu",
+      "bucket": "abyss"
+    },
+    {
+      "name": "yazi",
+      "bucket": "main"
+    },
+    {
+      "name": "yt-dlp",
+      "bucket": "main"
+    },
+    {
+      "name": "Z-Library.Z-Library",
+      "bucket": "abyss"
+    },
+    {
+      "name": "zed-loc",
+      "bucket": "zed"
+    },
+    {
+      "name": "ZGGSONG.STranslate",
+      "bucket": "abyss"
+    },
+    {
+      "name": "zoxide",
+      "bucket": "main"
+    }
+  ],
+  "fonts": [],
+  "powershellModules": [],
+  "doppler": {},
+  "wingetPackages": [
+    {
+      "id": "9PDH8M7HF2SQ",
+      "source": "msstore"
+    }
+  ],
+  "optional": {
+    "scoopBuckets": [],
+    "scoopTools": [
+      {
+        "name": "texlive-full",
+        "bucket": "dorado"
+      }
+    ]
+  }
+}
