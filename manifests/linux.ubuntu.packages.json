@@ -1,0 +1,9 @@
+{
+  "packageManager": "apt",
+  "notes": "Minimal placeholder for Ubuntu/Debian. Populate systemPackages if needed.",
+  "aptRepositories": [],
+  "systemPackages": [],
+  "optionalPackages": [],
+  "scriptInstalls": [],
+  "miseRuntimes": []
+}

@@ -1,0 +1,76 @@
+{{/* boolean feature tags */}}
+{{- $ephemeral := false -}}{{/* true if this machine is ephemeral, e.g. a cloud or VM instance */}}
+{{- $work := false -}}{{/* true if this machine is a work machine */}}
+{{- $headless := false -}}{{/* true if this machine does not have a screen and keyboard */}}
+{{- $personal := false -}}{{/* true if this machine should have personal secrets */}}
+
+{{/* --- 自动检测环境 --- */}}
+
+{{- $osID := .chezmoi.os -}}
+{{- if (and (eq .chezmoi.os "linux") (hasKey .chezmoi.osRelease "id")) -}}
+{{-   $osID = printf "%s-%s" .chezmoi.os .chezmoi.osRelease.id -}}
+{{- end -}}
+
+{{/* 检测容器、CI 环境等 */}}
+{{- if or (env "CODESPACES") (env "REMOTE_CONTAINERS_IPC") (eq .chezmoi.username "root" "ubuntu" "vagrant" "vscode") -}}
+{{-   $ephemeral = true -}}
+{{-   $headless = true -}}
+{{- end -}}
+
+{{/* --- 个性化设置 --- */}}
+
+{{/* 获取主机名，用于区分具体机器 */}}
+{{- $hostname := .chezmoi.hostname -}}
+
+{{/* 如果不是已知的临时环境，询问用户或者是默认值 */}}
+{{- if not $ephemeral -}}
+    {{- if eq $hostname "Mashiro" -}}
+        {{- $personal = true -}}
+    {{- else if eq $hostname "Your-Work-PC" -}}
+        {{- $work = true -}}
+    {{- else if stdinIsATTY -}}
+        {{/* 如果是第一次运行且未知机器，交互式询问 */}}
+        {{- $headless = promptBoolOnce . "headless" "Is this a headless machine" -}}
+        {{- $ephemeral = promptBoolOnce . "ephemeral" "Is this an ephemeral machine" -}}
+    {{- else -}}
+        {{- $ephemeral = true -}}
+        {{- $headless = true -}}
+    {{- end -}}
+{{- end -}}
+
+{{/* --- 邮箱配置 --- */}}
+{{- $email := "a2095578831@outlook.com" -}}
+{{- if $work -}}
+{{-   $email = "work@example.com" -}}
+{{- end -}}
+
+[data]
+    ephemeral = {{ $ephemeral }}
+    email = {{ $email | quote }}
+    work = {{ $work }}
+    headless = {{ $headless }}
+    hostname = {{ $hostname | quote }}
+    personal = {{ $personal }}
+    osid = {{ $osID | quote }}
+
+   {{/* --- git 配置 --- */}} 
+    name = "prettycation"
+    git_signing_key = ""
+    git_gpg_format = ""
+    git_commit_gpgsign = false
+    git_allowed_signers_file = ""
+
+    {{/* Linux ZSH 插件 */}}
+    zshPlugins = [
+        "zsh-syntax-highlighting",
+        "zsh-autosuggestions",
+    ]
+
+{{/* Docker/Podman 检测 */}}
+{{- if lookPath "podman" }}
+[docker]
+    command = "podman"
+{{- end }}
+
+[github]
+    refreshPeriod = "12h"
