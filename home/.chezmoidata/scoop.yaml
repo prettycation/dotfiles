@@ -30,3 +30,11 @@ scoop:
       # 不写 ignore_path，因为它在 templates 里，本来就不会被 Chezmoi 默认映射
       includes:
         - "**"
+
+    - wezterm: "wezterm"
+      scoop_app: "wez.wezterm"
+      source_base: "dot_config/wezterm"
+      target_base: ".config/wezterm"
+      ignore_path: ".config/wezterm"
+      includes:
+        - "**"
