@@ -1,0 +1,32 @@
+scoop:
+  apps:
+    - name: "bat"
+      scoop_app: "sharkdp.bat"
+      source_base: "dot_config/bat"
+      target_base: "AppData/Roaming/bat"
+      ignore_path: ".config/bat" # Windows 下忽略 ~/.config/bat，防止冲突
+      includes:
+        - "**"
+
+    - name: "espanso"
+      scoop_app: "espanso"
+      source_base: "dot_espanso"
+      target_base: ".espanso"
+      ignore_path: ".espanso"
+      includes:
+        - "**"
+
+    - name: "ExplorerTabUtility"
+      scoop_app: "w4po.ExplorerTabUtility"
+      source_base: ".chezmoitemplates/windows-apps/ExplorerTabUtility"
+      target_base: "AppData/Roaming/ExplorerTabUtility"
+      includes:
+        - "**"
+
+    - name: "flow-launcher"
+      scoop_app: "flow-launcher"
+      source_base: ".chezmoitemplates/windows-apps/flow-launcher"
+      target_base: "UserData"
+      # 不写 ignore_path，因为它在 templates 里，本来就不会被 Chezmoi 默认映射
+      includes:
+        - "**"

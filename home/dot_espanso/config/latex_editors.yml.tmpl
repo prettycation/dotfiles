@@ -1,0 +1,11 @@
+# chezmoi:template:line-endings=native
+# chezmoi:template:left-delimiter="{{", right-delimiter="}}"
+{{ if eq .chezmoi.os "windows" -}}
+filter_exec: ".*Obsidian\\.exe$"
+{{ else if eq .chezmoi.os "linux" -}}
+filter_exec: "obsidian"
+{{ else if eq .chezmoi.os "darwin" -}}
+filter_exec: "Obsidian"
+{{ end }}
+extra_includes:
+  - "../match/_latex0.yml"

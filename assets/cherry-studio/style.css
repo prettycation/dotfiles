@@ -1,0 +1,138 @@
+/* ==================================================================================
+ * Cherry Studio 自定义 CSS - Catppuccin Mocha & Windhawk Taskbar 风格
+ * ================================================================================== */
+
+/* --- 全局变量定义 --- */
+:root {
+  /* 字体 */
+  --font-code: "JetBrainsMono Nerd Font", "FiraCode Nerd Font Mono", "Consolas",
+    monospace !important;
+  --font-ui: "Microsoft YaHei", "Segoe UI", sans-serif !important;
+
+  /* Catppuccin Mocha 调色板 */
+  --ctp-base: #1e1e2e; /* 主内容背景 */
+  --ctp-mantle: #181825; /* 侧边栏/顶栏 */
+  --ctp-crust: #11111b; /* 最深背景 (用于代码块) */
+  --ctp-text: #cdd6f4; /* 主要文字 */
+  --ctp-subtext: #a6adc8; /* 次要文字 */
+  --ctp-overlay: #6c7086; /* 提示文字 */
+  --ctp-surface1: #45475a; /* 边框颜色 */
+  --ctp-mauve: #cba6f7; /* 主题色 (紫) */
+  --ctp-blue: #89b4fa; /* 链接/高亮 (蓝) */
+  --ctp-red: #f38ba8; /* 错误/强调 */
+}
+
+/* 全局字体应用 */
+body {
+  font-family: var(--font-ui);
+}
+
+/* --- 深色主题设置 --- */
+body[theme-mode="dark"] {
+  /* 覆盖 Cherry Studio 默认变量 */
+  --color-background: var(--ctp-base);
+  --color-text: var(--ctp-text);
+
+  /* 侧边栏 & 顶部导航栏 - 使用更深的 Mantle 色 (#181825) */
+  --navbar-background: var(--ctp-mantle);
+  --sidebar-background: var(--ctp-mantle);
+
+  /* 聊天区域 */
+  --chat-background: var(--ctp-base);
+  --chat-background-user: #313244; /* Surface0 - 用户气泡颜色 */
+  --chat-background-assistant: transparent; /* 助手气泡透明，融入背景 */
+
+  /* 边框线条 */
+  --border-color: var(--ctp-surface1);
+}
+
+/* --- 细节组件优化 --- */
+
+/* 1. 输入框区域 */
+body[theme-mode="dark"] .inputbar-container {
+  /* 悬浮卡片感 */
+  background-color: var(--ctp-mantle) !important;
+  border: 1px solid var(--ctp-surface1) !important; /* #45475a */
+  border-radius: 12px !important; /* 圆角 10-12px */
+  margin: 10px !important; /* 增加外边距，制造悬浮感 */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); /* 阴影 */
+}
+
+/* 输入框内的文本颜色 */
+body[theme-mode="dark"] .inputbar-container textarea {
+  color: var(--ctp-text) !important;
+}
+
+/* 2. 消息气泡 */
+/* 用户消息 - 圆润的块状 */
+body[theme-mode="dark"] .message-user .message-content {
+  border-radius: 12px !important;
+  background-color: var(--ctp-surface1) !important;
+  color: var(--ctp-text);
+}
+
+/* 助手消息 - 移除背景，沉浸式阅读 */
+body[theme-mode="dark"] .message-assistant .message-content {
+  background-color: transparent !important;
+  padding-left: 0 !important;
+}
+
+/* 3. 代码块样式 */
+body[theme-mode="dark"] code {
+  font-family: var(--font-code);
+  background-color: rgba(205, 214, 244, 0.1); /* 淡淡的背景 */
+  color: var(--ctp-mauve); /* 紫色代码文字 */
+  border-radius: 4px;
+  padding: 2px 5px;
+}
+
+body[theme-mode="dark"] pre {
+  background-color: var(--ctp-crust) !important; /* 最深的背景 #11111b */
+  border: 1px solid var(--ctp-surface1);
+  border-radius: 8px;
+}
+
+/* 4. 深度思考 (Deep Thinking) 样式 */
+.ant-collapse-content-box .markdown {
+  color: var(--ctp-subtext) !important;
+  font-style: italic;
+  font-size: 0.9em;
+  border-left: 2px solid var(--ctp-surface1);
+  padding-left: 10px;
+}
+
+/* 5. 滚动条美化 - 隐藏原本粗大的滚动条，改用细条 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--ctp-surface1);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ctp-overlay);
+}
+
+/* 6. 侧边栏选中项高亮 */
+body[theme-mode="dark"] .sidebar-item-active {
+  background-color: var(--ctp-surface1) !important;
+  color: var(--ctp-mauve) !important;
+  border-radius: 8px;
+}
+
+/* --- 浅色模式 (Light Mode) 简单适配 --- */
+body[theme-mode="light"] {
+  --color-background: #eff1f5; /* Latte Base */
+  --navbar-background: #e6e9ef; /* Latte Mantle */
+  --chat-background-user: #e6e9ef;
+  --chat-background-assistant: transparent;
+
+  code {
+    background-color: #e6e9ef;
+    color: #8839ef;
+  }
+}

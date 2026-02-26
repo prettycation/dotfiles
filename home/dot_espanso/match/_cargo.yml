@@ -1,0 +1,30 @@
+matches:
+  - trigger: "c.ls"
+    replace: "cargo install --list"
+
+  - trigger: "c.bis"
+    replace: "cargo binstall $|$"
+
+  - trigger: "c.is"
+    replace: "cargo install --locked $|$"
+
+  - trigger: "c.ui"
+    replace: "cargo uninstall $|$"
+
+  - trigger: "c.ul"
+    replace: "cargo install-update -l"
+
+  - trigger: "c.up"
+    replace: "cargo install-update -a -i cargo-binstall"
+
+  - trigger: "c.cl"
+    replace: "cargo cache --autoclean"
+
+  - trigger: "c.ccr"
+    replace: "cargo cache -a"
+
+  - trigger: "c.ccs"
+    replace: "cargo cache"
+
+  - trigger: "c.sc"
+    replace: "cargo search $|$"

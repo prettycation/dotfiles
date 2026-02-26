@@ -1,0 +1,16 @@
+# chezmoi:template:left-delimiter="{{", right-delimiter="}}"
+{{- if eq .chezmoi.os "windows" }}
+filter_exec: ".*(WindowsTerminal|wezterm-gui)\\.exe$"
+{{- else if eq .chezmoi.os "linux" }}
+filter_exec: ".*(wezterm-gui|alacritty|gnome-terminal|konsole)$"
+{{- else if eq .chezmoi.os "darwin" }}
+filter_exec: ".*(WezTerm|iTerm2|Terminal)$"
+{{- end }}
+
+extra_includes:
+{{- if eq .chezmoi.os "windows" }}
+  - "../match/_scoop.yml"
+{{- end }}
+  - "../match/_cargo.yml"
+  - "../match/_bitwarden.yml"
+  - "../match/_chezmoi.yml"

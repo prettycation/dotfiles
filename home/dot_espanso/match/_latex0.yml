@@ -1,0 +1,235 @@
+# espanso 的 LaTeX 数学公式快捷指令配置文件
+
+matches:
+  # ===================================================================
+  # 数学模式与环境
+  # ===================================================================
+
+  # 插入普通美元符号
+  - trigger: ";d"
+    replace: "$"
+    word: true
+
+  # 插入行内数学公式 $...$
+  - trigger: "mk"
+    replace: "$$|$$"
+    word: true
+
+  # 插入行间数学公式 $$...$$
+  - trigger: "dm"
+    replace: "$$\n$|$\n$$"
+    word: true
+
+  # 插入 LaTeX 环境 \begin{}...\end{} (会弹出输入框让你输入环境名)
+  - trigger: "beg"
+    form: "\\begin{[[env]]}\n$|$\n\\end{[[env]]}"
+    word: true
+
+  # ===================================================================
+  # 希腊字母 (使用 @ 作为前缀)
+  # ===================================================================
+  - { trigger: "@a", replace: "\\alpha", word: true }
+  - { trigger: "@b", replace: "\\beta", word: true }
+  - { trigger: "@g", replace: "\\gamma", word: true }
+  - { trigger: "@G", replace: "\\Gamma", word: true }
+  - { trigger: "@d", replace: "\\delta", word: true }
+  - { trigger: "@D", replace: "\\Delta", word: true }
+  - { trigger: "@e", replace: "\\epsilon", word: true }
+  - { trigger: ":e", replace: "\\varepsilon", word: true } # 变体
+  - { trigger: "@z", replace: "\\zeta", word: true }
+  - { trigger: "@t", replace: "\\theta", word: true }
+  - { trigger: "@T", replace: "\\Theta", word: true }
+  - { trigger: ":t", replace: "\\vartheta", word: true } # 变体
+  - { trigger: "@i", replace: "\\iota", word: true }
+  - { trigger: "@k", replace: "\\kappa", word: true }
+  - { trigger: "@l", replace: "\\lambda", word: true }
+  - { trigger: "@L", replace: "\\Lambda", word: true }
+  - { trigger: "@s", replace: "\\sigma", word: true }
+  - { trigger: "@S", replace: "\\Sigma", word: true }
+  - { trigger: "@u", replace: "\\upsilon", word: true }
+  - { trigger: "@U", replace: "\\Upsilon", word: true }
+  - { trigger: "@o", replace: "\\omega", word: true }
+  - { trigger: "@O", replace: "\\Omega", word: true }
+  - { trigger: "ome", replace: "\\omega", word: true }
+  - { trigger: "Ome", replace: "\\Omega", word: true }
+
+  # ===================================================================
+  # 基本运算与格式
+  # ===================================================================
+
+  # 插入文本
+  - { trigger: "text", replace: "\\text{$|$}", word: true }
+  - { trigger: '"', replace: "\\text{$|$}", word: true }
+
+  # 插入displaystyle
+  - { trigger: "ds", replace: "\\displaystyle $|$", word: true }
+
+  # 上标
+  - { trigger: "sr", replace: "^{2}", word: true }
+  - { trigger: "cb", replace: "^{3}", word: true }
+  - { trigger: "rd", replace: "^{$|$}", word: true }
+  - { trigger: "invs", replace: "^{-1}", word: true }
+
+  # 下标
+  - { trigger: "_", replace: "_{$|$}", word: true }
+  - { trigger: "sts", replace: "_\\text{$|$}", word: true }
+
+  # # 自动将 "字母+数字" 转换为 "字母_数字" (例如 x1 -> x_1)
+  - regex: "(?P<letter>[A-Za-z])(?P<digit>\\d)"
+    replace: "{{letter}}_{{{digit}}}"
+
+  # 平方根
+  - { trigger: "sq", replace: "\\sqrt{$|$}", word: true }
+
+  # 分数
+  - { trigger: "//", replace: "\\frac{$|$}{}", word: true }
+
+  # 指数函数
+  - { trigger: "ee", replace: "e^{$|$}", word: true }
+
+  # 自动在 exp, log, ln 前添加反斜杠
+  - regex: "(?<!\\\\)\\b(?P<func>exp|log|ln|det|sin|cos|tan|csc|sec|cot|arcsin|arccos|arctan)\\b"
+    replace: "\\{{func}}"
+
+  # 共轭
+  - { trigger: "conj", replace: "^{*}", word: true }
+
+  # 实部与虚部
+  - { trigger: "Re", replace: "\\operatorname{Re}", word: true }
+  - { trigger: "Im", replace: "\\operatorname{Im}", word: true }
+
+  # 字体
+  - { trigger: "bf", replace: "\\mathbf{$|$}", word: true }
+  - { trigger: "rm", replace: "\\mathrm{$|$}", word: true }
+
+  # ===================================================================
+  # 导数、积分与极限
+  # ===================================================================
+  - trigger: "par"
+    form: "\\frac{ \\partial [[numerator]] }{ \\partial [[denominator]] }"
+    word: true
+
+  # 快速偏导，例如 paxy -> \frac{\partial x}{\partial y}
+  - regex: "pa(?P<var1>[A-Za-z])(?P<var2>[A-Za-z])"
+    replace: "\\frac{\\partial {{var1}}}{\\partial {{var2}}}"
+    word: true
+
+  - { trigger: "ddt", replace: "\\frac{d}{dt} ", word: true }
+  # 定积分
+  - trigger: "dint"
+    form: "\\int_{ [[from]] }^{ [[to]] } [[body]] \\, d[[variable]]"
+    word: true
+  # 从0到无穷的积分
+  - trigger: "oinf"
+    form: "\\int_{0}^{\\infty} [[body]] \\, d[[variable]]"
+    word: true
+  # 从负无穷到正无穷的积分
+  - trigger: "infi"
+    form: "\\int_{-\\infty}^{\\infty} [[body]] \\, d[[variable]]"
+    word: true
+  # 极限
+  - trigger: "lim"
+    form: "\\lim_{ [[var]] \\to [[to]] } [[body]]"
+    word: true
+
+  # ===================================================================
+  # 常用符号
+  # ===================================================================
+  - { trigger: "ooo", replace: "\\infty", word: true }
+  - { trigger: "sum", replace: "\\sum_{i=1}^{N} $|$", word: true }
+  - { trigger: "prod", replace: "\\prod_{i=1}^{N} $|$", word: true }
+  - { trigger: "+-", replace: "\\pm", word: true }
+  - { trigger: "-+", replace: "\\mp", word: true }
+  - { trigger: "...", replace: "\\dots", word: true }
+  - { trigger: "nabl", replace: "\\nabla", word: true }
+  - { trigger: "del", replace: "\\nabla", word: true }
+  - { trigger: "xx", replace: "\\times", word: true }
+  - { trigger: "**", replace: "\\cdot", word: true }
+  - { trigger: "para", replace: "\\parallel", word: true }
+  - { trigger: "===", replace: "\\equiv", word: true }
+  - { trigger: "!=", replace: "\\neq", word: true }
+  - { trigger: ">=", replace: "\\geq", word: true }
+  - { trigger: "<=", replace: "\\leq", word: true }
+  - { trigger: ">>", replace: "\\gg", word: true }
+  - { trigger: "<<", replace: "\\ll", word: true }
+  - { trigger: "->", replace: "\\to", word: true }
+  - { trigger: "inn", replace: "\\in", word: true }
+  - { trigger: "notin", replace: "\\not\\in", word: true }
+  - { trigger: "sub=", replace: "\\subseteq", word: true }
+  - { trigger: "sup=", replace: "\\supseteq", word: true }
+  - { trigger: "eset", replace: "\\emptyset", word: true }
+  - { trigger: "RR", replace: "\\mathbb{R}", word: true }
+  - { trigger: "ZZ", replace: "\\mathbb{Z}", word: true }
+  - { trigger: "NN", replace: "\\mathbb{N}", word: true }
+  - { trigger: "CC", replace: "\\mathbb{C}", word: true }
+
+  # ===================================================================
+  # 矩阵与环境
+  # ===================================================================
+  - {
+      trigger: "pmat",
+      replace: "\\begin{pmatrix}\n$|$\n\\end{pmatrix}",
+      word: true,
+    }
+  - {
+      trigger: "bmat",
+      replace: "\\begin{bmatrix}\n$|$\n\\end{bmatrix}",
+      word: true,
+    }
+  - {
+      trigger: "vmat",
+      replace: "\\begin{vmatrix}\n$|$\n\\end{vmatrix}",
+      word: true,
+    }
+  - {
+      trigger: "Vmat",
+      replace: "\\begin{Vmatrix}\n$|$\n\\end{Vmatrix}",
+      word: true,
+    }
+  - {
+      trigger: "cases",
+      replace: "\\begin{cases}\n$|$\n\\end{cases}",
+      word: true,
+    }
+  - {
+      trigger: "align",
+      replace: "\\begin{align}\n$|$\n\\end{align}",
+      word: true,
+    }
+
+  # ===================================================================
+  # 括号
+  # ===================================================================
+  - { trigger: "avg", replace: "\\langle $|$ \\rangle", word: true }
+  - { trigger: "norm", replace: "\\lvert $|$ \\rvert", word: true }
+  - { trigger: "Norm", replace: "\\lVert $|$ \\rVert", word: true }
+  - { trigger: "lr(", replace: "\\left( $|$ \\right)", word: true }
+  - { trigger: "lr[", replace: "\\left[ $|$ \\right]", word: true }
+  - { trigger: "lr{", replace: "\\left\\{ $|$ \\right\\}", word: true }
+  - { trigger: "lr|", replace: "\\left| $|$ \\right|", word: true }
+
+    # 自动为字母加帽子、横线等，例如输入 xhat 变成 \hat{x}
+  - regex: "(?P<letter>[a-zA-Z])(?P<op>hat|bar|dot|ddot|tilde|und|vec)"
+    replace: "\\{{op}}{ {{letter}} }"
+
+  # 自动将 \hat{x}1 转换为 \hat{x}_{1}
+  # - regex: "\\\\(?P<op>hat|vec|mathbf){(?P<letter>[A-Za-z])}(?P<digit>\\d)"
+  #   replace: "\\{{op}}{ {{letter}} }_{ {{digit}} }"
+
+  # # ===================================================================
+  # # 外部脚本调用示例 (用于 iden 功能)
+  # # ===================================================================
+
+  # # 触发 iden3 来生成 3x3 单位矩阵
+  # # 注意: 这需要你创建一个 Python 脚本
+  # - regex: "iden(?P<dim>\\d+)"
+  #   replace: "{{output}}"
+  #   vars:
+  #     - name: output
+  #       type: script # 使用脚本扩展
+  #       params:
+  #         # 在 espanso/scripts/ 目录中创建一个名为 identity_matrix.py 的文件
+  #         args:
+  #           - python
+  #           - "%ESPANSO_CONFIG%/scripts/identity_matrix.py"
+  #           - "{{dim}}" # 将维度作为参数传递给脚本

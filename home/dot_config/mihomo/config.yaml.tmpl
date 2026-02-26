@@ -1,0 +1,262 @@
+# --- 1. 基础设置 ---
+port: 7890
+socks-port: 7891
+mixed-port: 7890 # HTTP/SOCKS5 混合端口
+allow-lan: true # 允许局域网连接
+mode: rule # 规则模式
+log-level: info
+ipv6: false
+external-controller: 127.0.0.1:9090 # API 端口
+secret: '{{ (bitwarden "item" "mihomo-secret").login.password }}' # API 密钥 (留空则无)
+
+# --- 2. DNS 配置 (Fake-IP) ---
+dns:
+  enable: true
+  listen: :53
+  enhanced-mode: fake-ip
+  fake-ip-range: 198.18.0.1/16
+  default-nameserver:
+    - 223.5.5.5
+    - 119.29.29.29
+  nameserver:
+    - https://dns.alidns.com/dns-query
+    - https://doh.pub/dns-query
+  fallback:
+    - https://1.1.1.1/dns-query
+    - https://8.8.8.8/dns-query
+  nameserver-policy:
+    "geosite:cn,private":
+      [https://doh.pub/dns-query, https://dns.alidns.com/dns-query]
+    "geosite:google,youtube,telegram,gfw":
+      [https://1.1.1.1/dns-query, https://8.8.8.8/dns-query]
+
+# --- 3. 代理提供商 (Proxy Providers) ---
+proxy-providers:
+  Airport:
+    type: http
+    url: '{{ (bitwarden "item" "airport-sub").login.password}}'
+    interval: 3600
+    path: ./airport.yaml
+    health-check:
+      enable: true
+      interval: 300
+      url: http://www.gstatic.com/generate_204
+
+# --- 4. 策略组 (Proxy Groups) ---
+proxy-groups:
+  # 4.1 核心选择组
+  - name: 🔰 节点选择
+    type: select
+    proxies:
+      - ♻️ 故障转移
+      - 🇭🇰 香港
+      - 🇹🇼 台湾
+      - 🇸🇬 新加坡
+      - 🇯🇵 日本
+      - 🇺🇸 美国
+      - DIRECT
+
+  # 4.2 自动故障转移
+  - name: ♻️ 故障转移
+    type: fallback
+    url: http://www.gstatic.com/generate_204
+    interval: 300
+    use:
+      - Airport # 使用上面定义的 Airport 提供商
+    # 过滤掉不想用的节点
+    filter: "(?i)^(?!.*(官网|剩余|到期|重置|套餐)).*"
+
+  # 4.3 地区分组 (利用正则筛选)
+  - name: 🇭🇰 香港
+    type: url-test
+    url: http://www.gstatic.com/generate_204
+    interval: 300
+    tolerance: 50
+    use:
+      - Airport
+    filter: "(?i)HK|Hong|Kong|香港" # 👈 正则筛选香港节点
+
+  - name: 🇹🇼 台湾
+    type: url-test
+    url: http://www.gstatic.com/generate_204
+    interval: 300
+    tolerance: 50
+    use:
+      - Airport
+    filter: "(?i)TW|Taiwan|台湾|Taipei"
+
+  - name: 🇸🇬 新加坡
+    type: url-test
+    url: http://www.gstatic.com/generate_204
+    interval: 300
+    tolerance: 50
+    use:
+      - Airport
+    filter: "(?i)SG|Singapore|新加坡|狮城"
+
+  - name: 🇯🇵 日本
+    type: url-test
+    url: http://www.gstatic.com/generate_204
+    interval: 300
+    tolerance: 50
+    use:
+      - Airport
+    filter: "(?i)JP|Japan|日本|Tokyo"
+
+  - name: 🇺🇸 美国
+    type: url-test
+    url: http://www.gstatic.com/generate_204
+    interval: 300
+    tolerance: 50
+    use:
+      - Airport
+    filter: "(?i)US|USA|United|States|美国"
+
+  # 4.4 特殊功能组
+  - name: Ⓜ️ 微软服务
+    type: select
+    proxies:
+      - 🔰 节点选择
+      - DIRECT
+
+  - name: 🍎 苹果服务
+    type: select
+    proxies:
+      - 🔰 节点选择
+      - DIRECT
+
+  - name: 🔞 限定区域 (No JP)
+    type: url-test
+    url: http://www.gstatic.com/generate_204
+    interval: 300
+    use:
+      - Airport
+    # 排除日本和中国节点 (E-Hentai 专用)
+    filter: "(?i)^(?!.*(JP|Japan|日本|CN|China)).*"
+
+  - name: 🐟 漏网之鱼
+    type: select
+    proxies:
+      - 🔰 节点选择
+      - DIRECT
+
+# --- 5. 规则集 (Rule Providers) ---
+rule-providers:
+  reject:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/reject.txt"
+    path: ./ruleset/reject.txt
+    interval: 86400
+  icloud:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/icloud.txt"
+    path: ./ruleset/icloud.txt
+    interval: 86400
+  apple:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/apple.txt"
+    path: ./ruleset/apple.txt
+    interval: 86400
+  google:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/google.txt"
+    path: ./ruleset/google.txt
+    interval: 86400
+  proxy:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/proxy.txt"
+    path: ./ruleset/proxy.txt
+    interval: 86400
+  direct:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/direct.txt"
+    path: ./ruleset/direct.txt
+    interval: 86400
+  private:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/private.txt"
+    path: ./ruleset/private.txt
+    interval: 86400
+  gfw:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/gfw.txt"
+    path: ./ruleset/gfw.txt
+    interval: 86400
+  tld-not-cn:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/tld-not-cn.txt"
+    path: ./ruleset/tld-not-cn.txt
+    interval: 86400
+  telegramcidr:
+    type: http
+    behavior: ipcidr
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/telegramcidr.txt"
+    path: ./ruleset/telegramcidr.txt
+    interval: 86400
+  cncidr:
+    type: http
+    behavior: ipcidr
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/cncidr.txt"
+    path: ./ruleset/cncidr.txt
+    interval: 86400
+  lan:
+    type: http
+    behavior: ipcidr
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/lancidr.txt"
+    path: ./ruleset/lancidr.txt
+    interval: 86400
+  applications:
+    type: http
+    behavior: classical
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/applications.txt"
+    path: ./ruleset/applications.txt
+    interval: 86400
+  microsoft:
+    type: http
+    behavior: domain
+    url: "https://cdn.jsdelivr.net/gh/Loyalsoldier/clash-rules@release/microsoft.txt"
+    path: ./ruleset/microsoft.txt
+    interval: 86400
+
+# --- 6. 规则链 (Rules) ---
+rules:
+  # 6.1 自定义直连 (ZeroTier 等)
+  - IP-CIDR,172.16.0.0/12,DIRECT,no-resolve
+  - DOMAIN-SUFFIX,todesk.com,DIRECT
+  - DOMAIN-SUFFIX,baidu.com,DIRECT
+
+  # 6.2 微软/Bing (强制代理)
+  - DOMAIN-SUFFIX,bing.com,Ⓜ️ 微软服务
+  - DOMAIN-SUFFIX,openai.com,Ⓜ️ 微软服务
+
+  # 6.3 E-Hentai (强制避开日本)
+  - DOMAIN-SUFFIX,exhentai.org,🔞 限定区域 (No JP)
+  - DOMAIN-SUFFIX,e-hentai.org,🔞 限定区域 (No JP)
+
+  # 6.4 基础规则集 (白名单模式)
+  - RULE-SET,applications,DIRECT
+  - RULE-SET,private,DIRECT
+  - RULE-SET,reject,REJECT
+  - RULE-SET,icloud,🍎 苹果服务
+  - RULE-SET,apple,🍎 苹果服务
+  - RULE-SET,google,🔰 节点选择
+  - RULE-SET,telegramcidr,🔰 节点选择
+  - RULE-SET,gfw,🔰 节点选择
+  - RULE-SET,proxy,🔰 节点选择
+  - RULE-SET,tld-not-cn,🔰 节点选择
+  # - RULE-SET,microsoft,Ⓜ️ 微软服务
+  - RULE-SET,direct,DIRECT
+  - RULE-SET,cncidr,DIRECT
+  - GEOIP,CN,DIRECT
+
+  # 6.5 漏网之鱼
+  - MATCH,🐟 漏网之鱼

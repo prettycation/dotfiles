@@ -1,0 +1,275 @@
+# ==================================================================================
+# GLAZEWM 配置文件
+# ==================================================================================
+
+# ----------------------------------------------------------------------------------
+# [ GENERAL - 通用设置 ]
+# ----------------------------------------------------------------------------------
+general:
+  startup_commands:
+    - 'shell-exec nircmd.exe win hide class "Shell_TrayWnd"'
+    # 自动改变平铺方向
+    - "shell-exec gat-gwm.exe"
+  shutdown_commands:
+    - 'shell-exec nircmd.exe win show class "Shell_TrayWnd"'
+  config_reload_commands: []
+
+  # 是否自动聚焦鼠标下方的窗口
+  focus_follows_cursor: false
+
+  # 重新聚焦当前工作区时，是否在之前的工作区之间切换
+  toggle_workspace_on_refocus: false
+
+  cursor_jump:
+    enabled: true
+    # 光标跳转触发条件: 'monitor_focus' (显示器切换) 或 'window_focus' (窗口切换)
+    trigger: "monitor_focus"
+
+  hide_method: "cloak"
+  show_all_in_taskbar: false
+
+# ----------------------------------------------------------------------------------
+# [ GAPS - 窗口间隙设置 ]
+# ----------------------------------------------------------------------------------
+gaps:
+  scale_with_dpi: true
+
+  # 相邻窗口之间的间隙
+  inner_gap: "15px"
+
+  # 窗口与屏幕边缘的间隙
+  outer_gap:
+    # 35px 以避让 Yasb 状态栏
+    top: "35px"
+    right: "15px"
+    bottom: "15px"
+    left: "15px"
+
+# ----------------------------------------------------------------------------------
+# [ WINDOW EFFECTS - 窗口特效 ]
+# ----------------------------------------------------------------------------------
+window_effects:
+  focused_window:
+    border:
+      enabled: true
+      # 焦点窗口边框颜色 (Catppuccin Mauve)
+      color: "#cba6f7"
+    hide_title_bar:
+      enabled: false
+  other_windows:
+    border:
+      enabled: true
+      # 非焦点窗口边框颜色 (Catppuccin Overlay0)
+      color: "#6c7086"
+    hide_title_bar:
+      enabled: false
+
+# ----------------------------------------------------------------------------------
+# [ WINDOW BEHAVIOR - 窗口行为 ]
+# ----------------------------------------------------------------------------------
+window_behavior:
+  initial_state: "tiling"
+  state_defaults:
+    floating:
+      centered: true
+
+# ----------------------------------------------------------------------------------
+# [ WORKSPACES - 工作区 ]
+# ----------------------------------------------------------------------------------
+
+workspaces:
+  - name: "1"
+    keep_alive: true
+  - name: "2"
+    keep_alive: true
+  - name: "3"
+    keep_alive: true
+  - name: "4"
+  - name: "5"
+  - name: "6"
+  - name: "7"
+  - name: "8"
+  - name: "9"
+
+# ----------------------------------------------------------------------------------
+# [ WINDOW RULES - 窗口规则 ]
+# ----------------------------------------------------------------------------------
+window_rules:
+  # 忽略窗口
+  - commands: ["ignore"]
+    match:
+      - window_process: { equals: "zebar" }
+      - window_title: { regex: "[Pp]icture.in.[Pp]icture" }
+      - window_process: { equals: "Flow.Launcher" }
+      - window_process: { equals: "Lively" }
+      - window_title: { regex: "[Pp]icture.in.[Pp]icture" }
+        window_class: { regex: "Chrome_WidgetWin_1MozillaDialogClass" }
+      - window_process: { equals: "copyq" }
+      - window_process: { equals: "msrdc" }
+      - window_process: { equals: "ToDesk" }
+      - window_process: { equals: "SNIBypassGUI" }
+
+  # 强制浮动
+  - commands: ["set-floating"]
+    match:
+      - window_process: { equals: "MinerU" }
+      - window_process: { equals: "rustdesk" }
+      - window_process: { equals: "WindowsTerminal" }
+      - window_process: { equals: "wezterm-gui" }
+      - window_process: { equals: "wandacloud" }
+      - window_process: { equals: "clash-verge" }
+      - window_process: { equals: "pot" }
+      - window_process: { equals: "explorer" }
+      - window_process: { equals: "STranslate" }
+      - window_process: { equals: "EcoPaste" }
+      - window_process: { equals: "mpv" }
+
+# ----------------------------------------------------------------------------------
+# [ BINDING MODES - 绑定模式 ]
+# ---------------------------------------------------------------------------------
+binding_modes:
+  # 启用时，可以通过箭头键或 HJKL 调整焦点窗口的大小
+  - name: "resize"
+    keybindings:
+      - commands: ["resize --width +2%"]
+        bindings: ["h", "left"]
+      - commands: ["resize --width -2%"]
+        bindings: ["shift+h", "left"]
+      - commands: ["resize --width +2%"]
+        bindings: ["l", "right"]
+      - commands: ["resize --width -2%"]
+        bindings: ["shift+l", "right"]
+      - commands: ["resize --height +2%"]
+        bindings: ["k", "up"]
+      - commands: ["resize --height -2%"]
+        bindings: ["shift+k", "up"]
+      - commands: ["resize --height +2%"]
+        bindings: ["j", "down"]
+      - commands: ["resize --height -2%"]
+        bindings: ["shift+j", "down"]
+      # 按 Escape 或 i 返回默认按键绑定
+      - commands: ["wm-disable-binding-mode --name resize"]
+        bindings: ["escape", "i"]
+
+  # 启用时，禁用除 alt+shift+p 以外的所有快捷键 (用于暂时挂起 WM)
+  - name: "pause"
+    keybindings:
+      - commands: ["wm-disable-binding-mode --name pause"]
+        bindings: ["alt+shift+p"]
+
+# ----------------------------------------------------------------------------------
+# [ KEYBINDINGS (主修饰键: Alt) ]
+# ----------------------------------------------------------------------------------
+keybindings:
+  # 1. 启动终端 (Alt+T)
+  # - commands: ["shell-exec wt"]
+  - commands:
+      ["shell-exec %SCOOP%/apps/wez.wezterm/current/app/wezterm-gui.exe"]
+    bindings: ["alt+t"]
+
+  # 2. 应用启动器: 使用 Flow Launcher 自身设置的 Alt+Space
+  # 打开文件资源管理器
+  - commands: ["shell-exec explorer"]
+    bindings: ["alt+shift+e"]
+
+  # 3. 切换窗口焦点 (Alt + hjkl/左右方向键)
+  - commands: ["focus --direction left"]
+    bindings: ["alt+h", "alt+left"]
+  - commands: ["focus --direction right"]
+    bindings: ["alt+l", "alt+right"]
+  - commands: ["focus --direction up"]
+    bindings: ["alt+k", "alt+up"]
+  - commands: ["focus --direction down"]
+    bindings: ["alt+j", "alt+down"]
+
+  # 4. 调整窗口大小 (Alt + Plus/Minus)
+  - commands: ["resize --width +2%", "resize --height +2%"]
+    bindings: ["alt+="]
+  - commands: ["resize --width -2%", "resize --height -2%"]
+    bindings: ["alt+-"]
+
+  # 作为上述调整大小快捷键的替代方案，进入调整大小模式 (Resize Mode)
+  - commands: ["wm-enable-binding-mode --name resize"]
+    bindings: ["alt+r"]
+
+  # 5. 移动窗口 (Alt + Shift + hjkl/左右方向键)
+  - commands: ["move --direction left"]
+    bindings: ["alt+shift+h", "alt+shift+left"]
+  - commands: ["move --direction right"]
+    bindings: ["alt+shift+l", "alt+shift+right"]
+  - commands: ["move --direction up"]
+    bindings: ["alt+shift+k", "alt+shift+up"]
+  - commands: ["move --direction down"]
+    bindings: ["alt+shift+j", "alt+shift+down"]
+
+  # 6. 关闭窗口 (Alt+Q)
+  - commands: ["close"]
+    bindings: ["alt+q"]
+
+  # 7. 切换窗口状态 (最小化 / 最大化 / 平铺方向)
+  - commands: ["toggle-minimized"]
+    bindings: ["alt+m"]
+  - commands: ["toggle-fullscreen --maximized"]
+    bindings: ["alt+f"]
+  - commands: ["toggle-tiling-direction"]
+    bindings: ["alt+v"]
+  # 在平铺窗口、浮动窗口和全屏之间循环切换焦点
+  - commands: ["wm-cycle-focus"]
+    bindings: ["alt+c"]
+  # 将焦点窗口切换为浮动状态
+  - commands: ["toggle-floating --centered"]
+    bindings: ["alt+shift+f"]
+  # 将焦点窗口切换为平铺布局
+  - commands: ["toggle-tiling"]
+    bindings: ["alt+shift+t"]
+
+  # 8. 切换到指定工作区 (Alt + 数字键)
+  - commands: ["focus --workspace 1"]
+    bindings: ["alt+1"]
+  - commands: ["focus --workspace 2"]
+    bindings: ["alt+2"]
+  - commands: ["focus --workspace 3"]
+    bindings: ["alt+3"]
+  - commands: ["focus --workspace 4"]
+    bindings: ["alt+4"]
+  - commands: ["focus --workspace 5"]
+    bindings: ["alt+5"]
+  - commands: ["focus --workspace 6"]
+    bindings: ["alt+6"]
+  - commands: ["focus --workspace 7"]
+    bindings: ["alt+7"]
+  - commands: ["focus --workspace 8"]
+    bindings: ["alt+8"]
+  - commands: ["focus --workspace 9"]
+    bindings: ["alt+9"]
+
+  # 9. 移动窗口到指定工作区 (Alt + Shift + 数字键)
+  - commands: ["move --workspace 1", "focus --workspace 1"]
+    bindings: ["alt+shift+1"]
+  - commands: ["move --workspace 2", "focus --workspace 2"]
+    bindings: ["alt+shift+2"]
+  - commands: ["move --workspace 3", "focus --workspace 3"]
+    bindings: ["alt+shift+3"]
+  - commands: ["move --workspace 4", "focus --workspace 4"]
+    bindings: ["alt+shift+4"]
+  - commands: ["move --workspace 5", "focus --workspace 5"]
+    bindings: ["alt+shift+5"]
+  - commands: ["move --workspace 6", "focus --workspace 6"]
+    bindings: ["alt+shift+6"]
+  - commands: ["move --workspace 7", "focus --workspace 7"]
+    bindings: ["alt+shift+7"]
+  - commands: ["move --workspace 8", "focus --workspace 8"]
+    bindings: ["alt+shift+8"]
+  - commands: ["move --workspace 9", "focus --workspace 9"]
+    bindings: ["alt+shift+9"]
+
+  # 10. GlazeWM 控制命令
+  # 退出 GlazeWM
+  - commands: ["wm-exit"]
+    bindings: ["alt+shift+q"]
+  # 重载配置文件
+  - commands: ["wm-reload-config"]
+    bindings: ["alt+shift+r"]
+  # 禁用所有快捷键 (暂停模式)，直到再次按下 alt+shift+p
+  - commands: ["wm-enable-binding-mode --name pause"]
+    bindings: ["alt+shift+p"]

@@ -25,6 +25,7 @@
 {{ if ne .chezmoi.os "windows" }}
 .chezmoiscripts/windows/**
 Documents
+dot_config/espanso/match/_scoop.yml
 {{ else }}
 .bash_aliases
 .config/ghostty
@@ -44,6 +45,14 @@ Documents
 .zprofile
 .zshrc
 {{ end }}
+
+{{- if eq .chezmoi.os "windows" }}
+{{-   range .scoop.apps }}
+{{-     if hasKey . "ignore_path" }}
+{{ .ignore_path }}
+{{-     end }}
+{{-   end }}
+{{- end }}
 
 {{ if not .personal }}
 .config/ghostty

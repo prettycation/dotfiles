@@ -1,0 +1,35 @@
+matches:
+  # login
+  - trigger: "bw.lg"
+    replace: "bw login"
+
+  # unlock
+  - trigger: "bw.ul"
+    replace: "$env:BW_SESSION = (bw unlock --raw)"
+
+  # List Folders
+  - trigger: "bw.lsf"
+    replace: "bw list folders | jq"
+
+  # List Items in Folder
+  - trigger: "bw.lsi"
+    replace: '$name="$|$"; $id=(bw list folders --search $name | ConvertFrom-Json | Where-Object { $_.name -eq $name }).id; if ($id) { bw list items --folderid $id | ConvertFrom-Json | Select-Object name, @{N=''username'';E={$_.login.username}}, @{N=''password'';E={$_.login.password}} | Format-Table -AutoSize }'
+
+  # Get Folder Template
+  - trigger: "bw.gf"
+    replace: "bw get template folder | Out-File folder.json -Encoding UTF8"
+
+  # Get Item Template
+  - trigger: "bw.gi"
+    replace: '$name="$|$"; $id=(bw list folders --search $name | ConvertFrom-Json | Where-Object { $_.name -eq $name }).id; if ($id) { $json=bw get template item | ConvertFrom-Json; $json.folderId=$id; $json.login=@{username="null";password="null"}; $json | ConvertTo-Json -Depth 5 | Out-File item.json -Encoding UTF8 }'
+
+  # Create Folder
+  - trigger: "bw.cf"
+    replace: "bw create folder $(Get-Content folder.json -Raw | bw encode)"
+
+  # Create Item
+  - trigger: "bw.ci"
+    replace: "bw create item $(Get-Content item.json -Raw | bw encode)"
+
+  - trigger: "bw.sy"
+    replace: "bw sync"
