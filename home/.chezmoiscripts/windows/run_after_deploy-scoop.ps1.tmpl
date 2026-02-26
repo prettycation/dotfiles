@@ -3,29 +3,75 @@ $ErrorActionPreference = "Stop"
 
 {{ if eq .chezmoi.os "windows" -}}
 
-Write-Host "Deploying configurations to Scoop persist directories..." -ForegroundColor Cyan
+$sw = [System.Diagnostics.Stopwatch]::StartNew()
+Write-Host "Fast deploying configurations to Scoop persist directories..." -ForegroundColor Cyan
 
-# 1. 获取 Scoop 根目录
+# ----------------------------
+# 0) Force 开关
+# ----------------------------
+$forceRaw = [string]$env:CHEZMOI_SCOOP_FORCE
+$forceRefresh = @("1", "true", "yes", "on") -contains $forceRaw.Trim().ToLowerInvariant()
+if ($forceRefresh) {
+    Write-Host "  Force refresh enabled (CHEZMOI_SCOOP_FORCE=$forceRaw)" -ForegroundColor Yellow
+}
+
+# ----------------------------
+# 1) Scoop 根目录
+# ----------------------------
 $scoopRoot = $env:SCOOP
 if ([string]::IsNullOrWhiteSpace($scoopRoot)) {
     $scoopRoot = Join-Path $env:USERPROFILE "scoop"
 }
-
 $scoopGlobalRoot = $env:SCOOP_GLOBAL
 if ([string]::IsNullOrWhiteSpace($scoopGlobalRoot)) {
     $scoopGlobalRoot = "C:\ProgramData\scoop"
 }
 
+# ----------------------------
+# 2) 读取 mapping
+# ----------------------------
 $appsJson = @'
 {{ .scoop.apps | toJson }}
 '@
 $apps = $appsJson | ConvertFrom-Json
 $sourceDir = "{{ .chezmoi.sourceDir }}"
 
+# ----------------------------
+# 3) 读取缓存 state
+# ----------------------------
+$stateDir = Join-Path $env:LOCALAPPDATA "chezmoi"
+$statePath = Join-Path $stateDir "scoop-deploy-state.json"
+if (-not (Test-Path $stateDir)) {
+    New-Item -ItemType Directory -Path $stateDir -Force | Out-Null
+}
+
+$state = @{
+    version = 1
+    entries = @{}
+}
+
+if ((Test-Path $statePath) -and (-not $forceRefresh)) {
+    try {
+        $loaded = Get-Content $statePath -Raw | ConvertFrom-Json -AsHashtable
+        if ($loaded -and $loaded.version -eq 1 -and $loaded.entries) {
+            $state = $loaded
+        }
+    } catch {
+        Write-Host "  State file is invalid, rebuilding cache..." -ForegroundColor Yellow
+    }
+}
+
+# 全局统计
+$totalScanned = 0
+$totalUpdated = 0
+$totalSkipped = 0
+
+# ----------------------------
+# 4) 主循环
+# ----------------------------
 foreach ($app in $apps) {
-    # 2. Persist 路径
     $persistBase = Join-Path $scoopRoot "persist\$($app.scoop_app)"
-    
+
     $userAppPath = Join-Path $scoopRoot "apps\$($app.scoop_app)"
     $globalAppPath = Join-Path $scoopGlobalRoot "apps\$($app.scoop_app)"
     if (-not (Test-Path $userAppPath) -and (Test-Path $globalAppPath)) {
@@ -36,75 +82,157 @@ foreach ($app in $apps) {
     $appSourceRoot = Join-Path $sourceDir $app.source_base
 
     if (-not (Test-Path $appSourceRoot)) {
-        Write-Host "  Skipping $($app.name): Source '$appSourceRoot' not found." -ForegroundColor Yellow
+        Write-Host "  Skipping $($app.name): source '$appSourceRoot' not found." -ForegroundColor DarkGray
         continue
     }
 
-    # 引入更新和跳过的计数器
-    $updatedCount = 0
-    $skippedCount = 0
-
+    $fileMap = @{}
     foreach ($pattern in $app.includes) {
-        $files = @()
         if ($pattern -eq '**') {
             $files = Get-ChildItem -Path $appSourceRoot -File -Recurse
         } else {
             $searchPath = Join-Path $appSourceRoot $pattern
-            $files = Get-ChildItem -Path $searchPath -File
+            $files = Get-ChildItem -Path $searchPath -File -ErrorAction SilentlyContinue
+        }
+        foreach ($f in $files) {
+            $fileMap[$f.FullName] = $f
+        }
+    }
+
+    $appScanned = 0
+    $appUpdated = 0
+    $appSkipped = 0
+
+    foreach ($file in $fileMap.Values) {
+        $appScanned++
+        $totalScanned++
+
+        $srcItem = Get-Item $file.FullName
+        $relPath = $file.FullName.Substring($appSourceRoot.Length).TrimStart('\', '/').Replace('\', '/')
+        $isTmpl = $file.Extension -eq '.tmpl'
+        $targetRelPath = if ($isTmpl) { $relPath -replace '\.tmpl$', '' } else { $relPath }
+        $targetFile = Join-Path $targetRoot $targetRelPath.Replace('/', [System.IO.Path]::DirectorySeparatorChar)
+
+        $targetParent = Split-Path $targetFile -Parent
+        if (-not (Test-Path $targetParent)) {
+            New-Item -ItemType Directory -Path $targetParent -Force | Out-Null
         }
 
-        foreach ($file in $files) {
-            # 计算相对路径，并统一替换反斜杠为正斜杠（为了日志美观）
-            $relPath = $file.FullName.Substring($appSourceRoot.Length).TrimStart('\', '/').Replace('\', '/')
-            
-            $isTmpl = $file.Extension -eq '.tmpl'
-            $targetRelPath = if ($isTmpl) { $relPath -replace '\.tmpl$', '' } else { $relPath }
-            
-            # 使用原生路径分隔符组合目标路径
-            $targetFile = Join-Path $targetRoot $targetRelPath.Replace('/', [System.IO.Path]::DirectorySeparatorChar)
-            
-            $targetParent = Split-Path $targetFile -Parent
-            if (-not (Test-Path $targetParent)) { New-Item -ItemType Directory -Path $targetParent -Force | Out-Null }
+        $srcLen = [int64]$srcItem.Length
+        $srcTicks = [int64]$srcItem.LastWriteTimeUtc.Ticks
+        
+        $tgtItem = $null
+        $tgtLen = 0
+        $tgtTicks = 0
+        if (Test-Path $targetFile) {
+            $tgtItem = Get-Item $targetFile
+            $tgtLen = [int64]$tgtItem.Length
+            $tgtTicks = [int64]$tgtItem.LastWriteTimeUtc.Ticks
+        }
 
-            $shouldWrite = $true
-            if ($isTmpl) {
-                $renderedContent = (Get-Content $file.FullName -Raw | chezmoi execute-template) -join "`r`n"
-                if (Test-Path $targetFile) {
-                    $existingContent = Get-Content $targetFile -Raw
-                    if ($existingContent -eq $renderedContent) { $shouldWrite = $false }
-                }
-                
-                if ($shouldWrite) {
-                    [System.IO.File]::WriteAllText($targetFile, $renderedContent, [System.Text.Encoding]::UTF8)
-                    Write-Host "  -> Rendered: $($app.name) / $targetRelPath" -ForegroundColor Green
-                    $updatedCount++
-                } else {
-                    $skippedCount++
-                }
-            } else {
-                if (Test-Path $targetFile) {
-                    $srcHash = (Get-FileHash $file.FullName).Hash
-                    $tgtHash = (Get-FileHash $targetFile).Hash
-                    if ($srcHash -eq $tgtHash) { $shouldWrite = $false }
-                }
-                
-                if ($shouldWrite) {
-                    Copy-Item -Path $file.FullName -Destination $targetFile -Force
-                    Write-Host "  -> Copied: $($app.name) / $targetRelPath" -ForegroundColor Green
-                    $updatedCount++
-                } else {
-                    $skippedCount++
-                }
+        $entryKey = "$($app.name)|$targetRelPath"
+        $cached = $state.entries[$entryKey]
+
+        # ----------------------------------------------------
+        # 签名快筛 (Fast Skip)
+        # ----------------------------------------------------
+        $fastSkip = $false
+        if (-not $forceRefresh -and $cached -and $tgtItem) {
+            $expectedMode = if ($isTmpl) { "tmpl" } else { "copy" }
+            if (
+                $cached.mode -eq $expectedMode -and
+                $cached.srcLen -eq $srcLen -and
+                $cached.srcTicks -eq $srcTicks -and
+                $cached.tgtLen -eq $tgtLen -and
+                $cached.tgtTicks -eq $tgtTicks
+            ) {
+                $fastSkip = $true
             }
         }
+
+        if ($fastSkip) {
+            $appSkipped++
+            $totalSkipped++
+            continue
+        }
+
+        # ----------------------------------------------------
+        # 降级验证与写入 (Slow Path / Fallback)
+        # ----------------------------------------------------
+        $didWrite = $false
+
+        if ($isTmpl) {
+            # 模板文件：老老实实渲染并对比内容
+            $renderedContent = (Get-Content $file.FullName -Raw | chezmoi execute-template) -join "`r`n"
+            $shouldWrite = $true
+
+            if ($tgtItem -and -not $forceRefresh) {
+                $existingContent = Get-Content $targetFile -Raw
+                if ($existingContent -eq $renderedContent) {
+                    $shouldWrite = $false
+                }
+            }
+
+            if ($forceRefresh -or $shouldWrite) {
+                [System.IO.File]::WriteAllText($targetFile, $renderedContent, [System.Text.Encoding]::UTF8)
+                Write-Host "  -> Rendered: $($app.name) / $targetRelPath" -ForegroundColor Green
+                $didWrite = $true
+            }
+        } else {
+            # 普通文件：算 Hash 兜底
+            $shouldWrite = $true
+            if ($tgtItem -and -not $forceRefresh) {
+                $srcHash = (Get-FileHash $file.FullName).Hash
+                $tgtHash = (Get-FileHash $targetFile).Hash
+                if ($srcHash -eq $tgtHash) {
+                    $shouldWrite = $false
+                }
+            }
+
+            if ($forceRefresh -or $shouldWrite) {
+                Copy-Item -Path $file.FullName -Destination $targetFile -Force
+                Write-Host "  -> Copied: $($app.name) / $targetRelPath" -ForegroundColor Green
+                $didWrite = $true
+            }
+        }
+
+        if ($didWrite) {
+            $appUpdated++
+            $totalUpdated++
+        } else {
+            $appSkipped++
+            $totalSkipped++
+        }
+
+        # ----------------------------------------------------
+        # 更新状态缓存
+        # ----------------------------------------------------
+        $finalTgtItem = Get-Item $targetFile
+        $state.entries[$entryKey] = @{
+            mode     = if ($isTmpl) { "tmpl" } else { "copy" }
+            srcLen   = $srcLen
+            srcTicks = $srcTicks
+            tgtLen   = [int64]$finalTgtItem.Length
+            tgtTicks = [int64]$finalTgtItem.LastWriteTimeUtc.Ticks
+        }
     }
-    
-    # 打印最终统计信息
-    if ($updatedCount -gt 0) {
-        Write-Host "  [$($app.name)] updated $updatedCount files, skipped $skippedCount." -ForegroundColor Cyan
-    } elseif ($skippedCount -gt 0) {
-        Write-Host "  [$($app.name)] all $skippedCount files are up to date." -ForegroundColor DarkGray
+
+    if ($appScanned -eq 0) {
+        Write-Host "  [$($app.name)] no files matched." -ForegroundColor DarkGray
+    } elseif ($appUpdated -gt 0) {
+        Write-Host "  [$($app.name)] updated $appUpdated files, skipped $appSkipped." -ForegroundColor Cyan
+    } else {
+        Write-Host "  [$($app.name)] all $appSkipped files are up to date." -ForegroundColor DarkGray
     }
 }
+
+# ----------------------------
+# 5) 写回缓存 state
+# ----------------------------
+$stateJson = $state | ConvertTo-Json -Depth 8
+[System.IO.File]::WriteAllText($statePath, $stateJson, [System.Text.Encoding]::UTF8)
+
+$sw.Stop()
+Write-Host ("Done. scanned={0}, updated={1}, skipped={2}, elapsed={3:n2}s" -f $totalScanned, $totalUpdated, $totalSkipped, $sw.Elapsed.TotalSeconds) -ForegroundColor Magenta
 
 {{- end }}
