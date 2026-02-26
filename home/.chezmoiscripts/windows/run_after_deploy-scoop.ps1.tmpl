@@ -1,0 +1,110 @@
+# chezmoi:template:left-delimiter="{{", right-delimiter="}}"
+$ErrorActionPreference = "Stop"
+
+{{ if eq .chezmoi.os "windows" -}}
+
+Write-Host "Deploying configurations to Scoop persist directories..." -ForegroundColor Cyan
+
+# 1. 获取 Scoop 根目录
+$scoopRoot = $env:SCOOP
+if ([string]::IsNullOrWhiteSpace($scoopRoot)) {
+    $scoopRoot = Join-Path $env:USERPROFILE "scoop"
+}
+
+$scoopGlobalRoot = $env:SCOOP_GLOBAL
+if ([string]::IsNullOrWhiteSpace($scoopGlobalRoot)) {
+    $scoopGlobalRoot = "C:\ProgramData\scoop"
+}
+
+$appsJson = @'
+{{ .scoop.apps | toJson }}
+'@
+$apps = $appsJson | ConvertFrom-Json
+$sourceDir = "{{ .chezmoi.sourceDir }}"
+
+foreach ($app in $apps) {
+    # 2. Persist 路径
+    $persistBase = Join-Path $scoopRoot "persist\$($app.scoop_app)"
+    
+    $userAppPath = Join-Path $scoopRoot "apps\$($app.scoop_app)"
+    $globalAppPath = Join-Path $scoopGlobalRoot "apps\$($app.scoop_app)"
+    if (-not (Test-Path $userAppPath) -and (Test-Path $globalAppPath)) {
+        $persistBase = Join-Path $scoopGlobalRoot "persist\$($app.scoop_app)"
+    }
+
+    $targetRoot = Join-Path $persistBase $app.target_base
+    $appSourceRoot = Join-Path $sourceDir $app.source_base
+
+    if (-not (Test-Path $appSourceRoot)) {
+        Write-Host "  Skipping $($app.name): Source '$appSourceRoot' not found." -ForegroundColor Yellow
+        continue
+    }
+
+    # 引入更新和跳过的计数器
+    $updatedCount = 0
+    $skippedCount = 0
+
+    foreach ($pattern in $app.includes) {
+        $files = @()
+        if ($pattern -eq '**') {
+            $files = Get-ChildItem -Path $appSourceRoot -File -Recurse
+        } else {
+            $searchPath = Join-Path $appSourceRoot $pattern
+            $files = Get-ChildItem -Path $searchPath -File
+        }
+
+        foreach ($file in $files) {
+            # 计算相对路径，并统一替换反斜杠为正斜杠（为了日志美观）
+            $relPath = $file.FullName.Substring($appSourceRoot.Length).TrimStart('\', '/').Replace('\', '/')
+            
+            $isTmpl = $file.Extension -eq '.tmpl'
+            $targetRelPath = if ($isTmpl) { $relPath -replace '\.tmpl$', '' } else { $relPath }
+            
+            # 使用原生路径分隔符组合目标路径
+            $targetFile = Join-Path $targetRoot $targetRelPath.Replace('/', [System.IO.Path]::DirectorySeparatorChar)
+            
+            $targetParent = Split-Path $targetFile -Parent
+            if (-not (Test-Path $targetParent)) { New-Item -ItemType Directory -Path $targetParent -Force | Out-Null }
+
+            $shouldWrite = $true
+            if ($isTmpl) {
+                $renderedContent = (Get-Content $file.FullName -Raw | chezmoi execute-template) -join "`r`n"
+                if (Test-Path $targetFile) {
+                    $existingContent = Get-Content $targetFile -Raw
+                    if ($existingContent -eq $renderedContent) { $shouldWrite = $false }
+                }
+                
+                if ($shouldWrite) {
+                    [System.IO.File]::WriteAllText($targetFile, $renderedContent, [System.Text.Encoding]::UTF8)
+                    Write-Host "  -> Rendered: $($app.name) / $targetRelPath" -ForegroundColor Green
+                    $updatedCount++
+                } else {
+                    $skippedCount++
+                }
+            } else {
+                if (Test-Path $targetFile) {
+                    $srcHash = (Get-FileHash $file.FullName).Hash
+                    $tgtHash = (Get-FileHash $targetFile).Hash
+                    if ($srcHash -eq $tgtHash) { $shouldWrite = $false }
+                }
+                
+                if ($shouldWrite) {
+                    Copy-Item -Path $file.FullName -Destination $targetFile -Force
+                    Write-Host "  -> Copied: $($app.name) / $targetRelPath" -ForegroundColor Green
+                    $updatedCount++
+                } else {
+                    $skippedCount++
+                }
+            }
+        }
+    }
+    
+    # 打印最终统计信息
+    if ($updatedCount -gt 0) {
+        Write-Host "  [$($app.name)] updated $updatedCount files, skipped $skippedCount." -ForegroundColor Cyan
+    } elseif ($skippedCount -gt 0) {
+        Write-Host "  [$($app.name)] all $skippedCount files are up to date." -ForegroundColor DarkGray
+    }
+}
+
+{{- end }}

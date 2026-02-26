@@ -1,0 +1,39 @@
+matches:
+  - trigger: "s.sc"
+    replace: "scoop search $|$"
+
+  - trigger: "s.is"
+    replace: "scoop install $|$"
+
+  - trigger: "s.ui"
+    replace: "scoop uninstall $|$"
+
+  - trigger: "s.cl"
+    replace: "scoop cleanup *"
+
+  - trigger: "s.ck"
+    replace: "scoop checkup"
+
+  - trigger: "s.ls"
+    replace: "scoop list"
+
+  - trigger: "s.up"
+    replace: "scoop update"
+
+  - trigger: "s.st"
+    replace: "scoop status"
+
+  - trigger: "s.hd"
+    replace: "scoop hold $|$"
+
+  - trigger: "s.uh"
+    replace: "scoop unhold $|$"
+
+  - trigger: "s.ccs"
+    replace: "scoop cache show"
+
+  - trigger: "s.ccr"
+    replace: "scoop cache rm *"
+
+  - trigger: "s.if"
+    replace: "scoop info $|$"

@@ -1,0 +1,40 @@
+# espanso 匹配文件
+#
+# 想要了解完整介绍，请访问官方文档：https://espanso.org/docs/
+#
+# 您可以使用此文件来定义基础的匹配规则（又名：代码片段）
+# 这些规则在使用 espanso 时适用于所有应用程序。
+#
+# 匹配是指替换规则：当您输入“触发词”字符串时，
+# 它会被“替换为”的字符串所替代。
+#
+yaml-language-server: $schema=https://raw.githubusercontent.com/espanso/espanso/dev/schemas/match.schema.json
+
+matches:
+  # 简单的文本替换
+  - trigger: ":espanso"
+    replace: "您好！"
+
+  # 注意：espanso 使用 YAML 来定义匹配规则，所以请务必注意缩进！
+
+  # 匹配规则也可以是动态的：
+
+  # 打印当前日期
+  - trigger: ":date"
+    replace: "{{mydate}}"
+    vars:
+      - name: mydate
+        type: date
+        params:
+          format: "%m/%d/%Y"
+
+  # 打印 shell 命令的输出
+  - trigger: ":shell"
+    replace: "{{output}}"
+    vars:
+      - name: output
+        type: shell
+        params:
+          cmd: "echo '来自您 shell 的问候'"
+
+  # 还有更多功能！想了解更多信息，请访问文档：https://espanso.org/docs/

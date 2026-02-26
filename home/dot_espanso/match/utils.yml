@@ -1,0 +1,227 @@
+# 这是一个为 Espanso 设计的实用工具集
+# 许可证: MIT X11, © Alicia Sykes 2021: https://aliciasykes.com
+
+# 定义包的名称和作者信息
+name: alicia-utils-cn # 包名
+package_author: Alicia Sykes <alicia@omg.lol> # 包作者
+parent: default # 继承自默认配置
+
+matches:
+
+# ===================================================================
+# 动态信息 (需要安装 curl 命令行工具)
+# ===================================================================
+
+# 输出你的公网 IP 地址
+- trigger: ":ip"
+  replace: "{{output}}"
+  vars:
+    - name: output
+      type: shell
+      params:
+        cmd: "curl 'https://api.ipify.org'"
+
+# 输出你当前位置的天气信息
+- trigger: ":weather"
+  replace: "{{output}}"
+  vars:
+    - name: output
+      type: shell
+      params:
+        cmd: "curl 'http://wttr.in/?format=3'"
+
+# ===================================================================
+# 自动闭合符号 (将光标置于中间)
+# ===================================================================
+- trigger: ':('
+  replace: '($|$)'
+- trigger: ':['
+  replace: '[$|$]'
+- trigger: ':{'
+  replace: '{$|$}'
+- trigger: ':<'
+  replace: '<$|$>'
+- trigger: ':`'
+  replace: '`$|$`'
+- trigger: ":\'"
+  replace: "\'$|$\'"
+- trigger: ':"'
+  replace: '"$|$"'
+- trigger: ':_'
+  replace: '_$|$_'
+- trigger: ':*'
+  replace: '*$|$*'
+- trigger: ':-'
+  replace: '-$|$-'
+
+# ===================================================================
+# 日期和时间
+# ===================================================================
+
+# 输出今天的日期 (格式: 日/月/年)
+- trigger: :date
+  replace: "{{date}}"
+  vars:
+  - name: date
+    type: date
+    params:
+      format: "%d/%m/%y"
+
+# 输出当前时间 (24小时制)
+- trigger: :time
+  replace: "{{time}}"
+  vars:
+  - name: time
+    type: date
+    params:
+      format: "%H:%M"
+
+# 输出当前月份和年份 (例如: December 2025)
+- trigger: :month
+  replace: "{{date}}"
+  vars:
+  - name: date
+    type: date
+    params:
+      format: "%B %Y"
+
+# ===================================================================
+# 实用工具与代码片段
+# ===================================================================
+
+# 从下拉菜单中轻松选择并输入颜文字 (ASCII emoji)
+- trigger: :lenny
+  form: "{{smileys}}"
+  form_fields:
+    smileys:
+      type: choice
+      values:
+      - '¯\\_(ツ)_/¯'
+      - '(╯°□°）╯︵ ┻━┻'
+      - '( ͡ಠ ʖ̯ ͡ಠ)'
+      - '☉ ‿ ⚆'
+      - 'ʕ•ᴥ•ʔ'
+      - '⋆｡˚ ☁︎ ˚｡⋆｡˚☽˚｡⋆'
+      - '◤◢◣◥◤◢◣◥'
+      - '(づᵔ◡ᵔ)づ'
+      - '|ᵔ‿ᵔ|'
+      - '⤜(*﹏*)⤏'
+      - 'ツ'
+
+# 输出 MIT 许可证的简短声明 (年份会自动更新)
+- trigger: :mit-short
+  replace: "Licensed under MIT X11, © Alicia Sykes {{year}}: https://aliciasykes.com"
+  vars: [{name: year, type: date, params: {format: "%Y"}}]
+
+# 从 GitHub 获取完整的 MIT 许可证文本 (需要 curl)
+- trigger: :mit-long
+  replace: "{{output}}"
+  vars:
+  - name: output
+    type: shell
+    params:
+      cmd: "curl 'https://gist.githubusercontent.com/Lissy93/143d2ee01ccc5c052a17/raw/a8ac96cd15847a231931b561d95d2de47066fd33/LICENSE.MD'"
+
+# 作者的个人邮件签名
+- trigger: :kr
+  replace: "Kind Regards,\nAlicia\n"
+
+# 从 whatthecommit.com 获取一条有趣的 commit 消息 (需要 curl)
+- trigger: :wtc
+  replace: "{{output}}"
+  vars:
+  - name: output
+    type: shell
+    params: {cmd: "curl -s whatthecommit.com/index.txt"}
+
+# 使用 Lesspass 为给定账户生成密码
+# 注意: 需要先安装 Lesspass 命令行工具, 详情见:
+# https://github.com/lesspass/lesspass/tree/master/cli
+- trigger: :pass
+  replace: "{{lesspass}}"
+  vars:
+  - name: "params"
+    type: form
+    params:
+      layout: |
+        Less Pass 密码生成器
+        网站: {{site}}
+        登录名: {{login}}
+        主密码: {{pass}}
+  - name: lesspass
+    type: shell
+    params:
+      cmd: "lesspass $ESPANSO_PARAMS_SITE $ESPANSO_PARAMS_LOGIN $ESPANSO_PARAMS_PASS"
+
+# ===================================================================
+# 快速网页搜索 (输入触发词后, 手动输入搜索内容)
+# ===================================================================
+- triggers: [:srch-ddg, :search-duckduckgo]
+  replace: 'https://duckduckgo.com/?q='
+- triggers: [:srch-wiki, :search-wikipedia]
+  replace: 'https://en.wikipedia.org/w/?search='
+- triggers: [:srch-gh, :search-github]
+  replace: 'https://github.com/search?q='
+- triggers: [:srch-so, :search-stackoverflow]
+  replace: 'https://stackoverflow.com/search?q='
+- triggers: [:srch-dh, :search-dockerhub]
+  replace: 'https://hub.docker.com/search?q='
+- triggers: [:srch-wa, :search-wolframalpha]
+  replace: 'https://www.wolframalpha.com/input/?i='
+- triggers: [:srch-red, :search-reddit]
+  replace: 'https://www.reddit.com/search/?q='
+- triggers: [:srch-bbc, :search-bbc]
+  replace: 'https://www.bbc.co.uk/search?q='
+- triggers: [:srch-vt, :search-virustotal]
+  replace: 'https://www.virustotal.com/gui/search/'
+- triggers: [:srch-amz, :search-amazon]
+  replace: 'https://amazon.co.uk/s?k='
+- triggers: [:srch-yt, :search-youtube]
+  replace: 'https://www.youtube.com/results?search_query='
+- triggers: [:srch-maps, :search-maps]
+  replace: 'https://www.google.com/maps/search/'
+- triggers: [:srch-goo, :search-google]
+  replace: 'https://google.com/search?q='
+
+# ===================================================================
+# 使用剪贴板内容进行快速网页搜索
+# ===================================================================
+- trigger: ":swc-ddg"
+  replace: "https://duckduckgo.com/?q={{clipboard}}"
+  vars: [{ name: "clipboard", type: "clipboard"}]
+- trigger: ":swc-wiki"
+  replace: "https://en.wikipedia.org/w/?search={{clipboard}}"
+  vars: [{ name: "clipboard", type: "clipboard"}]
+- trigger: ":swc-gh"
+  replace: "https://github.com/search?q={{clipboard}}"
+  vars: [{ name: "clipboard", type: "clipboard"}]
+- trigger: ":swc-so"
+  replace: "https://stackoverflow.com/search?q={{clipboard}}"
+  vars: [{ name: "clipboard", type: "clipboard"}]
+- trigger: ":swc-dh"
+  replace: "https://hub.docker.com/search?q={{clipboard}}"
+  vars: [{ name: "clipboard", type: "clipboard"}]
+- trigger: ":swc-wa"
+  replace: "https://www.wolframalpha.com/input/?i={{clipboard}}"
+  vars: [{ name: "clipboard", type: "clipboard"}]
+- trigger: ":swc-red"
+  replace: "https://www.reddit.com/search/?q={{clipboard}}"
+  vars: [{ name: "clipboard", type: "clipboard"}]
+- trigger: ":swc-bbc"
+  replace: "https://www.bbc.co.uk/search?q={{clipboard}}"
+  vars: [{ name: "clipboard", type: "clipboard"}]
+- trigger: ":swc-vt"
+  replace: "https://www.virustotal.com/gui/search/{{clipboard}}"
+  vars: [{ name: "clipboard", type: "clipboard"}]
+- trigger: ":swc-amz"
+  replace: "https://amazon.co.uk/s?k={{clipboard}}"
+  vars: [{ name: "clipboard", type: "clipboard"}]
+- trigger: ":swc-yt"
+  replace: "https://www.youtube.com/results?search_query={{clipboard}}"
+  vars: [{ name: "clipboard", type: "clipboard"}]
+- trigger: ":swc-maps"
+  replace: "https://www.google.com/maps/search/{{clipboard}}"
+  vars: [{ name: "clipboard", type: "clipboard"}]
+- trigger: ":swc-goo"
+  replace: "https://google.com/search?q={{clipboard}}"
+  vars: [{ name: "clipboard", type: "clipboard"}]

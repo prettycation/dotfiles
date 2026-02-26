@@ -1,0 +1,20 @@
+{
+  "MouseHook": false,
+  "KeyboardHook": true,
+  "WindowHook": true,
+  "ReuseTabs": true,
+  "FormSize": {
+    "IsEmpty": false,
+    "Width": 1507.2,
+    "Height": 773.60000000000002
+  },
+  "SaveProfilesOnExit": true,
+  "IsFirstRun": false,
+  "IsTrayIconHidden": false,
+  "HaveThemeIssue": false,
+  "AutoUpdate": false,
+  "HotKeyProfiles": "[{\u0022Id\u0022:\u002205d123a4-0b1c-479a-9c8a-6339fb951ca4\u0022,\u0022Name\u0022:\u0022Home\u0022,\u0022HotKeys\u0022:[91,69],\u0022Scope\u0022:0,\u0022Action\u0022:\u0022Open\u0022,\u0022Path\u0022:\u0022\u0022,\u0022IsHandled\u0022:true,\u0022IsEnabled\u0022:true,\u0022IsAsTab\u0022:true,\u0022IsMouse\u0022:false,\u0022IsDoubleClick\u0022:false,\u0022Delay\u0022:0},{\u0022Id\u0022:\u002253362a8a-7b1d-41ad-9983-dec4077c4c57\u0022,\u0022Name\u0022:\u0022ReopenClosed\u0022,\u0022HotKeys\u0022:[16,17,88],\u0022Scope\u0022:1,\u0022Action\u0022:\u0022ReopenClosed\u0022,\u0022Path\u0022:null,\u0022IsHandled\u0022:true,\u0022IsEnabled\u0022:true,\u0022IsAsTab\u0022:true,\u0022IsMouse\u0022:false,\u0022IsDoubleClick\u0022:false,\u0022Delay\u0022:0},{\u0022Id\u0022:\u0022d2f87eb5-e1f0-46ab-8147-88f5daf0d47b\u0022,\u0022Name\u0022:\u0022NavigateBack\u0022,\u0022HotKeys\u0022:[16,17,83],\u0022Scope\u0022:1,\u0022Action\u0022:\u0022NavigateBack\u0022,\u0022Path\u0022:null,\u0022IsHandled\u0022:true,\u0022IsEnabled\u0022:true,\u0022IsAsTab\u0022:true,\u0022IsMouse\u0022:false,\u0022IsDoubleClick\u0022:false,\u0022Delay\u0022:0}]",
+  "SaveClosedWindows": false,
+  "RestorePreviousWindows": true,
+  "ClosedWindows": []
+}

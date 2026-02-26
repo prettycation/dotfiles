@@ -1,0 +1,12 @@
+matches:
+  # gmail
+  - trigger: "a.gm"
+    replace: '{{ (bitwarden "item" "gmail").login.username }}'
+
+  # outlook
+  - trigger: "a.ot"
+    replace: '{{ (bitwarden "item" "outlook").login.username}}'
+
+  # qq
+  - trigger: "a.qq"
+    replace: '{{ (bitwarden "item" "qq").login.username}}'

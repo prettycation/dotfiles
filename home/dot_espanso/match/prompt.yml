@@ -1,0 +1,18 @@
+matches:
+  # solution
+
+  - trigger: ":sl1"
+    replace: "请为问题命名并按规范解答，使用定理或结论要按照双链格式规范引用："
+
+  # proof
+
+  - trigger: ":pr1"
+    replace: "请按照规范为以下证明过程补充推导细节，使用定理或结论要按照双链格式规范引用："
+
+  - trigger: ":pr2"
+    replace: "请按照规范为以下论述过程补充推导细节，使用定理或结论要按照双链格式规范引用："
+
+  # complete
+
+  - trigger: ":cp1"
+    replace: "请将以下推导详细叙述完整，修改完后只需回复修改后的这段内容："

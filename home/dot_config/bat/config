@@ -1,0 +1,8 @@
+# 设置主题
+--theme="Catppuccin Mocha"
+
+# 设置显示的样式（行号、Git状态等）
+--style="numbers,changes,header"
+
+# 总是使用彩色输出（即使通过管道）
+--color=always

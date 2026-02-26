@@ -1,0 +1,55 @@
+# espanso match file
+
+matches:
+  # 1         align environment with \\
+  - trigger: "\\ba"
+    replace: "\\begin{aligned}\n  \n$|$  \n\\end{aligned}"
+
+  # 1-alt 1   align environment with \tag{}
+  - trigger: "\\bat"
+    replace: "\\begin{align}\n  \n$|$  \n\\end{align}\\tag{  }"
+  # ----------------------------------------------------------------------------
+  # 2         self-adapting (  )
+  - triggers: ["\\9\\", "\\(\\"]
+    replace: "\\left( $|$ \\right)  "
+
+  # 2-alt 1   self-adapting [  ]
+  - trigger: "\\[\\"
+    replace: "\\left[ $|$ \\right]  "
+
+  # 2-atl 2   self-adapting {  }
+  - trigger: "\\{\\"
+    replace: "\\left\\{ $|$ \\right\\}  "
+
+  # 2-alt 3   self-adapting |  |
+  - trigger: "\\|\\"
+    replace: "\\left| $|$ \\right|  "
+
+  # 2-alt 4   self-adapting ||  ||
+  - trigger: "\\||\\"
+    replace: "\\left\\| $|$ \\right\\|  "
+
+  # 2-alt 5   self-adapting <  >
+  - triggers: ["\\,\\", "\\<\\"]
+    replace: "\\left\\langle $|$ \\right\\rangle  "
+  # ----------------------------------------------------------------------------
+  # 6         ^{  }
+  - trigger: "\\6\\"
+    replace: "^{ $|$ } "
+  # ----------------------------------------------------------------------------
+  # 7         _{  }
+  - trigger: "\\-\\"
+    replace: "_{ $|$ } "
+  # ----------------------------------------------------------------------------
+  # 8         \notag \\
+  - trigger: "\\nt\\"
+    replace: "\\notag \\\\\n"
+  # ----------------------------------------------------------------------------
+  # 9         equation environment with \\
+  - trigger: "\\be\\"
+    replace: "\\begin{equation}\n  \n$|$  \n\\end{equation}\\\\"
+  # ----------------------------------------------------------------------------
+  # 10        \tilde
+  - trigger: "\\~\\"
+    replace: "\\tilde{ $|$ }"
+# EOF

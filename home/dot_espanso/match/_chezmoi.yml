@@ -1,0 +1,24 @@
+matches:
+  - trigger: "u.dr"
+    replace: "chezmoi apply --dry-run --verbose"
+
+  - trigger: "u.ap"
+    replace: "chezmoi apply"
+
+  - trigger: "u.in"
+    replace: "chezmoi init --source ."
+
+  - trigger: "u.sp"
+    replace: "chezmoi source-path"
+
+  - trigger: "u.ad"
+    replace: "chezmoi add --template "
+
+  - trigger: "u.ac"
+    replace: '{{ (bitwarden "item" "$|$").login.username}}'
+
+  - trigger: "u.ps"
+    replace: '{{ (bitwarden "item" "$|$").login.password}}'
+
+  - trigger: "u.dl"
+    replace: '# chezmoi:template:left-delimiter="[[", right-delimiter="]]"'
