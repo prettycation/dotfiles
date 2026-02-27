@@ -1,0 +1,81 @@
+return {
+  -- Lua 开发环境 (LazyDev)
+  {
+    "folke/lazydev.nvim",
+    ft = "lua",
+    opts = {
+      library = {
+        -- 加载 luvit 类型
+        { path = "${3rd}/luv/library", words = { "vim%.uv" } },
+
+        -- 预加载核心框架和常用插件
+        "LazyVim",
+        { path = "nvim-lspconfig", words = { "lspconfig" } },
+        -- { path = "nvim-cmp", words = { "cmp" } },
+        { path = "blink.cmp", words = { "blink" } },
+      },
+      -- 启用集成
+      integrations = {
+        lspconfig = true,
+        cmp = false,
+        blink = true,
+      },
+    },
+  },
+
+  -- Lua 语言服务器的具体设置
+  {
+    "neovim/nvim-lspconfig",
+    opts = {
+      servers = {
+        lua_ls = {
+          settings = {
+            Lua = {
+              workspace = {
+                checkThirdParty = false, -- 推荐关闭
+                -- 清空 ignoreDir，否则插件内的 /lua 目录会被跳过
+                ignoreDir = {},
+                -- 禁止更深入的库搜索
+                pathStrict = true,
+              },
+              completion = {
+                callSnippet = "Replace",
+              },
+              -- 诊断设置
+              diagnostics = {
+                -- 忽略一些在模板文件中常见的、由于跨插件引用导致的注解警告
+                disable = { "undefined-doc-name", "undefined-field" },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+
+  -- 格式化配置 (Conform)
+  {
+    "stevearc/conform.nvim",
+    opts = {
+      formatters_by_ft = {
+        -- 指定 lua 使用 stylua，使用 scoop 安装的
+        lua = { "stylua" },
+      },
+    },
+  },
+
+{{- if eq .chezmoi.os "windows" }}
+
+  -- 仅在 Windows 环境下生效：确保 Mason 不会自动安装 stylua (因为交由 Scoop 管理)
+  {
+    "mason-org/mason.nvim",
+    opts = function(_, opts)
+      opts.ensure_installed = opts.ensure_installed or {}
+      -- 过滤掉 stylua，防止 Mason 自动安装导致与 Scoop 版本冲突
+      opts.ensure_installed = vim.tbl_filter(function(name)
+        return name ~= "stylua"
+      end, opts.ensure_installed)
+    end,
+  },
+{{- end }}
+}

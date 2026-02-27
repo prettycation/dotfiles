@@ -1,0 +1,200 @@
+# vim:fileencoding=utf-8:foldmethod=marker
+
+# Catppuccin Mocha for Yazi
+# https://github.com/catppuccin/yazi
+
+# : Manager {{{
+
+[mgr]
+# 当前工作目录
+cwd = { fg = "#94e2d5" }
+
+# 光标悬停行的颜色
+hovered         = { fg = "#11111b", bg = "#89b4fa", bold = true }
+# 多选模式下选中的样式
+selection_style = { bg = "#585b70" }
+
+# 搜索
+find_keyword  = { fg = "#f9e2af", bold = true, italic = true, underline = true }
+find_position = { fg = "#f5c2e7", bg = "reset", bold = true, italic = true }
+
+# 标记 (复制、剪切等图标)
+marker_copied   = { fg = "#a6e3a1", bg = "#a6e3a1" }
+marker_cut      = { fg = "#f38ba8", bg = "#f38ba8" }
+marker_marked   = { fg = "#89dceb", bg = "#89dceb" }
+marker_selected = { fg = "#f9e2af", bg = "#f9e2af" }
+
+# 标记计数
+count_copied   = { fg = "#11111b", bg = "#a6e3a1" }
+count_cut      = { fg = "#11111b", bg = "#f38ba8" }
+count_selected = { fg = "#11111b", bg = "#f9e2af" }
+
+# 边框
+border_symbol = "│"
+border_style  = { fg = "#6c7086" }
+
+# : }}}
+
+
+# : Indicator (指示器) {{{
+
+[indicator]
+# 修改：不再使用 reversed = true，防止出现白色块
+current = { fg = "#11111b", bg = "#89b4fa" }
+preview = { fg = "#89b4fa", underline = true }
+
+# : }}}
+
+
+# : Tabs (标签页) {{{
+
+[tabs]
+active   = { fg = "#11111b", bg = "#89b4fa", bold = true }
+inactive = { fg = "#a6adc8", bg = "#45475a" }
+
+# : }}}
+
+
+# : Mode (状态栏模式指示) {{{
+
+[mode]
+# Normal 模式
+normal_main = { fg = "#11111b", bg = "#89b4fa", bold = true }
+normal_alt  = { fg = "#89b4fa", bg = "#45475a" }
+
+# Select 模式
+select_main = { fg = "#11111b", bg = "#cba6f7", bold = true }
+select_alt  = { fg = "#cba6f7", bg = "#45475a" }
+
+# Unset 模式
+unset_main = { fg = "#11111b", bg = "#94e2d5", bold = true }
+unset_alt  = { fg = "#94e2d5", bg = "#45475a" }
+
+# : }}}
+
+
+# : Status bar (状态栏) {{{
+
+[status]
+# 权限
+perm_sep   = { fg = "#6c7086" }
+perm_type  = { fg = "#89b4fa" }
+perm_read  = { fg = "#f9e2af" }
+perm_write = { fg = "#f38ba8" }
+perm_exec  = { fg = "#a6e3a1" }
+
+# 进度条
+progress_label  = { fg = "#cdd6f4", bold = true }
+progress_normal = { fg = "#a6e3a1", bg = "#45475a" }
+progress_error  = { fg = "#f38ba8", bg = "#f9e2af" }
+
+# : }}}
+
+
+# : Pick (文件选择器) {{{
+
+[pick]
+border   = { fg = "#cba6f7" }
+active   = { fg = "#f5c2e7", bold = true }
+inactive = {}
+
+# : }}}
+
+
+# : Input (输入框) {{{
+
+[input]
+border   = { fg = "#cba6f7" }
+title    = {}
+value    = {}
+selected = { bg = "#585b70" } # 修改：输入框选中背景改为 Surface2 灰色
+
+# : }}}
+
+
+# : Completion (自动补全) {{{
+
+[cmp]
+border = { fg = "#cba6f7" }
+
+# : }}}
+
+
+# : Tasks (任务管理器) {{{
+
+[tasks]
+border  = { fg = "#cba6f7" }
+title   = {}
+hovered = { fg = "#f5c2e7", bold = true, underline = true }
+
+# : }}}
+
+
+# : Which (快捷键提示) {{{
+
+[which]
+mask            = { bg = "#11111b" }
+cand            = { fg = "#94e2d5" }
+rest            = { fg = "#a6adc8" }
+desc            = { fg = "#f5c2e7" }
+separator       = "  "
+separator_style = { fg = "#6c7086" }
+
+# : }}}
+
+
+# : Help (帮助菜单) {{{
+
+[help]
+on      = { fg = "#94e2d5" }
+run     = { fg = "#f5c2e7" }
+hovered = { fg = "#11111b", bg = "#cdd6f4", bold = true }
+footer  = { fg = "#11111b", bg = "#cdd6f4" }
+
+# : }}}
+
+
+# : Spotter (文件探测器) {{{
+
+[spot]
+border   = { fg = "#cba6f7" }
+title    = { fg = "#cba6f7" }
+tbl_col  = { fg = "#94e2d5" }
+tbl_cell = { fg = "#f5c2e7", bg = "#45475a" }
+
+# : }}}
+
+
+# : Notification (通知) {{{
+
+[notify]
+title_info  = { fg = "#a6e3a1" } # 成功/信息
+title_warn  = { fg = "#f9e2af" } # 警告
+title_error = { fg = "#f38ba8" } # 错误
+
+# : }}}
+
+
+# : File-specific styles (文件类型高亮) {{{
+
+[filetype]
+
+rules = [
+  # --- Catppuccin Mocha 风格 ---
+  # 图片
+  { mime = "image/*", fg = "#94e2d5" }, # Teal
+  # 视频/音频
+  { mime = "{video,audio}/*", fg = "#f9e2af" }, # Yellow
+  # 压缩包
+  { mime = "application/{zip,rar,7z*,tar,gzip,xz,zstd,bzip*,lzma,compress,archive,cpio,arj,xar,ms-cab*}", fg = "#f5c2e7" }, # Pink
+  # 文档
+  { mime = "application/{pdf,doc,rtf,docx,xls,xlsx,ppt,pptx,odf,odt,ods,odp}", fg = "#a6e3a1" }, # Green
+  # 链接文件
+  { mime = "vfs/{absent,stale}", fg = "#6c7086" }, # Overlay0 (灰色)
+  # 默认文件
+  { url = "*", fg = "#cdd6f4" }, # Text
+  # 目录
+  { url = "*/", fg = "#89b4fa" }, # Blue
+]
+
+# : }}}

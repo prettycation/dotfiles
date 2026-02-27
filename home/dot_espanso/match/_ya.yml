@@ -1,0 +1,12 @@
+matches:
+  - trigger: "y.ad"
+    replace: "ya pkg add "
+
+  - trigger: "y.rm"
+    replace: "ya pkg delete "
+
+  - trigger: "y.is"
+    replace: "ya pkg install"
+
+  - trigger: "y.up"
+    replace: "ya pkg upgrade"
