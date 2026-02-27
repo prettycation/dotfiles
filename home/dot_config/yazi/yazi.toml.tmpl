@@ -1,0 +1,350 @@
+"$schema" = "https://yazi-rs.github.io/schemas/yazi.json"
+
+# --- [mgr] (Manager) ---
+# 管理器界面，即 yazi 的主视图 (左中右三个窗格) 的行为设置。
+[mgr]
+# 三个窗格的宽度比例：父目录:当前目录:预览。
+ratio = [1, 4, 3]
+# 默认排序方式："alphabetical" (字母序), "natural" (自然序, 1 < 2 < 10), "mtime" (修改时间) 等。
+sort_by = "alphabetical"
+# 排序时是否区分大小写。
+sort_sensitive = false
+# 是否反向排序。
+sort_reverse = false
+# 是否总是让文件夹显示在文件前面。
+sort_dir_first = true
+# 排序时是否对非 ASCII 字符进行音译转换 (如将 'ü' 视为 'u')。
+sort_translit = false
+# 是否在文件名旁边显示额外信息，如 "size", "mtime" (修改时间)。
+linemode = "none"
+# 是否默认显示以 '.' 开头的隐藏文件。
+show_hidden = false
+# 是否显示符号链接 (在 Windows 上不常用)。
+show_symlink = true
+# 在列表顶部和底部滚动时，光标与边缘之间保留的行数。
+scrolloff = 5
+# 启用鼠标的点击和滚动事件。
+mouse_events = ["click", "scroll"]
+# yazi 窗口的标题格式。{cwd} 会被替换为当前路径。
+title_format = "Yazi: {cwd}"
+
+# --- [preview] ---
+# 右侧预览窗格的全局设置。
+[preview]
+# 文本预览是否自动换行。
+wrap = "no"
+# Tab 字符在预览中显示的宽度（相当于多少个空格）。
+tab_size = 2
+# 预览图像的最大宽度（像素）。
+max_width = 600
+# 预览图像的最大高度（像素）。
+max_height = 900
+# 缓存预览文件的目录。留空表示使用默认的系统缓存位置。
+cache_dir = ""
+# 图像预览的延迟时间（毫秒）。
+image_delay = 30
+# 图像缩放时使用的算法，"triangle" 是一个比较均衡的选择。
+image_filter = "triangle"
+# 预览图像的质量（针对有损压缩格式如 JPEG）。
+image_quality = 75
+# (仅限 Ueberzug) 图像预览的缩放比例。
+ueberzug_scale = 1
+# (仅限 Ueberzug) 图像预览的偏移量。
+ueberzug_offset = [0, 0, 0, 0]
+
+# --- [opener] ---
+# 定义“动作”(verbs)，比如 "edit", "open", "reveal"。这些是被 `[open]` 规则调用的具体命令。
+[opener]
+# "edit" 动作：主要用于代码/文本编辑器。
+edit = [
+  { run = '${EDITOR:-vi} %s', desc = "$EDITOR", block = true, for = "unix" },
+  { run = 'code %s', orphan = true, desc = "code", for = "windows" },
+  { run = 'code -w %s', block = true, desc = "code (block)", for = "windows" },
+]
+# "open" 动作：使用系统的默认程序打开文件。
+open = [
+  { run = 'xdg-open %s1', desc = "Open", for = "linux" },
+  { run = 'open %s', desc = "Open", for = "macos" },
+  { run = 'start "" %s1', orphan = true, desc = "Open", for = "windows" },
+  { run = 'termux-open %s1', desc = "Open", for = "android" },
+]
+# "reveal" 动作：在系统的图形化文件管理器中显示文件。
+reveal = [
+  { run = 'xdg-open %d1', desc = "Reveal", for = "linux" },
+  { run = 'open -R %s1', desc = "Reveal", for = "macos" },
+  { run = 'explorer /select,%s1', orphan = true, desc = "Reveal", for = "windows" },
+  { run = 'termux-open %d1', desc = "Reveal", for = "android" },
+  { run = '''clear; exiftool %s1; echo "Press enter to exit"; read _''', block = true, desc = "Show EXIF", for = "unix" },
+]
+# "extract" 动作：用于解压压缩包。
+extract = [
+  { run = 'ya pub extract --list %s', desc = "Extract here", for = "unix" },
+  { run = 'ya pub extract --list %s', desc = "Extract here", for = "windows" },
+]
+# "play" 动作：用于播放媒体文件。
+play = [
+  { run = 'mpv --force-window %s', orphan = true, for = "unix" },
+  { run = 'mpv --force-window %s', orphan = true, for = "windows" },
+  { run = '''mediainfo %s1; echo "Press enter to exit"; read _''', block = true, desc = "Show media info", for = "unix" },
+]
+# 自定义的 "edit_emeditor" 动作，用于调用 EmEditor。
+edit_emeditor = [
+  { run = '''start "" "%Scoop%\apps\emeditor-pro\current\EmEditor.exe" %s''', orphan = true, desc = "EmEditor", for = "windows" },
+]
+# 自定义的 "edit_nvim" 动作，用于在终端内调用 Neovim。
+edit_nvim = [
+  { run = 'nvim %s', block = true, desc = "Edit with Neovim", for = "windows" },
+]
+
+# --- [open] ---
+# 定义“规则”(rules)，将不同的文件类型映射到上面定义的“动作”。
+# yazi 会从上到下匹配第一条符合的规则。
+[open]
+rules = [
+  # 最高优先级：.txt 和 .md 文件默认使用 'edit_nvim' (Neovim) 动作。
+  # { url = "*.{txt,md}", use = [ "edit_emeditor", "reveal" ], desc = "Open with EmEditor" },
+  { url = "*.{txt,md}", use = [
+    "edit_nvim",
+    "edit",
+    "reveal",
+  ], desc = "Open with Neovim" },
+
+  # 文件夹：提供 'edit_nvim'(Neovim), 'edit'(VSCode), 'open'(系统默认) 和 'reveal' 选项。
+  { url = "*/", use = [
+    "edit_nvim",
+    "edit",
+    "open",
+    "reveal",
+  ] },
+  # 其他所有文本文件：提供 'edit_nvim' 和 'edit' 选项。
+  { mime = "text/*", use = [
+    "edit_nvim",
+    "edit",
+    "reveal",
+  ] },
+  # 图片：使用 'open' (系统默认) 和 'reveal'。
+  { mime = "image/*", use = [
+    "open",
+    "reveal",
+  ] },
+  # 媒体：使用 'play' (mpv) 和 'reveal'。
+  { mime = "{audio,video}/*", use = [
+    "play",
+    "reveal",
+  ] },
+  # 压缩包：使用 'extract' 和 'reveal'。
+  { mime = "application/{zip,rar,7z*,tar,gzip,xz,zstd,bzip*,lzma,compress,archive,cpio,arj,xar,ms-cab*}", use = [
+    "extract",
+    "reveal",
+  ] },
+  # JSON/JS：提供 'edit_nvim' 和 'edit' 选项。
+  { mime = "application/{json,ndjson}", use = [
+    "edit_nvim",
+    "edit",
+    "reveal",
+  ] },
+  { mime = "*/javascript", use = [
+    "edit_nvim",
+    "edit",
+    "reveal",
+  ] },
+  # 空文件：提供 'edit_nvim' 和 'edit' 选项。
+  { mime = "inode/empty", use = [
+    "edit_nvim",
+    "edit",
+    "reveal",
+  ] },
+  # 最后的备用规则：对于所有其他文件，使用 'open' (系统默认) 和 'reveal'。
+  { url = "*", use = [
+    "open",
+    "reveal",
+  ] },
+]
+
+# --- [tasks] ---
+# 配置 yazi 的后台任务处理（如文件复制、预览生成等）的并发和资源限制。
+[tasks]
+# 处理小文件（如读取目录、创建文件）的并发工作线程数。
+micro_workers = 10
+# 处理大文件（如复制、预览）的并发工作线程数。
+macro_workers = 10
+# 遇到某些“奇怪”的 I/O 错误时的重试次数。
+bizarre_retry = 3
+# 为图像预览分配的最大内存（字节）。这里是 512MB。
+image_alloc = 536870912
+# 限制预览图像的最大尺寸（宽 x 高），防止加载超大图片时崩溃。
+# 新版本默认值通常为 [10000, 10000]。
+image_bound = [5000, 5000]
+# 是否禁止在普通导航时预加载预览（开启可以节省资源）。
+suppress_preload = false
+
+# --- [plugin] ---
+# 配置 yazi 如何调用外部插件和工具来获取信息或生成预览。
+[plugin]
+# "fetchers" 用于在 yazi 扫描文件时，提前获取额外信息。
+fetchers = [
+  # 细化 MIME 获取规则，"mime" 会调用外部程序 (如 file.exe(scoop main bucket下的是 32 位无法预览)) 来确定每个文件的 MIME 类型。
+  { id = "mime", url = "*/", run = "mime.dir", prio = "high" },
+  { id = "mime", url = "local://*", run = "mime.local", prio = "high" },
+  { id = "mime", url = "remote://*", run = "mime.remote", prio = "high" },
+]
+
+# "spotters" 在新版中用于快速识别文件特征。
+spotters = [
+  { url = "*/", run = "folder" },
+  { mime = "text/*", run = "code" },
+  { mime = "application/{mbox,javascript,wine-extension-ini}", run = "code" },
+  { mime = "image/{avif,hei?,jxl}", run = "magick" },
+  { mime = "image/svg+xml", run = "svg" },
+  { mime = "image/*", run = "image" },
+  { mime = "video/*", run = "video" },
+  { url = "*", run = "file" },
+]
+
+# "preloaders" 在文件进入视野时提前加载预览内容。
+preloaders = [
+  # --- Office 文档预览规则开始 ---
+  # 规则1: 匹配所有 Office Open XML 格式的MIME类型。
+  # 这包括了 .docx, .xlsx, .pptx 等现代Office文件。
+  { mime = "application/openxmlformats-officedocument.*", run = "office" },
+  # 规则2: 匹配所有 OpenDocument 格式的MIME类型。
+  # 这包括了 .odt, .ods, .odp 等 LibreOffice/OpenOffice 的标准格式。
+  { mime = "application/oasis.opendocument.*", run = "office" },
+  # 规则3: 匹配一些旧的或特殊的微软 Office MIME 类型。
+  { mime = "application/ms-*", run = "office" },
+  { mime = "application/msword", run = "office" }, # 专门匹配旧版 .doc 文件
+
+  # 规则4: 作为备用方案，通过文件名后缀来匹配。
+  # 这在系统未能正确识别MIME类型时非常有用。
+  { url = "*.docx", run = "office" },
+  { url = "*.xlsx", run = "office" },
+  { url = "*.pptx", run = "office" },
+  { url = "*.doc", run = "office" },  # 增加对旧版 .doc 的支持
+  { url = "*.xls", run = "office" },  # 增加对旧版 .xls 的支持
+  { url = "*.ppt", run = "office" },  # 增加对旧版 .ppt 的支持
+
+  # --- Office 文档预览规则结束 ---
+
+  { mime = "image/{avif,hei?,jxl}", run = "magick" },
+  { mime = "image/svg+xml", run = "svg" },
+  { mime = "image/*", run = "image" },
+  { mime = "video/*", run = "video" },
+  { mime = "application/pdf", run = "pdf" },
+  { mime = "font/*", run = "font" },
+  { mime = "application/ms-opentype", run = "font" },
+]
+
+# "previewers" 定义了针对不同文件类型，应该使用哪个内置的预览器插件。
+previewers = [
+  # --- Office 文档预览规则开始 ---
+
+  # 规则1: 匹配 Office Open XML 格式 (.docx, .xlsx, .pptx)
+  { mime = "application/openxmlformats-officedocument.*", run = "office" },
+
+  # 规则2: 匹配 OpenDocument 格式 (.odt, .ods, .odp)
+  { mime = "application/oasis.opendocument.*", run = "office" },
+
+  # 规则3: 匹配旧的或特殊的微软 Office MIME 类型
+  { mime = "application/ms-*", run = "office" },
+  { mime = "application/msword", run = "office" },
+
+  # 规则4: 通过文件名后缀匹配，作为备用
+  { url = "*.docx", run = "office" },
+  { url = "*.xlsx", run = "office" },
+  { url = "*.pptx", run = "office" },
+  { url = "*.doc", run = "office" },
+  { url = "*.xls", run = "office" },
+  { url = "*.ppt", run = "office" },
+  # --- Office 文档预览规则结束 ---
+
+  { url = "*/", run = "folder" },                                                                                            # 文件夹使用 'folder' 预览器
+  { mime = "text/*", run = "code" },                                                                                         # 文本文件使用 'code' 预览器 (它会调用 bat)
+  { mime = "application/{mbox,javascript,wine-extension-ini}", run = "code" },
+  { mime = "application/{json,ndjson}", run = "json" },                                                                      # JSON 文件使用 'json' 预览器 (它也会调用 bat)
+  { mime = "image/{avif,hei?,jxl}", run = "magick" },                                                                        # 特殊图片格式使用 'magick' (ImageMagick)
+  { mime = "image/svg+xml", run = "svg" },
+  { mime = "image/*", run = "image" },                                                                                       # 普通图片使用 'image' 预览器
+  { mime = "video/*", run = "video" },                                                                                       # 视频文件使用 'video' 预览器
+  { mime = "application/pdf", run = "pdf" },                                                                                 # PDF 文件使用 'pdf' 预览器 (它会调用 pdftoppm)
+  { mime = "application/{zip,rar,7z*,tar,gzip,xz,zstd,bzip*,lzma,compress,archive,cpio,arj,xar,ms-cab*}", run = "archive" }, # 压缩包使用 'archive' 预览器
+  { url = "*.{AppImage,appimage}", run = "archive" },
+  { mime = "application/{iso9660-image...}", run = "archive" },
+  { mime = "application/virtualbox-{vhd,vhdx}", run = "archive" },
+  { url = "*.{img,fat,ext,ext2,ext3,ext4,squashfs,ntfs,hfs,hfsx}", run = "archive" },
+  { mime = "font/*", run = "font" },
+  { mime = "application/ms-opentype", run = "font" },
+  { mime = "inode/empty", run = "empty" },
+  { url = "*", run = "file" },                                                                                               # 备用规则：对所有其他文件，显示基本文件信息
+]
+
+# --- [input], [confirm], [pick], [which] ---
+# 这些部分定义了 yazi 内部各种交互式对话框（如重命名、搜索、确认）的外观和行为。
+[input]
+# 输入框光标是否闪烁。
+cursor_blink = false
+# "cd" 命令输入框的标题、位置和大小。
+cd_title = "Change directory:"
+cd_origin = "top-center"
+cd_offset = [0, 2, 50, 3]
+# "create" 命令输入框的设置。
+create_title = ["Create:", "Create (dir):"]
+create_origin = "top-center"
+create_offset = [0, 2, 50, 3]
+# "rename" 命令输入框的设置。
+rename_title = "Rename:"
+rename_origin = "hovered"
+rename_offset = [0, 1, 50, 3]
+# "filter" 命令输入框的设置。
+filter_title = "Filter:"
+filter_origin = "top-center"
+filter_offset = [0, 2, 50, 3]
+# "find" 命令输入框的设置。
+find_title = ["Find next:", "Find previous:"]
+find_origin = "top-center"
+find_offset = [0, 2, 50, 3]
+# "search" 命令输入框的设置。
+search_title = "Search via {n}:"
+search_origin = "top-center"
+search_offset = [0, 2, 50, 3]
+# "shell" 命令输入框的设置。
+shell_title = ["Shell:", "Shell (block):"]
+shell_origin = "top-center"
+shell_offset = [0, 2, 50, 3]
+
+# --- [confirm] ---
+# 这些部分定义了 yazi 内部各种交互式对话框的外观和行为。
+[confirm]
+# "trash" (删除到回收站) 确认对话框的设置。
+trash_title = "删除 {n} 个选定的文件{s}?"
+trash_origin = "center"
+trash_offset = [0, 0, 70, 20]
+# "delete" (永久删除) 确认对话框的设置。
+delete_title = "永久删除 {n} 个选定的文件{s}?"
+delete_origin = "center"
+delete_offset = [0, 0, 70, 20]
+# "overwrite" (覆盖文件) 确认对话框的设置。
+# 属性名从 overwrite_content 变更为 overwrite_body
+overwrite_title = "覆盖文件?"
+overwrite_body = "将会覆盖以下文件:"
+overwrite_origin = "center"
+overwrite_offset = [0, 0, 50, 15]
+# "quit" (退出时有任务在运行) 确认对话框的设置。
+# 属性名从 quit_content 变更为 quit_body
+quit_title = "退出?"
+quit_body = "有未完成的任务，确定退出吗？\n(使用默认快捷键 'w' 打开任务管理器)"
+quit_origin = "center"
+quit_offset = [0, 0, 50, 15]
+
+[pick]
+# "open with..." (交互式打开) 菜单的设置。
+open_title = "Open with:"
+open_origin = "hovered"
+open_offset = [0, 1, 50, 7]
+
+[which]
+# 按下 `g` 等多步快捷键时，底部弹出的“下一步”提示菜单的设置。
+sort_by = "none"
+sort_sensitive = false
+sort_reverse = false
+sort_translit = false
+

@@ -22,3 +22,12 @@ matches:
 
   - trigger: "u.dl"
     replace: '# chezmoi:template:left-delimiter="[[", right-delimiter="]]"'
+
+  - trigger: "u.hm"
+    replace: "{{ .chezmoi.homeDir }}"
+
+  - trigger: "u.osw"
+    replace: '{{- if eq .chezmoi.os "windows" }}'
+
+  - trigger: "u.osl"
+    replace: '{{ - if eq .chezmoi.os "linux" }}'

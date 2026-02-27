@@ -1,0 +1,59 @@
+return {
+  -- 1. 语法高亮 (Treesitter)
+  {
+    "nvim-treesitter/nvim-treesitter",
+    opts = function(_, opts)
+      if type(opts.ensure_installed) == "table" then
+        vim.list_extend(opts.ensure_installed, { "typst" })
+      end
+    end,
+  },
+
+  -- 2. Tinymist LSP 配置
+  {
+    "neovim/nvim-lspconfig",
+    opts = {
+      servers = {
+        tinymist = {
+        {{- if eq .chezmoi.os "windows" }}
+          mason = false,
+        {{- end}}
+          -- 处理编码和设置
+          offset_encoding = "utf-8",
+          settings = {
+            exportPdf = "never", -- 禁用保存自动导出
+            formatterMode = "typstyle",
+            -- 指定编译入口可以在这里配置
+            semanticTokens = "enable", -- 增强语法高亮
+          },
+        },
+      },
+    },
+  },
+
+  -- 3. Typst Preview 插件 (用于实时同步预览)
+  {
+    "chomosuke/typst-preview.nvim",
+    ft = "typst",
+    version = "1.*",
+    opts = {
+      dependencies_bin = {
+        ["tinymist"] = "tinymist",
+        ["websocat"] = "websocat",
+      },
+    },
+    keys = {
+      { "<leader>tp", "<cmd>TypstPreviewToggle<cr>", desc = "Typst Preview" },
+    },
+  },
+
+  -- 4. 格式化配置 (Conform.nvim)
+  {
+    "stevearc/conform.nvim",
+    opts = {
+      formatters_by_ft = {
+        typst = { "typstyle" },
+      },
+    },
+  },
+}

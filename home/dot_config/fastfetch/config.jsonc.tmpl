@@ -1,0 +1,86 @@
+{
+  // 提供自动补全和语法验证。
+  "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
+  // 定义左侧显示的 ASCII 艺术
+  "logo": {
+    // 从本地文件加载
+    "type": "file",
+    // ASCII 艺术文件的绝对路径。
+    "source": "~/.config/fastfetch/ascii.txt",
+    // 这些颜色来自 Catppuccin Mocha 调色板。
+    "color": {
+      "1": "#F5E0DC",
+      "2": "#F2CDCD",
+      "3": "#F5C2E7",
+      "4": "#FAB387",
+      "5": "#F9E2AF",
+      "6": "#A6E3A1",
+      "7": "#94E2D5",
+      "8": "#89DCEB",
+      "9": "#74C7EC"
+    },
+    // "padding" 在 Logo 周围添加额外的空白，用于调整布局。
+    "padding": {
+      "top": 1, // 在 Logo 上方添加 1 行空白。
+      "right": 3 // 在 Logo 和右侧信息模块之间添加 3 个字符的间距。
+    }
+  },
+  // "display" 部分控制信息模块的通用显示格式。
+  "display": {
+    // "separator" 定义了模块的“键”（如图标）和“值”（如操作系统名称）之间的分隔符。
+    "separator": " "
+  },
+  // "modules" 是一个数组，定义了要显示哪些信息模块，以及它们的顺序和样式。
+  "modules": [
+    // "break" 是一个特殊模块，只用于插入一个空行，以增加垂直间距。
+    "break",
+    // "title" 模块，显示 "user@hostname" 格式的标题。
+    {
+      "type": "title",
+      "color": {
+        "user": "#F5C2E7", // 用户名的颜色
+        "at": "#CDD6F4", // "@" 符号的颜色
+        "host": "#89DCEB" // 主机名的颜色
+      }
+    },
+    "break",
+    // "os" 模块，显示操作系统信息。
+    {
+      "type": "os",
+      "key": "", // 使用 Nerd Font 图标作为键（这是 Windows 图标）。
+      "keyColor": "#89DCEB" // 图标的颜色。
+    },
+    // "cpu" 模块，显示 CPU 信息。
+    {
+      "type": "cpu",
+      "key": "", // CPU 的 Nerd Font 图标。
+      "keyColor": "#F5C2E7"
+    },
+    // "board" 模块，显示主板信息。
+    {
+      "type": "board",
+      "key": "󰚗", // 主板的 Nerd Font 图标。
+      "keyColor": "#FAB387"
+    },
+    // "memory" 模块，显示内存（RAM）使用情况。
+    {
+      "type": "memory",
+      "key": "", // 内存的 Nerd Font 图标。
+      "keyColor": "#A6E3A1",
+      // "format" 自定义了输出格式，使其显示 "已用 / 总量 (百分比)"。
+      "format": "{used} / {total} ({percentage})"
+    },
+    // "disk" 模块，显示磁盘使用情况。
+    {
+      "type": "disk",
+      "key": "", // 磁盘的 Nerd Font 图标。
+      "keyColor": "#94E2D5"
+    },
+    "break",
+    // "colors" 模块，显示你终端当前配置的颜色面板。
+    {
+      "type": "colors",
+      "symbol": "circle" // 使用圆形符号来展示颜色。
+    }
+  ]
+}

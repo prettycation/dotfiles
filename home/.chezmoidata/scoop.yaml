@@ -16,6 +16,14 @@ scoop:
       includes:
         - "**"
 
+    - name: "eza"
+      scoop_app: "eza-community.eza"
+      source_base: "dot_config/eza"
+      target_base: ".config/eza"
+      ignore_path: ".config/eza"
+      includes:
+        - "**"
+
     - name: "ExplorerTabUtility"
       scoop_app: "w4po.ExplorerTabUtility"
       source_base: ".chezmoitemplates/windows-apps/ExplorerTabUtility"
@@ -31,7 +39,7 @@ scoop:
       includes:
         - "**"
 
-    - wezterm: "wezterm"
+    - name: "wezterm"
       scoop_app: "wez.wezterm"
       source_base: "dot_config/wezterm"
       target_base: ".config/wezterm"
