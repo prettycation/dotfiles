@@ -17,9 +17,9 @@ keymap = [
   { on = "<C-t>", run = "plugin tv text", desc = "使用 neovim 打开文件并跳转到该字符串所在的位置" },
   { on = "<C-d>", run = "plugin tv dirs", desc = "通过 telivision 跳转到目录" },
   # easyjump
-  # { on = "f", run = "plugin easyjump", desc = "easyjump" },
+  { on = "f", run = "plugin easyjump", desc = "easyjump" },
   # searchjump
-  { on = "f", run = "plugin searchjump", desc = "searchjump" },
+  { on = "s", run = "plugin searchjump", desc = "searchjump" },
   # project
   { on = ["P", "s"], run = "plugin projects save", desc = "保存当前的项目" },
   { on = ["P", "l"], run = "plugin projects load", desc = "加载项目" },
