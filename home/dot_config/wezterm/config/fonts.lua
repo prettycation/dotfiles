@@ -10,6 +10,7 @@ if platform.is_win then
       families = {
          'FiraCode Nerd Font Mono', -- 英文/代码主字体
          'LXGW WenKai Mono GB', -- 中文/Fallback字体
+         'JetBrainsMono Nerd Font',
       },
       weight = {
          450,
