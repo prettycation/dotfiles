@@ -19,21 +19,21 @@ return {
       opts.options.debug = false
       opts.options.notify_user_on_venv_activation = true
 
-      -- 环境名称显示
+      -- 环境名称显示逻辑 (通用)
       opts.options.on_telescope_result_callback = function(filename)
         -- 统一路径分隔符，防止 Windows 反斜杠干扰
         filename = filename:gsub("\\", "/")
 
-        -- 获取 python.exe 所在的目录 (通常是 Scripts)
+        -- 获取 python 所在的目录
         local parent_path = vim.fn.fnamemodify(filename, ":h")
         local parent_dir = vim.fn.fnamemodify(parent_path, ":t")
 
-        -- 如果是 Scripts 或 bin，往上一层
+        -- 如果是在 Scripts (Win) 或 bin (Unix)，往上一层获取环境名
         if parent_dir == "Scripts" or parent_dir == "bin" then
           local grand_parent_path = vim.fn.fnamemodify(parent_path, ":h")
           local env_name = vim.fn.fnamemodify(grand_parent_path, ":t")
 
-          -- UV 的 .venv 显示项目名
+          -- UV 逻辑: .venv 目录下显示项目名
           if env_name == ".venv" then
             local project_path = vim.fn.fnamemodify(grand_parent_path, ":h")
             local project_name = vim.fn.fnamemodify(project_path, ":t")
@@ -43,30 +43,52 @@ return {
           return env_name -- 返回 Poetry 的 "project-hash" 或普通 venv 名字
         end
 
-        -- 如果是 Anaconda (结构是 envs/name/python.exe)，直接返回 name
+        -- Anaconda 结构处理
         return parent_dir
       end
 
-      -- 平台特定逻辑
-      if vim.fn.has("win32") == 1 then
-        --  Windows 配置
-
+      -- 平台特定搜索策略
+      {{- if eq .chezmoi.os "windows" }}
         -- 清空 LazyVim 默认策略
         opts.search = {}
-
-        -- 注入 Anaconda 策略
-        opts.search.anaconda_envs = {
+      opts.search = {
+        anaconda_envs = {
           command = "fd -u -F python.exe E:\\anaconda\\envs --max-depth 2 --full-path --color never -E Lib",
           type = "anaconda",
-        }
-
-        opts.search.anaconda_base = {
+        },
+        anaconda_base = {
           command = "fd -u -F python.exe E:\\anaconda --max-depth 1 --full-path --color never -E Lib",
           type = "anaconda",
+        },
+        -- Windows 默认的 .venv 搜索
+        cwd = {
+          command = "fd -u -F python.exe --max-depth 3 --color never",
         }
-      else
-        -- Linux 配置默认
-      end
+      }
+      {{- else }}
+      opts.search = {
+        -- 1. 搜索当前工作目录下的 .venv (通用)
+        cwd = {
+          command = "fd -H -F python --max-depth 3 --color never -E .git",
+        },
+        -- 2. 搜索 Poetry 虚拟环境
+        poetry = {
+          command = "fd -u -F python {{ if eq .chezmoi.os "darwin" }}~/Library/Caches/pypoetry/virtualenvs{{ else }}~/.cache/pypoetry/virtualenvs{{ end }} --max-depth 2 --color never",
+        },
+        -- 3. 搜索 UV 环境
+        uv = {
+          command = "fd -u -F python ~/.local/share/uv/python --max-depth 2 --color never",
+        },
+        -- 4. 搜索系统默认虚拟环境存放点
+        vms = {
+          command = "fd -u -F python ~/.virtualenvs --max-depth 2 --color never",
+        },
+        -- 5. 如果 Linux/Mac 也装了 Conda (可选)
+        conda = {
+          command = "fd -u -F python ~/anaconda3/envs --max-depth 2 --color never",
+        },
+      }
+      {{- end }}
     end,
   },
 }

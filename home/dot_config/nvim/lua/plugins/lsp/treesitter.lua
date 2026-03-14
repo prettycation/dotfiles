@@ -1,0 +1,30 @@
+return {
+  {
+    "nvim-treesitter/nvim-treesitter",
+    lazy = false,
+    build = ":TSUpdate",
+    config = function()
+      local ts = require("nvim-treesitter")
+
+      ts.setup({})
+
+      -- 安装必要的解析器
+      ts.install({
+        "markdown",
+        "markdown_inline",
+        "lua",
+        "vim",
+        "vimdoc",
+      })
+
+      -- 只针对特定文件开启 Treesitter 高亮，避免报错
+      vim.api.nvim_create_autocmd("FileType", {
+        -- 暂时只针对 markdown 开启
+        pattern = { "markdown", "markdown_inline", "llm" },
+        callback = function()
+          pcall(vim.treesitter.start)
+        end,
+      })
+    end,
+  },
+}

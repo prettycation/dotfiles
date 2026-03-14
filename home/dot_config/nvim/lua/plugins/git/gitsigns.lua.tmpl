@@ -4,6 +4,7 @@ return {
   -- 禁用懒加载：确保 init 中的路径劫持 Hook 在任何 Git 操作前生效
   lazy = false,
 
+  {{- if eq .chezmoi.os "windows" }}
   -- 全局路径解析劫持 Hook
   -- 解决 Windows 下使用 Junction 跨盘符链接时，gitsigns 会强制解析物理路径，导致无法识别 F 盘 Git 仓库的问题。
   init = function()
@@ -56,6 +57,8 @@ return {
       return orig_realpath(path)
     end
   end,
+  {{- end }}
+
   opts = {
     signs = {
       add = { text = "│" },
@@ -85,6 +88,7 @@ return {
         opts.buffer = bufnr
         vim.keymap.set(mode, l, r, opts)
       end
+
       -- Navigation (跳转)
       map("n", "]c", function()
         if vim.wo.diff then
@@ -100,6 +104,7 @@ return {
           gitsigns.nav_hunk("prev")
         end
       end, { desc = "Prev Hunk" })
+
       -- Hunk Actions (块操作)
       map("n", "<leader>hp", gitsigns.preview_hunk, { desc = "Preview Hunk" })
       map("n", "<leader>hi", gitsigns.preview_hunk_inline, { desc = "Preview Hunk Inline" })
@@ -113,11 +118,12 @@ return {
       map("n", "<leader>hQ", function()
         gitsigns.setqflist("all")
       end, { desc = "Set qflist (all)" })
-
       map("n", "<leader>hq", gitsigns.setqflist, { desc = "Set qflist" })
+
       -- Toggles (开关)
       map("n", "<leader>tb", gitsigns.toggle_current_line_blame, { desc = "Toggle Line Blame" })
       map("n", "<leader>tw", gitsigns.toggle_word_diff, { desc = "Toggle Word Diff" })
+
       -- Text object (文本对象)
       map({ "o", "x" }, "ih", gitsigns.select_hunk, { desc = "Select Hunk" })
     end,
