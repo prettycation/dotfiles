@@ -18,7 +18,7 @@ return {
         y = 0.5,
       },
       filetype = {
-        python = "python -u",
+        python = "{{ if eq .chezmoi.os "windows" }}python -u{{ else }}python3 -u{{ end }}",
         typst = "typst compile",
         rust = "cd $dir && rustc $fileName && $dir/$fileNameWithoutExt",
         lua = "lua",
@@ -42,14 +42,14 @@ return {
           -- 语言定义
           repl_definition = {
             python = {
-              command = { "python" },
+              command = { "{{ if eq .chezmoi.os "windows" }}python -u{{ else }}python3 -u{{ end }}" },
               format = common.bracketed_paste_python,
             },
             lua = {
               command = { "lua" },
             },
             sh = {
-              command = { "powershell" },
+              command = { "{{ if eq .chezmoi.os "windows" }}powershell{{ else }}zsh{{ end }}" },
             },
           },
         },
@@ -69,7 +69,7 @@ return {
         },
       }
     end,
-    -- 自定义按键绑定 (完美解决 Windows 兼容性问题)
+    -- 自定义按键绑定 (解决 Windows 兼容性问题)
     keys = {
       { "<leader>ro", desc = "Toggle REPL" },
       { "<leader>rs", mode = { "n", "v" }, desc = "Send to REPL" },
@@ -80,7 +80,7 @@ return {
       {
         "<leader>rl",
         function()
-          require("iron.core").send(nil, "import os; os.system('cls')")
+          require("iron.core").send(nil, "import os; os.system('{{ if eq .chezmoi.os "windows" }}cls{{ else }}clear{{ end }}')")
         end,
         desc = "Clear REPL",
       },
