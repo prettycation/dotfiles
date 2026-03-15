@@ -1,0 +1,447 @@
+// 本配置文件使用 KDL 格式: https://kdl.dev
+// "/-" 用于注释掉紧随其后的整个节点。
+// 查阅 Niri Wiki 获取完整的配置说明:
+// https://yalter.github.io/niri/Configuration:-Introduction
+
+// -------------------------------------------------------------------
+// 输入设备配置
+// 在 Wiki 上查找完整的选项列表:
+// https://yalter.github.io/niri/Configuration:-Input
+// -------------------------------------------------------------------
+input {
+    keyboard {
+        xkb {
+            // 您可以设置 rules, model, layout, variant 和 options。
+            // 更多信息, 请查阅手册页 xkeyboard-config(7)。
+
+            // 示例:
+            // layout "us,ru" // 设置美式和俄语两种键盘布局
+            // options "grp:win_space_toggle,compose:ralt,ctrl:nocaps" // Win+Space切换布局, 右Alt作Compose键, CapsLock作Ctrl
+
+            // 如果此部分为空, niri 将从 org.freedesktop.locale1 获取 xkb 设置。
+            // 您可以使用 `localectl set-x11-keymap` 来控制这些设置。
+        }
+
+        // 启动时启用数字小键盘 (NumLock)。省略此设置则默认禁用。
+        numlock
+    }
+
+
+    // 以下部分包含 libinput 的设置。
+    // 省略设置将禁用它们, 或使其保持默认值。
+    // 这里所有被注释掉的设置都是示例, 而非默认值。
+    touchpad {
+        // off // 完全禁用触摸板
+        tap // 启用轻触点击
+        // dwt // 打字时禁用触摸板 (Disable While Typing)
+        // dwtp // 打字时禁用触摸板并忽略指针移动
+        // drag false // 禁用拖动
+        // drag-lock // 启用拖动锁定
+        natural-scroll // 启用自然滚动 (滚动方向与手指移动方向一致)
+        // accel-speed 0.2 // 设置指针加速度, 范围 -1.0 到 1.0
+        // accel-profile "flat" // 加速度配置文件 (adaptive 或 flat)
+        // scroll-method "two-finger" // 滚动方式 (two-finger, edge, on-button-down)
+        // disabled-on-external-mouse // 连接外部鼠标时禁用触摸板
+    }
+
+    mouse {
+
+        // off // 禁用鼠标
+        // natural-scroll // 启用自然滚动
+        // accel-speed 0.2 // 指针加速度
+        // accel-profile "flat" // 加速度配置文件
+        // scroll-method "no-scroll" // 滚动方式 (on-button-down, no-scroll)
+    }
+
+    trackpoint {
+        // off // 禁用指点杆
+        // natural-scroll // 启用自然滚动
+        // accel-speed 0.2 // 指针加速度
+        // accel-profile "flat" // 加速度配置文件
+        // scroll-method "on-button-down" // 滚动方式
+        // scroll-button 273 // 用于滚动的按钮代码
+        // scroll-button-lock // 启用滚动按钮锁定
+        // middle-emulation // 模拟中键点击
+    }
+
+
+    // 取消注释此行, 可使鼠标指针在新窗口获得焦点时, 自动移动到窗口中央。
+    // warp-mouse-to-focus
+
+    // 当鼠标移动到窗口或显示器上时, 自动使其获得焦点。
+    // 设置 max-scroll-amount="0%" 使其仅对已完全在屏幕上的窗口生效。
+    // focus-follows-mouse max-scroll-amount="0%"
+}
+
+// -------------------------------------------------------------------
+// 显示器 (Output) 配置
+// 您可以按名称配置显示器, 名称可以通过在 niri 实例中运行 `niri msg outputs` 找到。
+// 内置的笔记本屏幕通常被称为 "eDP-1"。
+// 在 Wiki 上查找更多信息:
+// https://yalter.github.io/niri/Configuration:-Outputs
+// 记得通过移除 "/-" 来取消节点的注释！
+// -------------------------------------------------------------------
+/-output "eDP-1" {
+    // 取消注释此行以禁用此显示器。
+    // off
+
+    // 设置显示器的分辨率和刷新率(可选)。
+    // 格式为 "<宽度>x<高度>" 或 "<宽度>x<高度>@<刷新率>"。
+    // 如果省略刷新率, niri 将选择该分辨率下的最高刷新率。
+    // 如果完全省略或模式无效, niri 将自动选择一个模式。
+    // 在 niri 实例中运行 `niri msg outputs` 来列出所有显示器及其支持的模式。
+    mode "1920x1080@120.030"
+
+    // 您可以使用整数或小数缩放, 例如 1.5 代表 150% 缩放。
+    scale 2
+
+    // transform 允许逆时-时针旋转显示器, 有效值为:
+    // normal, 90, 180, 270, flipped, flipped-90, flipped-180 和 flipped-270。
+    transform "normal"
+
+    // 显示器在全局坐标空间中的位置。
+    // 这会影响方向性的显示器操作 (如 "focus-monitor-left") 和光标移动。
+    // 光标只能在直接相邻的显示器之间移动。
+    // 定位时必须考虑显示器的缩放和旋转:
+    // 显示器尺寸以逻辑像素(或缩放后像素)计算。
+    // 例如, 一个 3840×2160 分辨率、缩放为 2.0 的显示器, 其逻辑尺寸为 1920×1080,
+    // 所以要把另一个显示器放在它的右边, x 坐标应设为 1920。
+    // 如果位置未设置或导致重叠, 显示器将被自动放置。
+    position x=1280 y=0
+}
+
+// -------------------------------------------------------------------
+// 窗口布局 (Layout) 配置
+// 影响窗口定位和大小的设置。
+// 在 Wiki 上查找更多信息:
+// https://yalter.github.io/niri/Configuration:-Layout
+// -------------------------------------------------------------------
+layout {
+    // 设置窗口周围的间隙 (逻辑像素)。
+    gaps 16
+
+    // 何时在改变焦点时居中列, 选项有:
+    // - "never": 默认行为, 聚焦一个屏幕外的列会使其保持在屏幕的左或右边缘。
+    // - "always": 聚焦的列将永远居中。
+    // - "on-overflow": 聚焦一个列时, 如果它不能与前一个聚焦的列同时容纳, 则会居中它。
+    center-focused-column "never"
+
+    // 您可以自定义 "switch-preset-column-width" (Mod+R) 切换的预设列宽。
+    preset-column-widths {
+        // proportion 将宽度设置为输出宽度的一个比例, 会考虑间隙。
+        // 例如, 您可以在一个输出上完美地放置四个大小为 "proportion 0.25" 的窗口。
+        // 默认的预设宽度是输出宽度的 1/3, 1/2 和 2/3。
+        proportion 0.33333
+        proportion 0.5
+        proportion 0.66667
+
+        // fixed 将宽度设置为精确的逻辑像素值。
+        // fixed 1920
+    }
+
+    // 您也可以自定义 "switch-preset-window-height" (Mod+Shift+R) 切换的预设窗口高度。
+    // preset-window-heights { }
+
+    // 您可以更改新窗口的默认宽度。
+    default-column-width { proportion 0.5; }
+    // 如果您保留括号为空, 窗口将自己决定其初始宽度。
+    // default-column-width {}
+
+    // 默认情况下, 焦点环和边框被渲染为窗口后面的实心背景矩形。
+    // 这意味着它们会透过半透明窗口显示出来。
+    // 这是因为使用客户端装饰(CSD)的窗口可以有任意形状。
+    // 如果您不喜欢这样, 您应该取消下面的 `prefer-no-csd` 的注释。
+    // Niri 将在同意省略其客户端装饰的窗口周围绘制焦点环和边框。
+    
+    // 您可以更改焦点环的外观。
+    focus-ring {
+        // off // 取消注释此行以禁用焦点环。
+        width 4 // 焦点环超出窗口的逻辑像素宽度。
+        active-color "#7fc8ff" // 活动显示器上的焦点环颜色。
+        inactive-color "#505050" // 非活动显示器上的焦点环颜色。
+    }
+
+    // 您也可以添加边框。它类似于焦点环, 但始终可见。
+    border {
+        // 如果启用边框, 您可能想禁用焦点环。
+        off
+        width 4
+        active-color "#ffc87f"
+        inactive-color "#505050"
+        urgent-color "#9b0000" // "需要注意" 状态窗口的边框颜色。
+    }
+
+    // 您可以为窗口启用阴影。
+    shadow {
+        // on // 取消注释以启用阴影。
+        softness 30 // 阴影模糊半径。
+        spread 5 // 扩展阴影。
+        offset x=0 y=5 // 阴影相对于窗口的偏移。
+        color "#0007" // 阴影颜色和不透明度。
+    }
+
+    // Struts (支柱) 会缩小窗口占用的区域, 类似于 layer-shell 面板。
+    // 您可以将其视为一种外部间隙。以逻辑像素设置。
+    struts {
+        // left 64
+        // right 64
+        // top 64
+        // bottom 64
+    }
+}
+
+// ===================================================================
+// ==                      启动项 (正确语法)                        ==
+// ===================================================================
+// 每一个需要在启动时运行的程序，都使用一个独立的 spawn-at-startup 指令。
+
+// 启动 DankMaterialShell
+spawn-at-startup "dms" "run"
+
+// 启动剪贴板历史管理器
+// 注意：因为命令包含特殊字符和空格，我们需要用 sh -c 来执行
+spawn-sh-at-startup "wl-paste --watch cliphist store &"
+
+// 启动 Polkit 认证代理
+spawn-at-startup "/usr/lib/polkit-kde-authentication-agent-1"
+
+// 启动 XSettings 守护进程
+spawn-at-startup "xsettingsd"
+
+// -------------------------------------------------------------------
+// 其他杂项设置
+// -------------------------------------------------------------------
+
+// "重要热键" 弹窗的设置。
+hotkey-overlay {
+    // 取消注释此行可禁用启动时的 "重要热键" 弹窗。
+    // skip-at-startup
+}
+
+// 取消注释此行, 会请求客户端尽可能省略其客户端装饰(CSD)。
+// 如果客户端特别要求 CSD, 该请求将被尊重。
+// 此外, 客户端将被告知它们是平铺的, 这会移除一些客户端的圆角。
+// 启用或禁用此选项后, 您需要重启应用程序才能生效。
+// prefer-no-csd
+
+// 您可以更改截图保存的路径。
+// 开头的 ~ 会被扩展为家目录。
+// 路径使用 strftime(3) 格式化, 以便在文件名中包含日期和时间。
+screenshot-path "~/Pictures/Screenshots/Screenshot from %Y-%m-%d %H-%M-%S.png"
+
+// 您也可以将其设置为 null 来禁用将截图保存到磁盘。
+// screenshot-path null
+
+// 动画设置。
+// Wiki 解释了如何配置单个动画:
+// https://yalter.github.io/niri/Configuration:-Animations
+animations {
+    // off // 取消注释以关闭所有动画。
+    // slowdown 3.0 // 将所有动画减慢 3 倍。小于 1 的值则会加速。
+}
+
+// -------------------------------------------------------------------
+// 窗口规则 (Window Rules)
+// 允许您为单个窗口调整行为。
+// 在 Wiki 上查找更多信息:
+// https://yalter.github.io/niri/Configuration:-Window-Rules
+// -------------------------------------------------------------------
+window-rule {
+    // 这是一个为 WezTerm 绕过其初始配置错误的示例。
+    match app-id=r#"^org\.wezfurlong\.wezterm$"#
+    default-column-width {}
+}
+window-rule {
+    // 默认将 Firefox 的画中画播放器设为浮动窗口。
+    match app-id=r#"firefox$"# title="^Picture-in-Picture$"
+    open-floating true
+}
+/-window-rule {
+    // 示例：将所有窗口设为圆角。
+    geometry-corner-radius 12
+    clip-to-geometry true
+}
+
+// ===================================================================
+// ==                           快捷键                            ==
+// ===================================================================
+binds {
+    // 按键由 '+' 分隔的修饰键和最后的 XKB 按键名组成。
+    // 您可以使用像 wev 这样的程序来查找特定按键的 XKB 名称。
+    // "Mod" 是一个特殊的修饰键, 在 TTY 中等于 Super , 在 winit 窗口中等于 Alt。
+    // 大多数可以在此绑定的操作, 也可以通过 `niri msg action <操作名>` 来编程调用。
+
+    // --- DankMaterialShell 快捷键绑定 ---
+    Mod+Space hotkey-overlay-title="应用程序启动器 (DMS)" {
+       spawn "dms" "ipc" "call" "spotlight" "toggle";
+    }
+    Mod+V hotkey-overlay-title="剪贴板管理器 (DMS)" {
+       spawn "dms" "ipc" "call" "clipboard" "toggle";
+    }
+    Mod+M hotkey-overlay-title="任务管理器 (DMS)" {
+       spawn "dms" "ipc" "call" "processlist" "toggle";
+    }
+    Mod+N hotkey-overlay-title="通知中心 (DMS)" {
+       spawn "dms" "ipc" "call" "notifications" "toggle";
+    }
+    Mod+Comma hotkey-overlay-title="设置 (DMS)" {
+       spawn "dms" "ipc" "call" "settings" "toggle";
+    }
+    Super+Alt+L hotkey-overlay-title="锁屏 (DMS)" {
+       spawn "dms" "ipc" "call" "lock" "lock";
+    }
+    Mod+X hotkey-overlay-title="电源菜单 (DMS)" {
+       spawn "dms" "ipc" "call" "powermenu" "toggle";
+    }
+
+    // --- Niri 默认快捷键 ---
+
+    // Mod+Shift+/ (通常与 Mod+? 相同), 显示重要热键列表。
+    Mod+Shift+Slash { show-hotkey-overlay; }
+
+    // 建议的程序启动绑定: 终端, 应用启动器, 锁屏。
+    Mod+T hotkey-overlay-title="打开终端: kitty" { spawn "kitty"; }
+    Mod+D hotkey-overlay-title="运行程序: fuzzel" { spawn "fuzzel"; }
+    // Super+Alt+L hotkey-overlay-title="锁屏: swaylock" { spawn "swaylock"; } // 已被DMS替代
+
+    // 使用 spawn-sh 来运行一个 shell 命令 (如果需要管道、变量等)。
+    Super+Alt+S allow-when-locked=true hotkey-overlay-title=null { spawn-sh "pkill orca || exec orca"; }
+
+    // PipeWire & WirePlumber 的音量键示例。
+    XF86AudioRaiseVolume allow-when-locked=true { spawn-sh "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.1+"; }
+    XF86AudioLowerVolume allow-when-locked=true { spawn-sh "wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.1-"; }
+    XF86AudioMute        allow-when-locked=true { spawn-sh "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"; }
+    XF86AudioMicMute     allow-when-locked=true { spawn-sh "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle"; }
+
+    // brightnessctl 的亮度键示例。
+    XF86MonBrightnessUp allow-when-locked=true { spawn "brightnessctl" "--class=backlight" "set" "+10%"; }
+    XF86MonBrightnessDown allow-when-locked=true { spawn "brightnessctl" "--class=backlight" "set" "10%-"; }
+
+    // 打开/关闭概览 (Overview): 一个缩小的、显示所有工作区和窗口的视图。
+    Mod+O repeat=false { toggle-overview; }
+
+    // 关闭窗口
+    Mod+Q repeat=false { close-window; }
+
+    // 移动焦点
+    Mod+Left  { focus-column-left; }
+    Mod+Down  { focus-window-down; }
+    Mod+Up    { focus-window-up; }
+    Mod+Right { focus-column-right; }
+    Mod+H     { focus-column-left; }
+    Mod+J     { focus-window-down; }
+    Mod+K     { focus-window-up; }
+    Mod+L     { focus-column-right; }
+
+    // 移动窗口/列
+    Mod+Ctrl+Left  { move-column-left; }
+    Mod+Ctrl+Down  { move-window-down; }
+    Mod+Ctrl+Up    { move-window-up; }
+    Mod+Ctrl+Right { move-column-right; }
+    Mod+Ctrl+H     { move-column-left; }
+    Mod+Ctrl+J     { move-window-down; }
+    Mod+Ctrl+K     { move-window-up; }
+    Mod+Ctrl+L     { move-column-right; }
+
+    // 跳转到首/末列
+    Mod+Home { focus-column-first; }
+    Mod+End  { focus-column-last; }
+    Mod+Ctrl+Home { move-column-to-first; }
+    Mod+Ctrl+End  { move-column-to-last; }
+
+    // 移动焦点到不同显示器
+    Mod+Shift+Left  { focus-monitor-left; }
+    Mod+Shift+Down  { focus-monitor-down; }
+    Mod+Shift+Up    { focus-monitor-up; }
+    Mod+Shift+Right { focus-monitor-right; }
+    Mod+Shift+H     { focus-monitor-left; }
+    Mod+Shift+J     { focus-monitor-down; }
+    Mod+Shift+K     { focus-monitor-up; }
+    Mod+Shift+L     { focus-monitor-right; }
+    
+    // 移动列到不同显示器
+    Mod+Shift+Ctrl+Left  { move-column-to-monitor-left; }
+    Mod+Shift+Ctrl+Down  { move-column-to-monitor-down; }
+    Mod+Shift+Ctrl+Up    { move-column-to-monitor-up; }
+    Mod+Shift+Ctrl+Right { move-column-to-monitor-right; }
+    Mod+Shift+Ctrl+H     { move-column-to-monitor-left; }
+    Mod+Shift+Ctrl+J     { move-column-to-monitor-down; }
+    Mod+Shift+Ctrl+K     { move-column-to-monitor-up; }
+    Mod+Shift+Ctrl+L     { move-column-to-monitor-right; }
+
+    // 切换工作区
+    Mod+Page_Down      { focus-workspace-down; }
+    Mod+Page_Up        { focus-workspace-up; }
+    Mod+U              { focus-workspace-down; }
+    Mod+I              { focus-workspace-up; }
+    Mod+Ctrl+Page_Down { move-column-to-workspace-down; }
+    Mod+Ctrl+Page_Up   { move-column-to-workspace-up; }
+    Mod+Ctrl+U         { move-column-to-workspace-down; }
+    Mod+Ctrl+I         { move-column-to-workspace-up; }
+
+    // 移动工作区
+    Mod+Shift+Page_Down { move-workspace-down; }
+    Mod+Shift+Page_Up   { move-workspace-up; }
+    Mod+Shift+U         { move-workspace-down; }
+    Mod+Shift+I         { move-workspace-up; }
+
+    // 使用鼠标滚轮切换
+    Mod+WheelScrollDown      cooldown-ms=150 { focus-workspace-down; }
+    Mod+WheelScrollUp        cooldown-ms=150 { focus-workspace-up; }
+    Mod+WheelScrollRight      { focus-column-right; }
+    Mod+WheelScrollLeft       { focus-column-left; }
+
+    // 按数字键切换工作区
+    Mod+1 { focus-workspace 1; }
+    Mod+2 { focus-workspace 2; }
+    Mod+3 { focus-workspace 3; }
+    Mod+4 { focus-workspace 4; }
+    Mod+5 { focus-workspace 5; }
+    Mod+6 { focus-workspace 6; }
+    Mod+7 { focus-workspace 7; }
+    Mod+8 { focus-workspace 8; }
+    Mod+9 { focus-workspace 9; }
+    Mod+Ctrl+1 { move-column-to-workspace 1; }
+    Mod+Ctrl+2 { move-column-to-workspace 2; }
+    Mod+Ctrl+3 { move-column-to-workspace 3; }
+    Mod+Ctrl+4 { move-column-to-workspace 4; }
+    Mod+Ctrl+5 { move-column-to-workspace 5; }
+    Mod+Ctrl+6 { move-column-to-workspace 6; }
+    Mod+Ctrl+7 { move-column-to-workspace 7; }
+    Mod+Ctrl+8 { move-column-to-workspace 8; }
+    Mod+Ctrl+9 { move-column-to-workspace 9; }
+
+    // 切换到上一个工作区
+    // Mod+Tab { focus-workspace-previous; }
+
+    // 窗口尺寸和状态调整
+    Mod+R { switch-preset-column-width; }
+    Mod+Shift+R { switch-preset-window-height; }
+    Mod+F { maximize-column; }
+    Mod+Shift+F { fullscreen-window; }
+    Mod+C { center-column; }
+    Mod+Minus { set-column-width "-10%"; }
+    Mod+Equal { set-column-width "+10%"; }
+
+    // 浮动窗口
+    //Mod+V       { toggle-window-floating; }
+    Mod+Shift+V { switch-focus-between-floating-and-tiling; }
+
+    // Tabbed 模式
+    Mod+W { toggle-column-tabbed-display; }
+    
+    // 截图
+    Print { screenshot; }
+    Ctrl+Print { screenshot-screen; }
+    Alt+Print { screenshot-window; }
+
+    // 键盘快捷键抑制器的“逃生舱口”
+    Mod+Escape allow-inhibiting=false { toggle-keyboard-shortcuts-inhibit; }
+
+    // 退出 Niri 会话 (会弹出确认对话框)。
+    Mod+Shift+E { quit; }
+    Ctrl+Alt+Delete { quit; }
+
+    // 关闭显示器电源。移动鼠标或按任意键可唤醒。
+    Mod+Shift+P { power-off-monitors; }
+}
