@@ -60,7 +60,9 @@ local keys = {
    -- tabs --
    -- tabs: spawn+close
    { key = 't',          mods = mod.SUPER,     action = act.SpawnTab('DefaultDomain') },
-   -- { key = 't',          mods = mod.SUPER_REV, action = act.SpawnTab({ DomainName = 'wsl:ubuntu-fish' }) },
+   {{- if eq .chezmoi.os "windows" }}
+   { key = 't',          mods = mod.SUPER_REV, action = act.SpawnTab({ DomainName = 'wsl:arch-zsh' }) },
+   {{- end }}
    { key = 'q',          mods = mod.SUPER,     action = act.CloseCurrentTab({ confirm = false }) },
 
    -- tabs: navigation
