@@ -25,11 +25,11 @@
 {{ if ne .chezmoi.os "windows" }}
 .chezmoiscripts/windows/**
 Documents
-dot_config/nvim/lua/plugins/preview/smear-cursor.lua
-dot_config/tacky-borders
-dot_config/wezterm
-dot_espanso/match/_scoop.yml
-dot_glzr/**
+.config/nvim/lua/plugins/preview/smear-cursor.lua
+.config/tacky-borders
+.config/wezterm
+.espanso/match/_scoop.yml
+.glzr/**
 {{ else }}
 .bash_aliases
 .config/ghostty
@@ -57,6 +57,7 @@ dot_glzr/**
 {{-     end }}
 {{-   end }}
 .config/nvim/lua/plugins/preview/mdmath.lua
+.config/kitty
 {{- end }}
 
 {{ if not .personal }}
