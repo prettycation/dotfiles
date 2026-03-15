@@ -4,7 +4,7 @@ return {
     event = "VeryLazy",
     lazy = false,
     version = false,
-    build = "powershell -NoProfile -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false",
+    build = {{ if eq .chezmoi.os "windows" -}} "powershell -NoProfile -ExecutionPolicy Bypass -File Build.ps1 -BuildFromSource false" {{- else -}} "make" {{- end }},
 
     dependencies = {
       "nvim-treesitter/nvim-treesitter",

@@ -5,7 +5,7 @@ matches:
 
   # unlock
   - trigger: "bw.ul"
-    replace: "$env:BW_SESSION = (bw unlock --raw)"
+    replace: {{- if eq .chezmoi.os "windows" }} "$env:BW_SESSION = (bw unlock --raw)" {{- else }} "export BW_SESSION=$(bw unlock --raw)" {{- end }}
 
   # List Folders
   - trigger: "bw.lsf"
