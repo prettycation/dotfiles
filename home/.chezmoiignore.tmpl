@@ -16,9 +16,10 @@
 {{ end }}
 
 {{ if ne .chezmoi.os "linux" }}
+.config/niri/**
 .chezmoiscripts/linux/**
 .hushlogin
-.local/bin/nvim
+.local/bin/nvim/**
 .local/share/fonts
 {{ end }}
 
