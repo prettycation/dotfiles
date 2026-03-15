@@ -13,8 +13,10 @@ return {
         "markdown",
         "markdown_inline",
         "lua",
+        {{- if eq .chezmoi.os "windows" }}
         "vim",
         "vimdoc",
+        {{- end}}
       })
 
       -- 只针对特定文件开启 Treesitter 高亮，避免报错
