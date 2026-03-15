@@ -94,6 +94,7 @@ edit_emeditor = [
 # 自定义的 "edit_nvim" 动作，用于在终端内调用 Neovim。
 edit_nvim = [
   { run = 'nvim %s', block = true, desc = "Edit with Neovim", for = "windows" },
+  { run = 'nvim %s', block = true, desc = "Edit with Neovim", for = "unix" },
 ]
 
 # --- [open] ---

@@ -1,120 +1,125 @@
+# -----------------------------------------------------------------
+# 1. 基础环境与 XDG 规范
+# -----------------------------------------------------------------
 export XDG_DATA_HOME=$HOME/.local/share
 export XDG_CONFIG_HOME=$HOME/.config
 export XDG_STATE_HOME=$HOME/.local/state
 export XDG_CACHE_HOME=$HOME/.cache
 
-# Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
-# Initialization code that may require console input (password prompts, [y/n]
-# confirmations, etc.) must go above this block, everything else may go below.
+# P10k 即时响应 (必须最靠前)
 if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
 fi
 
-# If you come from bash you might have to change your $PATH.
-{{- $paths := list }}
-{{- if and (eq .chezmoi.os "darwin") (lookPath "brew") }}
-{{-   $paths = mustAppend $paths (printf "%s/bin" (output "brew" "--prefix" "rustup" | trim)) }}
-{{- end }}
-{{- $homeDir := .chezmoi.homeDir }}
-{{- range $_, $relPath := list "bin" "go/bin" ".cargo/bin" ".local/bin" ".gem/ruby/2.6.0/bin" }}
-{{    $path := joinPath $homeDir $relPath }}
-{{-   if stat $path }}
-{{-     $paths = mustAppend $paths $path }}
-{{-   end }}
-{{- end }}
-{{- if $paths }}
+# -----------------------------------------------------------------
+# 2. 动态 PATH 设置
+# -----------------------------------------------------------------
+{{- $paths := list -}}
+{{- $homeDir := .chezmoi.homeDir -}}
+{{- range $_, $relPath := list "bin" "go/bin" ".cargo/bin" ".local/bin" -}}
+{{    $path := joinPath $homeDir $relPath -}}
+{{-   if stat $path -}}
+{{-     $paths = mustAppend $paths $path -}}
+{{-   end -}}
+{{- end -}}
+{{- if $paths -}}
 export PATH={{ toStrings $paths | join ":" }}:$PATH
-{{- end }}
+{{- end -}}
 
-# Path to your oh-my-zsh installation.
+# -----------------------------------------------------------------
+# 3. 插件前置处理 (zsh-completions)
+# -----------------------------------------------------------------
+# 必须在 Oh My Zsh 启动（compinit）之前将路径加入 fpath
+if [ -d /usr/share/zsh/site-functions ]; then
+  fpath=(/usr/share/zsh/site-functions $fpath)
+fi
+
+# -----------------------------------------------------------------
+# 4. Oh My Zsh 设置
+# -----------------------------------------------------------------
 export ZSH=$HOME/.oh-my-zsh
-
-# Set name of the theme to load. Optionally, if you set this to "random"
-# it'll load a random theme each time that oh-my-zsh is loaded.
-# See https://github.com/robbyrussell/oh-my-zsh/wiki/Themes
 ZSH_THEME="powerlevel10k/powerlevel10k"
-
-# Uncomment the following line to use case-sensitive completion.
 CASE_SENSITIVE="true"
-
-# Uncomment the following line to disable bi-weekly auto-update checks.
 DISABLE_AUTO_UPDATE="true"
-
-# Uncomment the following line if you want to change the command execution time
-# stamp shown in the history command output.
-# The optional three formats: "mm/dd/yyyy"|"dd.mm.yyyy"|"yyyy-mm-dd"
 HIST_STAMPS="yyyy-mm-dd"
-
 ZSH_DISABLE_COMPFIX=true
 
-# Which plugins would you like to load? (plugins can be found in ~/.oh-my-zsh/plugins/*)
-# Custom plugins may be added to ~/.oh-my-zsh/custom/plugins/
-# Example format: plugins=(rails git textmate ruby lighthouse)
-# Add wisely, as too many plugins slow down shell startup.
-plugins=(
-{{- range .zshPlugins }}
-  {{ . }}
-{{- end }}
-)
+# 这里只写存在于 $ZSH/plugins 或 $ZSH_CUSTOM/plugins 里的插件
+# 注意：fzf-tab 必须在 git 之后，且在 autosuggestions 之前
+plugins=(git fzf-tab)
 
 source $ZSH/oh-my-zsh.sh
 
-# User configuration
+# -----------------------------------------------------------------
+# 5. fzf-tab 自定义设置 (在加载后立即配置)
+# -----------------------------------------------------------------
+# 给补全加上分组标签
+zstyle ':completion:*:descriptions' format '[%d]'
+# 补全列表着色（使用系统的 LS_COLORS）
+zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
+# 强制不显示原始补全菜单，交给 fzf-tab
+zstyle ':completion:*' menu no
+# 预览目录内容 (使用 eza)
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
+# 接受建议的快捷键设为 Tab
+zstyle ':fzf-tab:*' fzf-flags --bind=tab:accept
 
-PROMPT="%{$fg[white]%}%n@%{$fg[green]%}%m%{$reset_color%} ${PROMPT}"
+# -----------------------------------------------------------------
+# 6. 加载系统级插件 (pacman 安装的插件)
+# -----------------------------------------------------------------
 
+# [zsh-autosuggestions] - 灰色历史命令提示
+if [ -f /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh ]; then
+    source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
+    # 配置灰色提示的颜色：fg=8 表示浅灰色，可以根据需要调整
+    export ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=8"
+    # 快捷键：按 Ctrl+Space 或 方向键右 采纳建议
+fi
+
+# [zsh-syntax-highlighting] - 必须最后加载
+if [ -f /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]; then
+    source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+fi
+
+# -----------------------------------------------------------------
+# 7. 用户自定义别名与函数
+# -----------------------------------------------------------------
 setopt autocd
 setopt histignorespace
-setopt rm_star_silent
+alias cls='clear'
 
-alias g=git
-alias gnp="git --no-pager"
-{{- if lookPath "bat" }}
-alias cat=bat
-{{- else if lookPath "batcat" }}
-alias cat=batcat
-{{- end }}
-{{- if lookPath "fdfind" }}
-alias fd=fdfind
-{{- end }}
-{{- if lookPath "eza" }}
-alias ls=eza
+# Zoxide
+{{ if lookPath "zoxide" -}}
+eval "$(zoxide init zsh)"
+alias cd='z'
 {{- end }}
 
-{{ if stat (printf "%s/.local/bin/nvim" .chezmoi.homeDir) -}}
-export EDITOR=$HOME/.local/bin/nvim
-{{ else if lookPath "nvim" -}}
+# Yazi 协同跳转
+yy() {
+  local tmpfile="$(mktemp -t "yazi-cwd.XXXXXX")"
+  yazi "$@" --cwd-file="$tmpfile"
+  if [ -s "$tmpfile" ]; then
+    local dir="$(cat "$tmpfile")"
+    if [ -d "$dir" ] && [ "$dir" != "$PWD" ]; then
+      cd -- "$dir"
+    fi
+  fi
+  rm -f "$tmpfile" > /dev/null 2>&1
+}
+
+# FZF 默认配置
+[ -f /usr/share/fzf/key-bindings.zsh ] && source /usr/share/fzf/key-bindings.zsh
+[ -f /usr/share/fzf/completion.zsh ] && source /usr/share/fzf/completion.zsh
+
+# -----------------------------------------------------------------
+# 8. 编辑器与 P10k 配置
+# -----------------------------------------------------------------
+{{ if lookPath "nvim" -}}
 export EDITOR=nvim
 {{ else -}}
 export EDITOR=vim
 {{ end -}}
-{{ if .personal -}}
-export GITHUB_ACCESS_TOKEN={{ onepasswordRead "op://Personal/GitHub Metadata Read-Only Access Token/credential" | trim }}
-{{ end -}}
-export GOBIN=$HOME/.local/bin
-export GOPATH=$HOME
-export GO111MODULE=on
-export LANG=en_US.UTF-8
-export LC_ALL=en_US.UTF-8
-export LESS=FRX
-export PAGER=less
-{{ if lookPath "psql" -}}
-export PSQLRC=$XDG_CONFIG_HOME/psql/psqlrc
-{{ end -}}
-export RIPGREP_CONFIG_PATH=~/.config/ripgrep/config
 
-{{- if .personal }}
-
-export CHEZMOI_GITHUB_ACCESS_TOKEN={{ onepasswordRead "op://chezmoi/chezmoi GitHub API Token/credential" | trim }}
-{{- end }}
-
-# To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
-
-{{ if stat (joinPath .chezmoi.homeDir ".nvm") }}
-export NVM_DIR="$HOME/.nvm"
-[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
-[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
-{{ end }}
 
 {{- /* vim: set filetype=zsh: */}}
