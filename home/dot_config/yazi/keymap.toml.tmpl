@@ -30,6 +30,7 @@ keymap = [
   { on = ["P", "M"], run = "plugin projects 'merge all'", desc = "merge 当前的项目到另一个项目" },
   { on = ["P", "u"], run = "plugin projects 'load chezmoi'", desc = "加载 chezmoi 项目" },
 
+  {{- if eq .chezmoi.os "windows" }}
   # Windows
   { on = [
     "g",
@@ -47,6 +48,7 @@ keymap = [
     "g",
     "f",
   ], run = "cd F:", desc = "前往 F: 盘" },
+  {{- end }}
 
   # Navigation
   { on = "<Esc>", run = "escape", desc = "退出可视化模式，清除选择，或取消搜索" },
