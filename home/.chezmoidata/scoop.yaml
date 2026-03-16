@@ -43,7 +43,7 @@ scoop:
       scoop_app: "Rime.Weasel"
       source_base: "dot_local/share/fcitx5/rime"
       target_base: "AppData/Roaming/Rime"
-      ignore_path: ".local/share/fcitx5/rime"
+      ignore_path: ".local/share/fcitx5"
       includes:
         - "**"
 
