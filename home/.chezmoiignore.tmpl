@@ -17,8 +17,9 @@
 
 {{ if ne .chezmoi.os "linux" }}
 .config/niri/**
-.config/private_gtk-3.0
+.config/gtk-3.0
 .config/gtk-4.0
+.config/fcitx5
 .chezmoiscripts/linux/**
 .hushlogin
 .local/bin/nvim/**
@@ -62,6 +63,10 @@ Documents
 {{-   end }}
 .config/nvim/lua/plugins/preview/mdmath.lua
 .config/kitty
+{{- end }}
+
+{{- if eq .chezmoi.os "darwin" }}
+.local/share/fcitx5
 {{- end }}
 
 {{ if not .personal }}
