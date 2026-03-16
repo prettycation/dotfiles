@@ -59,6 +59,11 @@
     git_gpg_format = ""
     git_commit_gpgsign = false
     git_allowed_signers_file = ""
+    {{- $github_token := "" -}}
+    {{- if (env "BW_SESSION") -}}
+      {{- $github_token = (bitwarden "item" "GitHubApiToken").login.password -}}
+    {{- end }}
+    github_token = {{ $github_token | quote }}
 
     {{/* Linux ZSH 插件 */}}
     zshPlugins = [
