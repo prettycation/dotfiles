@@ -1,3 +1,4 @@
+{{- if eq .chezmoi.os "windows" }}
 matches:
   - trigger: "s.sc"
     replace: "scoop search $|$"
@@ -37,3 +38,4 @@ matches:
 
   - trigger: "s.if"
     replace: "scoop info $|$"
+{{- end }}
