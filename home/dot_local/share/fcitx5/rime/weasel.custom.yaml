@@ -1,0 +1,154 @@
+# weasel.custom.yaml ( Catppuccin Mocha )
+
+patch:
+  # 向 preset_color_schemes 中添加 Catppuccin 主题
+  # 使用 'key/subkey: value' 语法来新增，而不会覆盖整个 preset_color_schemes
+  preset_color_schemes/catppuccin_latte:
+    name: "Catppuccin Latte"
+    back_color: 0xE8E0DC
+    border_color: 0xEFE9E6
+    text_color: 0x775F5C
+    label_color: 0x856F6C
+    candidate_text_color: 0x694F4C
+    hilited_back_color: 0xef3988
+    hilited_candidate_text_color: 0xF5F1EF
+    hilited_candidate_label_color: 0xDAD0CC
+    hilited_text_color: 0xBEB0AC
+    hilited_comment_text_color: 0xDAD0CC
+    comment_text_color: 0xBEB0AC
+
+  preset_color_schemes/catppuccin_mocha:
+    name: "Catppuccin Mocha"
+    # ---- 整体设定 ----
+    # 背景颜色
+    back_color: 0x1B1111
+    # 边框颜色 (无边框效果需边框和背景为同一颜色)
+    border_color: 0x251818
+    # 文字颜色
+    text_color: 0xe8e0dc
+    # 阴影颜色
+    # shadow_color:
+
+    # 标签颜色
+    label_color: 0xc8ada6
+    # 提示颜色
+    comment_text_color: 0xc6c6f0
+
+    # ---- 内选区域 ----
+    # 编码颜色
+    hilited_text_color: 0xf4ad8a
+    # 背景颜色
+    # hilited_back_color:
+    # 阴影颜色
+    # hilited_shadow_color:
+
+    # ---- 激活候选项 ----
+    # 文字颜色
+    hilited_candidate_text_color: 0x2e1e1e
+    # 提示颜色
+    hilited_comment_text_color: 0xef3988
+    # 标签颜色
+    hilited_label_color: 0x443231
+    # 背景颜色
+    hilited_candidate_back_color: 0xf7a6cb
+    # 阴影颜色
+    # hilited_candidate_shadow_color:
+
+    # ---- 其他候选项 ----
+    # 文字颜色
+    candidate_text_color: 0xf4d6cd
+    # 阴影颜色
+    # candidate_shadow_color:
+
+    # ---- 布局 ----
+    # 阴影颜色：整个候选框的阴影颜色（需要 style/layout/shadow_radius > 0 时才可见）。
+    # 这里的 'aa' 是透明度值 (AABBGGRR 格式)，让阴影呈现半透明效果。
+    shadow_color: 0xaa1b1111
+
+  preset_color_schemes/catppuccin_frappe:
+    name: "Catppuccin Frappe"
+    back_color: 0x342623
+    border_color: 0x3C2C29
+    text_color: 0xE2BFB5
+    label_color: 0xCEADA5
+    candidate_text_color: 0xF5D0C6
+    hilited_back_color: 0xE69ECA
+    hilited_candidate_text_color: 0x463430
+    hilited_candidate_label_color: 0x594541
+    hilited_text_color: 0x806862
+    hilited_comment_text_color: 0x594541
+    comment_text_color: 0x806862
+
+  preset_color_schemes/catppuccin_macchiato:
+    name: "Catppuccin Macchiato"
+    back_color: 0x261918
+    border_color: 0x30201E
+    text_color: 0xE0C0B8
+    label_color: 0xCBADA5
+    candidate_text_color: 0xF5D3CA
+    hilited_back_color: 0xF6A0C6
+    hilited_candidate_text_color: 0x3A2724
+    hilited_candidate_label_color: 0x4F3A36
+    hilited_text_color: 0x70B558
+    hilited_comment_text_color: 0x4F3A36
+    comment_text_color: 0x70B558
+
+  # ---- 其他自定义设置 ----
+  # ---- 程序特定设置 ----
+  app_options:
+    windowsterminal.exe:
+      ascii_mode: true
+      vim_mode: true
+    wezterm-gui.exe:
+      ascii_mode: true
+      vim_mode: true
+    cmd.exe:
+      ascii_mode: true
+    Code.exe:
+      ascii_mode: true
+      ascii_punct: false
+      vim_mode: true
+    Bandizip.exe:
+      ascii_mode: true # 英文模式
+    7zFM.exe:
+      ascii_mode: true # 英文模式
+    firefox.exe:
+      inline_preedit: true # 行内显示预编辑区：规避 <https://github.com/rime/weasel/issues/946>
+    pwsh.exe:
+      ascii_mode: true
+      vim_mode: true
+    Flow.Launcher.exe:
+      ascii_mode: true
+
+  # style/layout 是样式参数层，使用扁平路径确保配置读取的确定性和性能,不支持嵌套结构
+  # ---- 选中配色方案 ----
+  # 无论系统是亮色还是暗色模式，都强制使用 catppuccin_mocha
+  "style/color_scheme": catppuccin_mocha
+  "style/color_scheme_dark": catppuccin_mocha
+
+  # ---- 字体设置 ----
+  "style/font_face": "Segoe UI Emoji:23:23, Segoe UI Emoji:2a:2a, Segoe UI Emoji:30:39, Segoe UI Emoji:fe0f:fe0f, Segoe UI Emoji:20e3:20e3, LXGW WenKai Mono GB, Segoe UI, Microsoft YaHei, DengXian, Segoe UI Emoji, Noto Color Emoji, Segoe UI Symbol"
+  "style/label_font_face": "LXGW WenKai Mono GB"
+  "style/comment_font_face": "LXGW WenKai Mono GB"
+  "style/font_point": 14
+  "style/label_font_point": 14
+  "style/comment_font_point": 10
+
+  # ---- 布局与显示 ----
+  "style/horizontal": false # 竖排
+  "style/inline_preedit": false
+
+  # ---- 边距、间距和圆角 ----
+  "style/layout/border_width": 2
+  "style/layout/margin_x": 8
+  "style/layout/margin_y": 8
+  "style/layout/candidate_spacing": 22
+  "style/layout/hilite_spacing": 6
+  "style/layout/hilite_padding": 8
+  "style/layout/corner_radius": 8
+  "style/layout/round_corner": 8
+
+  # --- 阴影 ---
+  "style/layout/shadow_radius": 5 # 阴影半径，值越大阴影越模糊、范围越广
+  "style/layout/shadow_offset_x": 4 # 阴影在X轴的偏移
+  "style/layout/shadow_offset_y": 4 # 阴影在Y轴的偏移
