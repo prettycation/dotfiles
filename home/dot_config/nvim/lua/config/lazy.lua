@@ -27,6 +27,7 @@ require("lazy").setup({
     { import = "plugins.coding", cond = not vim.g.vscode },
     { import = "plugins.editor" },
     { import = "plugins.completion", cond = not vim.g.vscode },
+    { import = "plugins.preview", cond = not vim.g.vscode },
   },
   defaults = {
     -- By default, only LazyVim plugins will be lazy-loaded. Your custom plugins will load during startup.
