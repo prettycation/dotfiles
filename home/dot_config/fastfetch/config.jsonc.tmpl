@@ -13,7 +13,7 @@
     "type": "kitty",
     // 图片文件的绝对路径。
     "source": "~/.config/fastfetch/mfy.png",
-    "width": 28,
+    "width": 20,
     "height": 12,
     {{- end }}
     // 这些颜色来自 Catppuccin Mocha 调色板。
@@ -66,12 +66,17 @@
       "key": "",
       "keyColor": "#FAB387"
     },
-    // Linux/Darwin 专有信息：系统运行时间
+    {{- if eq .chezmoi.os "linux" }}
+    // Linux 专有信息：内核更新时间
     {
-      "type": "uptime",
+      "type": "command",
       "key": "󱎫",
-      "keyColor": "#F9E2AF"
+      "keyColor": "#F9E2AF",
+      "shell": "zsh",
+      // 获取内核文件修改时间与当前时间的差值（天）
+      "text": "last_mod=$(stat -c %Y /boot/vmlinuz-linux 2>/dev/null || stat -c %Y /boot/vmlinuz-linux-lts); now=$(date +%s); days=$(( (now - last_mod) / 86400 )); if [ $days -eq 0 ]; then echo \"Last updated today\"; elif [ $days -eq 1 ]; then echo \"Last updated 1 day ago\"; else echo \"Last updated $days days ago\"; fi"
     },
+    {{- end }}
     // Linux/Darwin 专有信息：当前使用的 Shell
     {
       "type": "shell",
@@ -128,7 +133,7 @@
       "keyColor": "#94E2D5"
     },
     "break",
-    // "colors" 模块，显示你终端当前配置的颜色面板。
+    // "colors" 模块，显示终端当前配置的颜色面板。
     {
       "type": "colors",
       "symbol": "circle" // 使用圆形符号来展示颜色。
