@@ -30,4 +30,7 @@ matches:
     replace: '{{- if eq .chezmoi.os "windows" }}'
 
   - trigger: "u.osl"
-    replace: '{{ - if eq .chezmoi.os "linux" }}'
+    replace: '{{- if eq .chezmoi.os "linux" }}'
+
+  - trigger: "u.osd"
+    replace: '{{- if eq .chezmoi.os "darwin" }}'
