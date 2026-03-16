@@ -425,7 +425,7 @@ binds {
     Mod+Equal { set-column-width "+10%"; }
 
     // 浮动窗口
-    //Mod+V       { toggle-window-floating; }
+    Mod+Shift+T       { toggle-window-floating; }
     Mod+Shift+V { switch-focus-between-floating-and-tiling; }
 
     // Tabbed 模式
