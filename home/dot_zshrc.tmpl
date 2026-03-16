@@ -91,12 +91,64 @@ if [ -f /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh ]; th
     # 配置灰色提示的颜色：fg=8 表示浅灰色，可以根据需要调整
     export ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=8"
     # 快捷键：按 Ctrl+Space 或 方向键右 采纳建议
+    # 增加补全策略：历史记录与补全系统
+    export ZSH_AUTOSUGGEST_STRATEGY=(history completion)
 fi
 
 # [zsh-syntax-highlighting] - 必须最后加载
 if [ -f /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]; then
     source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
+    
+    # --- 添加: 语法高亮配色 (Catppuccin Mocha) ---
+    typeset -A ZSH_HIGHLIGHT_STYLES
+    ZSH_HIGHLIGHT_STYLES[command]='fg=#89b4fa'          # Blue
+    ZSH_HIGHLIGHT_STYLES[alias]='fg=#89b4fa'            # Blue
+    ZSH_HIGHLIGHT_STYLES[function]='fg=#89b4fa'         # Blue
+    ZSH_HIGHLIGHT_STYLES[builtin]='fg=#f9e2af'          # Yellow
+    ZSH_HIGHLIGHT_STYLES[keyword]='fg=#cba6f7'          # Mauve
+    ZSH_HIGHLIGHT_STYLES[string]='fg=#a6e3a1'           # Green
+    ZSH_HIGHLIGHT_STYLES[variable]='fg=#f9e2af'         # Yellow
+    ZSH_HIGHLIGHT_STYLES[comment]='fg=#6c7086'          # Overlay0
+    ZSH_HIGHLIGHT_STYLES[operator]='fg=#89dceb'         # Sky
+    ZSH_HIGHLIGHT_STYLES[parameter]='fg=#b4befe'        # Lavender
+    ZSH_HIGHLIGHT_STYLES[path]='fg=#94e2d5'             # Teal
+    ZSH_HIGHLIGHT_STYLES[error]='fg=#f38ba8'            # Red
 fi
+
+# -----------------------------------------------------------------
+# Vi 模式与终端体验 (对应 PSReadLine)
+# -----------------------------------------------------------------
+# 启用 Vi 模式
+bindkey -v
+
+# 光标形状切换 (Command=方块, Insert=竖线)
+function zle-keymap-select() {
+    case $KEYMAP in
+        vicmd)      echo -ne "\e[1 q" ;;
+        viins|main) echo -ne "\e[5 q" ;;
+    esac
+}
+zle -N zle-keymap-select
+
+# 确保每次新命令行时光标重置为竖线
+function zle-line-init() {
+    echo -ne "\e[5 q"
+}
+zle -N zle-line-init
+
+# 修复 Vi 模式下的退格键行为
+bindkey "^?" backward-delete-char
+bindkey "^H" backward-delete-char
+
+# 上下箭头历史搜索 (对应 PSReadLine 的 HistorySearchBackward/Forward)
+bindkey '^[[A' history-search-backward
+bindkey '^[[B' history-search-forward
+# Vi 模式(命令模式)下的 k 和 j 同样支持搜索
+bindkey -M vicmd 'k' history-search-backward
+bindkey -M vicmd 'j' history-search-forward
+
+# 撤销快捷键 (Ctrl+z)
+bindkey '^Z' undo
 
 # -----------------------------------------------------------------
 # 用户自定义别名与函数
@@ -148,7 +200,7 @@ yy() {
   yazi "$@" --cwd-file="$tmpfile"
   if [ -s "$tmpfile" ]; then
     local dir="$(cat "$tmpfile")"
-    if [ -d "$dir" ] && [ "$dir" != "$PWD" ]; then
+    if [ -d "$dir" ] &&[ "$dir" != "$PWD" ]; then
       cd -- "$dir"
     fi
   fi
@@ -173,9 +225,7 @@ zy() {
 {{ end -}}
 
 # FZF 默认选项 (Catppuccin Mocha 配色)
-{{- if lookPath "fzf" }}
-[ -f /usr/share/fzf/key-bindings.zsh ] && source /usr/share/fzf/key-bindings.zsh
-[ -f /usr/share/fzf/completion.zsh ] && source /usr/share/fzf/completion.zsh
+{{- if lookPath "fzf" }}[ -f /usr/share/fzf/key-bindings.zsh ] && source /usr/share/fzf/key-bindings.zsh[ -f /usr/share/fzf/completion.zsh ] && source /usr/share/fzf/completion.zsh
 export FZF_DEFAULT_OPTS=" \
 --color=bg+:#313244,bg:#1E1E2E,spinner:#F5E0DC,hl:#F38BA8 \
 --color=fg:#CDD6F4,header:#F38BA8,info:#CBA6F7,pointer:#F5E0DC \
@@ -214,13 +264,28 @@ export EDITOR=vim
 
 # FZF-TAB 配色调整
 # -----------------------------------------------------------------
-# 1. 补全组标题颜色 (Catppuccin Mauve)
-zstyle ':completion:*:descriptions' format '%F{magenta}-- %d --%f'
+# 1. 补全组标题颜色
+zstyle ':completion:*:descriptions' format $'\e[48;2;69;71;90m\e[1m %d \e[0m'
 # 2. 选中条目的色彩 (与 FZF 保持一致)
-zstyle ':fzf-tab:*' fzf-flags --color=prompt:#CBA6F7,hl:#F38BA8,hl+:#F38BA8,pointer:#F5E0DC,info:#89DCEB --bind=tab:accept
+# zstyle ':fzf-tab:*' fzf-flags --color=prompt:#CBA6F7,hl:#F38BA8,hl+:#F38BA8,pointer:#F5E0DC,info:#89DCEB --bind=tab:accept
+# --color: 设置 prompt, hl(匹配高亮), pointer(选中箭头), info(信息区)
+# --bind: 设置 Tab 键为选中，并添加反转视图 (fzf 风格)
+zstyle ':fzf-tab:*' fzf-flags \
+    --reverse \
+    --pointer="➜ " \
+    --bind=tab:accept \
+    --color=prompt:#CBA6F7,hl:#F38BA8,hl+:#F38BA8,pointer:#F5E0DC,info:#89DCEB \
+    # --color=bg+:#45475A,fg+:#CDD6F4
 # 3. 不同的补全组显示不同的颜色
 zstyle ':fzf-tab:*' group-colors \
-    "$fg[red]" "$fg[green]" "$fg[yellow]" "$fg[blue]" "$fg[magenta]" "$fg[cyan]"
+    $'\e[38;2;243;139;168m' \
+    $'\e[38;2;166;227;161m' \
+    $'\e[38;2;249;226;175m' \
+    $'\e[38;2;137;180;250m' \
+    $'\e[38;2;203;166;247m' \
+    $'\e[38;2;148;226;213m'
+# 4. 切换补全分组
+zstyle ':fzf-tab:*' switch-group '<' '>'
 
 {{- if lookPath "fastfetch" }}
 # 启动终端时自动执行一次 fastfetch
