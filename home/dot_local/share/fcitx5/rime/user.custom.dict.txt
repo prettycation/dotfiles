@@ -1,0 +1,43 @@
+# Rime table
+#@/db_name	user.custom.dict
+#@/db_type	tabledb
+#@/rime_version	1.13.1
+#@/tick	13
+并	bing;bk;bk;bk,qc;fp;tt,xt;hl;ua;ek;	0
+并解释	bing;bk;bk;bk,qc;fp;tt,xt;hl;ua;ek; jie;dn;dn;jn;gb;nq;xq;qe;en; shi;cf;pl;pf,bf;hp;hq;tu;to;pa;	2
+不	bu;ab;ad;ad,ax;dh;mf;cb;i,gi;ad;	0
+不详细	bu;ab;ad;ad,ax;dh;mf;cb;i,gi;ad; xiang;yy;yy;yy;cp;iq;sg;yu;yy; xi;st;st;st;ew;vw;iq;xl;st;	2
+的	de;bu;bu,b;bu;sh;hi,xx;ui;r,rq;bu;	0
+方程	fang;wv;dw;dg,wd,dp,dw;ff;ys;lf;yy;wp; cheng;hw;hw;hi;ua;hg;xn;tk;hw;	0
+分别	fen;bd;bd;bd,db;fi;ch;hp;wv;bd; bie;kd;kd;dl;oi;rn,xn;dp;kl;kd;	0
+分别解释	fen;bd;bd;bd,db;fi;ch;hp;wv;bd; bie;kd;kd;dl;oi;rn,xn;dp;kl;kd; jie;dn;dn;jn;gb;nq;xq;qe;en; shi;cf;pl;pf,bf;hp;hq;tu;to;pa;	2
+会	hui;ry;rs;ry;ep;oi;jb;wf;rv;	0
+会优化	hui;ry;rs;ry;ep;oi;jb;wf;rv; you;ry;ry;ry;xh;ou;jo;wd;ry; hua;rb;rb;rb;xa;op;jv;wx;rb;	2
+解释	jie;dn;dn;jn;gb;nq;xq;qe;en; shi;cf;pl;pf,bf;hp;hq;tu;to;pa;	0
+可以	ke;dk;dk;dk;jj;mr;zk;sk;av; yi;lr;vr;rd,ry;re;vo;vj;c,ny;vr;	0
+可以起到	ke;dk;dk;dk;jj;mr;zk;sk;av; yi;lr;vr;rd,ry;re;vo;vj;c,ny;vr; qi;tj;tj;zj;qt;gu;pv;fh;tj; dao;gd;ad;dv;di;mn;yp;gc;vd;	2
+理解	li;wl;wl;wl;ag;mg;nd;gj;wl; jie;dn;dn;jn;gb;nq;xq;qe;en;	0
+你	ni;rx;rx;re;xi;of;jy;wq;rx;	0
+你理解	ni;rx;rx;re;xi;of;jy;wq;rx; li;wl;wl;wl;ag;mg;nd;gj;wl; jie;dn;dn;jn;gb;nq;xq;qe;en;	2
+起到	qi;tj;tj;zj;qt;gu;pv;fh;tj; dao;gd;ad;dv;di;mn;yp;gc;vd;	0
+求解	qiu;au,ad;ad;ad;dh;ie;fi;fi;ad; jie;dn;dn;jn;gb;nq;xq;qe;en;	0
+求解方程	qiu;au,ad;ad;ad;dh;ie;fi;fi;ad; jie;dn;dn;jn;gb;nq;xq;qe;en; fang;wv;dw;dg,wd,dp,dw;ff;ys;lf;yy;wp; cheng;hw;hw;hi;ua;hg;xn;tk;hw;	2
+时间	shi;oc;oc;oc;vk;ai;ok;jf;oc; jian;mo;mo;mo,om;ov;la;ao;uj;mo;	0
+使用的	shi;rl;rl;rl;xy;ok;jb;wg;rl; yong;kf,ol;kl;kf;lp;bq;ty;et;pa; de;bu;bu,b;bu;sh;hi,xx;ui;r,rq;bu;	0
+搜索到	sou;fy;fy;fs,fy;jl;qe;ur;rv;fy; suo;ux;ux;sb,us;si;jf;ni;fp;ux; dao;gd;ad;dv;di;mn;yp;gc;vd;	0
+搜索到的	sou;fy;fy;fs,fy;jl;qe;ur;rv;fy; suo;ux;ux;sb,us;si;jf;ni;fp;ux; dao;gd;ad;dv;di;mn;yp;gc;vd; de;bu;bu,b;bu;sh;hi,xx;ui;r,rq;bu;	2
+我	wo;ga;pd;pd,pp;uh,ud;hi,zz;tp;q,tr;pg;	0
+我给你的	wo;ga;pd;pd,pp;uh,ud;hi,zz;tp;q,tr;pg; gei;sk;sk;sh;eo;vr;id;xw;sk; ni;rx;rx;re;xi;of;jy;wq;rx; de;bu;bu,b;bu;sh;hi,xx;ui;r,rq;bu;	0
+我使用的	wo;ga;pd;pd,pp;uh,ud;hi,zz;tp;q,tr;pg; shi;rl;rl;rl;xy;ok;jb;wg;rl; yong;kf,ol;kl;kf;lp;bq;ty;et;pa; de;bu;bu,b;bu;sh;hi,xx;ui;r,rq;bu;	2
+现实	xian;wj;we;wj;ak;mu;ne;gm;wj; shi;bd;bd;bt;ix;jk;wm;pu;gd;	0
+现实时间	xian;wj;we;wj;ak;mu;ne;gm;wj; shi;bd;bd;bt;ix;jk;wm;pu;gd; shi;oc;oc;oc;vk;ai;ok;jf;oc; jian;mo;mo;mo,om;ov;la;ao;uj;mo;	2
+详细	xiang;yy;yy;yy;cp;iq;sg;yu;yy; xi;st;st;st;ew;vw;iq;xl;st;	0
+一部分	yi;aa;aa;aa;dd;mm;fi;g,gg;aa; bu;le;le;ek,ep;bb;yl;it;uk;le; fen;bd;bd;bd,db;fi;ch;hp;wv;bd;	0
+以	yi;lr;vr;rd,ry;re;vo;vj;c,ny;vr;	0
+以我给你的	yi;lr;vr;rd,ry;re;vo;vj;c,ny;vr; wo;ga;pd;pd,pp;uh,ud;hi,zz;tp;q,tr;pg; gei;sk;sk;sh;eo;vr;id;xw;sk; ni;rx;rx;re;xi;of;jy;wq;rx; de;bu;bu,b;bu;sh;hi,xx;ui;r,rq;bu;	2
+优化	you;ry;ry;ry;xh;ou;jo;wd;ry; hua;rb;rb;rb;xa;op;jv;wx;rb;	0
+有	you;uo;uo;ou,uo;sl;kb;nv;e,de;ao;	0
+这	zhe;zw;zw;zw;jq;yk;vu;p,yp;zx;	0
+这里面	zhe;zw;zw;zw;jq;yk;vu;p,yp;zx; li;tt;la;aa,tt;vg;wg;dl;jf;aa; mian;ao;aa;aa;dd;ml;bm;dm;aa;	0
+这里面有	zhe;zw;zw;zw;jq;yk;vu;p,yp;zx; li;tt;la;aa,tt;vg;wg;dl;jf;aa; mian;ao;aa;aa;dd;ml;bm;dm;aa; you;uo;uo;ou,uo;sl;kb;nv;e,de;ao;	2
+这一部分	zhe;zw;zw;zw;jq;yk;vu;p,yp;zx; yi;aa;aa;aa;dd;mm;fi;g,gg;aa; bu;le;le;ek,ep;bb;yl;it;uk;le; fen;bd;bd;bd,db;fi;ch;hp;wv;bd;	2
