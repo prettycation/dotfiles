@@ -13,7 +13,7 @@ matches:
     replace: "git switch "
 
   - trigger: "g.rs"
-    replace: "git reset --hard upstream/main"
+    replace: "git reset --hard FETCH_HEAD"
 
   # git push
 

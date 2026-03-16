@@ -80,7 +80,13 @@
     
     {{- /* 3. 注入环境变量，供 chezmoi 后续抓取外部资源使用 */ -}}
     {{- if $github_token }}
+        {{- if eq .chezmoi.os "windows" }}
+    # Windows 上使用 GITHUB_TOKEN 规避保留变量警告
+    GITHUB_TOKEN = {{ $github_token | quote }}
+        {{- else }}
+    # Linux/Unix 上使用标准的 CHEZMOI_GITHUB_ACCESS_TOKEN
     CHEZMOI_GITHUB_ACCESS_TOKEN = {{ $github_token | quote }}
+        {{- end }}
     {{- end }}
 {{- end }}
 
