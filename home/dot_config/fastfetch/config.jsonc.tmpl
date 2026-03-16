@@ -3,10 +3,19 @@
   "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
   // 定义左侧显示的 ASCII 艺术
   "logo": {
+    {{- if eq .chezmoi.os "windows" }}
     // 从本地文件加载
     "type": "file",
     // ASCII 艺术文件的绝对路径。
     "source": "~/.config/fastfetch/ascii.txt",
+    {{- else }}
+    // Linux 和 Darwin 使用图片 (Kitty 协议)
+    "type": "kitty",
+    // 图片文件的绝对路径。
+    "source": "~/.config/fastfetch/mfy.png",
+    "width": 28,
+    "height": 12,
+    {{- end }}
     // 这些颜色来自 Catppuccin Mocha 调色板。
     "color": {
       "1": "#F5E0DC",
@@ -47,21 +56,63 @@
     // "os" 模块，显示操作系统信息。
     {
       "type": "os",
-      "key": "", // 使用 Nerd Font 图标作为键（这是 Windows 图标）。
+      "key": "{{ if eq .chezmoi.os "windows" }}{{ else if eq .chezmoi.os "darwin" }}{{ else }}{{ end }}", // 使用 Nerd Font 图标作为键。
       "keyColor": "#89DCEB" // 图标的颜色。
     },
+    {{- if ne .chezmoi.os "windows" }}
+    // Linux/Darwin 专有信息：内核版本
+    {
+      "type": "kernel",
+      "key": "",
+      "keyColor": "#FAB387"
+    },
+    // Linux/Darwin 专有信息：系统运行时间
+    {
+      "type": "uptime",
+      "key": "󱎫",
+      "keyColor": "#F9E2AF"
+    },
+    // Linux/Darwin 专有信息：当前使用的 Shell
+    {
+      "type": "shell",
+      "key": "",
+      "keyColor": "#A6E3A1"
+    },
+    // Linux 专有信息：显示协议与分辨率 (Wayland/X11)
+    {
+      "type": "display",
+      "key": "󰹑",
+      "keyColor": "#94E2D5"
+    },
+    // Linux 专有信息：桌面环境 (DE) 或 窗口管理器 (WM/合成器如 Niri)
+    {
+      "type": "wm",
+      "key": "",
+      "keyColor": "#89DCEB"
+    },
+    {{- end }}
     // "cpu" 模块，显示 CPU 信息。
     {
       "type": "cpu",
       "key": "", // CPU 的 Nerd Font 图标。
       "keyColor": "#F5C2E7"
     },
+    {{- if eq .chezmoi.os "linux" }}
+    // Linux 专有信息：显卡信息 (GPU)
+    {
+      "type": "gpu",
+      "key": "󰢮",
+      "keyColor": "#FAB387"
+    },
+    {{- end }}
+    {{- if eq .chezmoi.os "windows" }}
     // "board" 模块，显示主板信息。
     {
       "type": "board",
       "key": "󰚗", // 主板的 Nerd Font 图标。
       "keyColor": "#FAB387"
     },
+    {{- end }}
     // "memory" 模块，显示内存（RAM）使用情况。
     {
       "type": "memory",
