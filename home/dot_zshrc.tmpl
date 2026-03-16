@@ -7,16 +7,18 @@ export XDG_STATE_HOME=$HOME/.local/state
 export XDG_CACHE_HOME=$HOME/.cache
 
 # P10k 即时响应 (必须最靠前)
-if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
-fi
+# if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+#   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+# fi
 
 {{ $paths := list }}
 # -----------------------------------------------------------------
 # 动态 PATH 设置
 # -----------------------------------------------------------------
 # 优先加载 Bob 安装的 Neovim
+{{- if lookPath "bob" }}
 export PATH="$HOME/.local/share/bob/nvim-bin:$PATH"
+{{- end }}
 
 # 正常的家目录 bin 路径
 {{- $paths := list -}}
@@ -44,7 +46,8 @@ fi
 # -----------------------------------------------------------------
 export ZSH=$HOME/.oh-my-zsh
 # 主题
-ZSH_THEME="powerlevel10k/powerlevel10k"
+# ZSH_THEME="powerlevel10k/powerlevel10k"
+ZSH_THEME=""
 # 区分大小写的补全
 CASE_SENSITIVE="true"
 # 禁用自动更新检查
@@ -59,6 +62,10 @@ ZSH_DISABLE_COMPFIX=true
 plugins=(git fzf-tab)
 
 source $ZSH/oh-my-zsh.sh
+
+{{- if lookPath "starship" }}
+eval "$(starship init zsh)"
+{{- end }}
 
 # -----------------------------------------------------------------
 # fzf-tab 自定义设置 (在加载后立即配置)
@@ -96,7 +103,43 @@ fi
 # -----------------------------------------------------------------
 setopt autocd
 setopt histignorespace
-alias cls='clear'
+
+# 自动重绘 fastfetch
+cls() {
+    command clear
+    {{- if lookPath "fastfetch" }}
+    # 检查 $NVIM 是否为空（不处于 Neovim 内部）且终端是交互式的
+    if [[ -z "$NVIM" && -t 1 ]]; then
+        fastfetch -c "$HOME/.config/fastfetch/config.jsonc"
+    fi
+    {{- end }}
+}
+
+alias clear='cls'
+
+{{- if lookPath "eza" }}
+# eza 别名配置
+
+unalias ls 2> /dev/null
+unalias ll 2> /dev/null
+unalias la 2> /dev/null
+
+# 基础 ls：只带图标
+alias ls='eza --icons'
+# ll: 长格式，包含大小(h)和精确时间格式
+alias ll='eza -l -h --icons --time-style "+%Y-%m-%d %H:%M:%S"'
+# la: 显示隐藏文件(a)
+alias la='eza -l -h -a --icons --time-style "+%Y-%m-%d %H:%M:%S"'
+# lg: 显示 Git 状态
+alias lg='eza -l -h -a --git --icons --time-style "+%Y-%m-%d %H:%M:%S"'
+# tree: 树状图
+alias tree='eza -T --icons'
+{{- else }}
+# 如果没装 eza，退回到原生 ls
+alias ls='ls --color=auto'
+alias ll='ls -lh --color=auto'
+alias la='ls -lAh --color=auto'
+{{- end }}
 
 {{ if lookPath "yazi" }}
 # Yazi 协同跳转
@@ -129,20 +172,29 @@ zy() {
   {{- end }}
 {{ end -}}
 
-# FZF 默认配置
+# FZF 默认选项 (Catppuccin Mocha 配色)
+{{- if lookPath "fzf" }}
 [ -f /usr/share/fzf/key-bindings.zsh ] && source /usr/share/fzf/key-bindings.zsh
 [ -f /usr/share/fzf/completion.zsh ] && source /usr/share/fzf/completion.zsh
+export FZF_DEFAULT_OPTS=" \
+--color=bg+:#313244,bg:#1E1E2E,spinner:#F5E0DC,hl:#F38BA8 \
+--color=fg:#CDD6F4,header:#F38BA8,info:#CBA6F7,pointer:#F5E0DC \
+--color=marker:#B4BEFE,fg+:#CDD6F4,prompt:#CBA6F7,hl+:#F38BA8 \
+--color=selected-bg:#45475A \
+--color=border:#6C7086,label:#CDD6F4"
+{{- end }}
 
 {{ if .personal -}}
 # -----------------------------------------------------------------
 # 密钥与私有配置 (基于 .personal 变量)
 # -----------------------------------------------------------------
 
-# 只有在个人设备上且已解锁 Bitwarden 时才加载这些 Token
-{{   $bw_item := (bitwarden "item" "GitHubApiToken") -}}
-export GITHUB_ACCESS_TOKEN={{ $bw_item.login.password | quote }}
-export CHEZMOI_GITHUB_ACCESS_TOKEN={{ $bw_item.login.password | quote }}
-export GITHUB_TOKEN={{ $bw_item.login.password | quote }}
+# 只有在个人设备上时才加载这些 Token
+{{ if .github_token -}}
+export GITHUB_ACCESS_TOKEN={{ .github_token | quote }}
+export CHEZMOI_GITHUB_ACCESS_TOKEN={{ .github_token | quote }}
+export GITHUB_TOKEN={{ .github_token | quote }}
+{{ end -}}
 {{ end -}}
 
 {{ if lookPath "bob" -}}
@@ -151,13 +203,28 @@ export PATH="$HOME/.local/share/bob/nvim-bin:$PATH"
 
 {{ if lookPath "nvim" -}}
 # -----------------------------------------------------------------
-# 编辑器与 P10k 配置
+# 编辑器配置
 # -----------------------------------------------------------------
 export EDITOR=nvim
 {{ else -}}
 export EDITOR=vim
 {{ end -}}
 
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+# [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+# FZF-TAB 配色调整
+# -----------------------------------------------------------------
+# 1. 补全组标题颜色 (Catppuccin Mauve)
+zstyle ':completion:*:descriptions' format '%F{magenta}-- %d --%f'
+# 2. 选中条目的色彩 (与 FZF 保持一致)
+zstyle ':fzf-tab:*' fzf-flags --color=prompt:#CBA6F7,hl:#F38BA8,hl+:#F38BA8,pointer:#F5E0DC,info:#89DCEB --bind=tab:accept
+# 3. 不同的补全组显示不同的颜色
+zstyle ':fzf-tab:*' group-colors \
+    "$fg[red]" "$fg[green]" "$fg[yellow]" "$fg[blue]" "$fg[magenta]" "$fg[cyan]"
+
+{{- if lookPath "fastfetch" }}
+# 启动终端时自动执行一次 fastfetch
+cls
+{{- end }}
 
 {{- /* vim: set filetype=zsh: */}}
