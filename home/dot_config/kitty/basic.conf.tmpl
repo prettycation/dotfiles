@@ -1,0 +1,74 @@
+####################################window ####################################
+
+# 隐藏窗口标题栏
+hide_window_decorations titlebar-only
+
+{{- if eq .chezmoi.os "darwin" }}
+macos_quit_when_last_window_closed yes
+{{- end }}
+
+# 窗口透明度
+# 关闭动态 opacity
+dynamic_background_opacity no
+background_opacity 1.9
+background_blur 32
+
+# 窗口内边距像素
+window_padding_width 24 18 0 18
+
+# 新窗口放置策略：从顶部左边开始分配多余空间,
+# 避免从中间分配导致切分窗口时界面跳动
+placement_strategy top-left
+
+# 窗口 logo
+# 窗口 logo 缩放比例
+window_logo_scale 5
+# 窗口 logo 透明度
+window_logo_alpha 0.25
+# 窗口 logo 位置
+window_logo_position top-right
+
+# 用系统快捷键关闭窗口时不提示
+confirm_os_window_close 0
+
+# 子进程退出时立即关闭窗口
+close_on_child_death yes
+
+####################################光标 ####################################
+
+mouse_hide_wait 1.0
+
+# 光标颜色使用当前文本颜色
+cursor none
+cursor_trail 1
+cursor_trail_decay 0.1 0.4
+# 当移动 1 个字符位置时也使用动效, 这样看着更平滑
+cursor_trail_start_threshold 0
+
+cursor_blink_interval 0.5 ease-in-out
+
+####################################TAB ####################################
+# tab_bar_min_tabs 2
+tab_bar_edge top
+tab_bar_style powerline
+tab_powerline_style round
+tab_title_template {title}{' :{}:'.format(num_windows) if num_windows > 1 else ''}
+
+####################################HIGHLIGHT #################################  
+# 标记颜色定义 - 用于高亮显示匹配的文本  
+mark1_foreground #74c7ec    # 标记类型1的前景色（浅蓝色）  
+mark1_background #1E1E2E    # 标记类型1的背景色（深色）  
+mark2_foreground #F9E2AF    # 标记类型2的前景色（黄色）  
+mark2_background #1E1E2E    # 标记类型2的背景色（深色）  
+mark3_foreground #F38BA8    # 标记类型3的前景色（粉色）  
+mark3_background #1E1E2E    # 标记类型3的背景色（深色）  
+  
+# 定义标记切换规则：使用正则表达式匹配日志级别并应用对应的标记颜色  
+# 1 = 使用mark1颜色, 2 = 使用mark2颜色, 3 = 使用mark3颜色  
+toggle_marker regex 1 \\bINFO\\b 2 \\bWARNING\\b 3 \\bERROR\\b 3 \\bFATAL\\b  
+  
+# 键盘快捷键：Ctrl+Shift+M 触发标记切换功能  
+map ctrl+shift+m toggle_marker regex 1 \\bINFO\\b 2 \\bWARNING\\b 3 \\bERROR\\b 3 \\bFATAL\\b
+
+# 开启垂直方向分屏和全屏模式
+enabled_layouts fat:bias=50,stack

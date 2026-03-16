@@ -3,6 +3,7 @@
 {{/* --- Linux 专用工具下载 --- */}}
 {{- if eq .osid "linux-ubuntu" }}
 
+{{/* Age 加密工具: 跨平台通用 */}}
 [".local/bin/age"]
     type = "archive-file"
     url = {{ gitHubLatestReleaseAssetURL "FiloSottile/age" (printf "age-*-%s-%s.tar.gz" .chezmoi.os .chezmoi.arch) | quote }}
@@ -15,18 +16,14 @@
     executable = true
     path = "age/age-keygen"
 
-{{/* ... 其他 Linux 工具保留原样 ... */}}
-[".local/bin/nvim"]
-    type = "file"
-    url = "https://github.com/neovim/neovim/releases/download/stable/nvim-linux-x86_64.appimage"
-    refreshPeriod = "672h"
-    executable = true
+{{/* 删除了 [".local/bin/nvim"] 的 AppImage 下载，改由 Bob 管理 */}}
 
 {{- end }}
 
-{{/* --- Zsh 配置 (仅限非 Windows) --- */}}
-{{- if ne .chezmoi.os "windows" }}
+{{/* --- Zsh 环境与插件 (非 Windows 平台) --- */}}
+{{- if ne .chezmoi.os "windows" -}}
 
+# Oh My Zsh 核心框架
 [".oh-my-zsh"]
     type = "archive"
     url = "https://github.com/ohmyzsh/ohmyzsh/archive/master.tar.gz"
@@ -35,20 +32,31 @@
     refreshPeriod = "168h"
     exclude = [ "*/.*", "*/templates", "*/themes" ]
 
+# 插件：zsh-syntax-highlighting
 [".oh-my-zsh/custom/plugins/zsh-syntax-highlighting"]
     type = "archive"
     url = "https://github.com/zsh-users/zsh-syntax-highlighting/archive/master.tar.gz"
     exact = true
     stripComponents = 1
     refreshPeriod = "168h"
-    exclude = [ "*/.editorconfig", "*/.gitattributes", "*/.github", "*/.gitignore" ]
 
+# 插件：fzf-tab
+[".oh-my-zsh/custom/plugins/fzf-tab"]
+    type = "archive"
+    url = "https://github.com/Aloxaf/fzf-tab/archive/master.tar.gz"
+    exact = true
+    stripComponents = 1
+    refreshPeriod = "168h"
+
+# 主题：Powerlevel10k
 [".oh-my-zsh/custom/themes/powerlevel10k"]
     type = "archive"
+    # 使用 gitHubLatestRelease 获取 TagName，确保版本最新且带 API 认证
     url = "https://github.com/romkatv/powerlevel10k/archive/{{ (gitHubLatestRelease "romkatv/powerlevel10k").TagName }}.tar.gz"
     exact = true
     stripComponents = 1
+    refreshPeriod = "168h"
 
 {{- end }}
 
-{{ end }}
+{{- end -}}

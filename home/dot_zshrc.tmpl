@@ -98,22 +98,6 @@ setopt autocd
 setopt histignorespace
 alias cls='clear'
 
-{{ if lookPath "zoxide" -}}
-# Zoxide
-eval "$(zoxide init zsh)"
-alias cd='z'
-  {{- if lookPath "yazi" }}
-zy() {
-  local dest
-  dest=$(zoxide query -l | fzf --height 40% --reverse)
-  if [[ -n "$dest" ]]; then
-    zoxide add "$dest"
-    cd "$dest"
-  fi
-}
-  {{- end }}
-{{ end -}}
-
 {{ if lookPath "yazi" }}
 # Yazi 协同跳转
 yy() {
@@ -128,6 +112,22 @@ yy() {
   rm -f "$tmpfile" > /dev/null 2>&1
 }
 {{ end }}
+
+{{ if lookPath "zoxide" -}}
+# Zoxide
+eval "$(zoxide init zsh)"
+alias cd='z'
+  {{- if lookPath "yazi" }}
+zy() {
+  local dest
+  dest=$(zoxide query -l | fzf --height 40% --reverse)
+  if [[ -n "$dest" ]]; then
+    zoxide add "$dest"
+    yy "$dest"
+  fi
+}
+  {{- end }}
+{{ end -}}
 
 # FZF 默认配置
 [ -f /usr/share/fzf/key-bindings.zsh ] && source /usr/share/fzf/key-bindings.zsh

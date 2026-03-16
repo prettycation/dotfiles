@@ -4,7 +4,7 @@ filter_exec: ".*(WindowsTerminal|wezterm-gui)\\.exe$"
 {{- else if eq .chezmoi.os "linux" }}
 filter_exec: ".*(kitty|wezterm-gui|alacritty|gnome-terminal|konsole)$"
 {{- else if eq .chezmoi.os "darwin" }}
-filter_exec: ".*(kitty|WezTerm|iTerm2|Terminal)$"
+filter_exec: ".*(Kitty|WezTerm|iTerm2|Terminal)$"
 {{- end }}
 
 extra_includes:
