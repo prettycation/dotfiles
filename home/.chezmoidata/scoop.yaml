@@ -47,6 +47,12 @@ scoop:
       includes:
         - "**"
 
+    - name: "Starship.Starship"
+      scoop_app: "Starship.Starship"
+      source_base: "dot_config/starship.toml"
+      target_base: ".config/starship.toml"
+      ignore_path: ".config/starship.toml"
+
     - name: "wezterm"
       scoop_app: "wez.wezterm"
       source_base: "dot_config/wezterm"

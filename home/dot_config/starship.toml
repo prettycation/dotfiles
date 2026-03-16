@@ -1,0 +1,212 @@
+format = """\
+[╭╴](fg:arrow)\
+$username\
+$os\
+$git_branch\
+(\
+    at \
+    $directory\
+)\
+$cmd_duration\
+(\
+    via \
+    $python\
+    $conda\
+    $nodejs\
+    $c\
+    $rust\
+    $java\
+)
+[╰─](fg:arrow)$character\
+"""
+# Add the modules you need
+
+# Disable the blank line at the start of the prompt
+add_newline = true
+
+
+palette = "normal"
+
+[palettes.catppuccin_mocha]
+rosewater = "#f5e0dc"
+flamingo = "#f2cdcd"
+pink = "#f5c2e7"
+mauve = "#cba6f7"
+red = "#f38ba8"
+maroon = "#eba0ac"
+peach = "#fab387"
+yellow = "#f9e2af"
+green = "#a6e3a1"
+teal = "#94e2d5"
+sky = "#89dceb"
+sapphire = "#74c7ec"
+blue = "#89b4fa"
+lavender = "#b4befe"
+text = "#cdd6f4"
+subtext1 = "#bac2de"
+subtext0 = "#a6adc8"
+overlay2 = "#9399b2"
+overlay1 = "#7f849c"
+overlay0 = "#6c7086"
+surface2 = "#585b70"
+surface1 = "#45475a"
+surface0 = "#313244"
+base = "#1e1e2e"
+mantle = "#181825"
+crust = "#11111b"
+
+[palettes.normal]
+# arrow = "#333533"
+# os = "#16f4d0"
+# os_admin = "#e4ff1a"
+# directory = "#9ffff5"
+# time = "#bdfffd"
+# node = "#a5e6ba"
+# git = "#f17f29"
+# git_status = "#DFEBED"
+# python = "#edf67d"
+# conda = "#70e000"
+# java = "#F86279"
+# rust = "#ffdac6"
+# clang = "#caf0f8"
+# duration = "#ce4257"
+# text_color = "#EDF2F4"
+# text_light = "#26272A"
+
+# I disabled some modules (Rust, Java...) since some things aren't installed in my machine, enable them if you need.
+
+# --- Catppuccin Mocha 风格 ---
+arrow = "#6c7086"      # (Overlay0) 提示符分隔符，低调的灰色
+os = "#89dceb"          # (Sky) 操作系统标识，醒目的天蓝色
+os_admin = "#f38ba8"    # (Red) 管理员权限！使用红色作为强烈的警告
+directory = "#89b4fa"   # (Blue) 目录路径，蓝色是最适合文件系统的颜色
+time = "#74c7ec"        # (Sapphire) 时间戳，用蓝宝石色与目录区分
+node = "#a6e3a1"        # (Green) Node.js 环境，绿色代表健康和稳定
+git = "#fab387"         # (Peach) Git 分支，桃色温暖而清晰
+git_status = "#cdd6f4"  # (Text) Git 状态文本，使用标准文字颜色
+python = "#f9e2af"      # (Yellow) Python 环境，黄色是 Python 的标志色之一
+conda = "#a6e3a1"       # (Green) Conda 环境，同样使用绿色
+java = "#f38ba8"        # (Red) Java 环境，红色系
+rust = "#fab387"        # (Peach) Rust 环境，与 Git 共享桃色
+clang = "#74c7ec"       # (Sapphire) C/C++ 环境
+duration = "#f38ba8"    # (Red) 命令执行时间过长，用红色提示
+text_color = "#cdd6f4"  # (Text) 默认前景色
+text_light = "#11111b"  # (Crust) 用于浅色背景下的文字颜色（最高对比度）
+
+[username]
+style_user = 'bold os'
+style_root = 'bold os_admin'
+format = '[  $user](fg:$style) '
+disabled = false
+show_always = true
+
+[os]
+format = "on [($name)]($style) "
+style = "bold blue"
+disabled = true
+
+[os.symbols]
+Alpine = " "
+Arch = " "
+Debian = " "
+EndeavourOS = " "
+Fedora = " "
+Linux = " "
+Macos = " "
+Manjaro = " "
+Mint = " "
+NixOS = " "
+openSUSE = " "
+Pop = " "
+SUSE = " "
+Ubuntu = " "
+Windows = " "
+
+[character]
+success_symbol = "[󰍟](fg:arrow)"
+error_symbol = "[󰍟](fg:red)"
+
+[directory]
+format = "[$path](bold $style)[$read_only]($read_only_style) "
+# 显示完整路径
+truncation_length = 0
+style = "fg:directory"
+read_only_style = "fg:directory"
+before_repo_root_style = "fg:directory"
+truncation_symbol = "…/"
+# 在 git 仓库中显示完整的绝对路径
+truncate_to_repo = false
+read_only ="  "
+
+[time]
+disabled = true
+format = "at [󱑈 $time]($style)"
+time_format = "%H:%M"
+style = "bold fg:time"
+
+[cmd_duration]
+format = "took [ $duration]($style) "
+style = "bold fg:duration"
+min_time = 500
+
+[git_branch]
+format = "via [$symbol$branch]($style) "
+style = "bold fg:git"
+symbol = " "
+
+[git_status]
+format = '[ $all_status$ahead_behind ]($style)'
+style = "fg:text_color bg:git"
+disabled = true
+
+[docker_context]
+disabled=true
+symbol = " "
+
+[package]
+disabled=true
+
+[fill]
+symbol = " "
+
+[nodejs]
+format = "[ $symbol$version ]($style)"
+style = "bg:node fg:text_light"
+symbol = " "
+version_format = "${raw}"
+disabled=false
+
+[python]
+disabled=false
+format = '[ ${symbol}${pyenv_prefix}(${version})( \($virtualenv\)) ]($style)'
+symbol = " "
+version_format = "${raw}"
+style = "bg:python fg:text_light"
+
+[conda]
+format = "[ $symbol$environment ]($style)"
+style = "bg:conda fg:text_light"
+ignore_base = false
+disabled = false
+symbol = " "
+
+[java]
+format = "[ $symbol$version ]($style)"
+style = "bg:java fg:text_light"
+version_format = "${raw}"
+symbol = " "
+disabled = true
+
+[c]
+format = "[ $symbol($version(-$name)) ]($style)"
+style = "bg:clang fg:text_light"
+symbol = " "
+version_format = "${raw}"
+disabled=true
+
+[rust]
+format ="[ $symbol$version ]($style)"
+style = "bg:rust fg:text_light"
+symbol = " "
+version_format = "${raw}"
+disabled=true
