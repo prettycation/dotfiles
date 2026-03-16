@@ -4,7 +4,7 @@ return {
     dependencies = {
       "nvim-treesitter/nvim-treesitter",
     },
-    build = ":MdMath build", -- 极其重要：安装后会自动运行 nodejs 编译
+    build = ":MdMath build", -- 安装后自动运行 nodejs 编译
     opts = {
       -- 允许的文件类型
       filetypes = { "markdown", "tex" },
@@ -38,7 +38,7 @@ return {
       update_interval = 50,
 
       -- 独立段落公式的缩放倍率
-      display_zoom = 1.2,
+      display_zoom = 0.8,
     },
   },
 }
