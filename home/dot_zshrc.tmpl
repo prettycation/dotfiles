@@ -86,7 +86,7 @@ zstyle ':fzf-tab:*' fzf-flags --bind=tab:accept
 # -----------------------------------------------------------------
 # 路径检查：优先使用系统级路径，如果不存在，则检查 Oh My Zsh custom 路径
 if [ -f /usr/share/zsh/plugins/zsh-readline/zsh-readline.plugin.zsh ] || [ -f "$ZSH_CUSTOM/plugins/zsh-readline/zsh-readline.plugin.zsh" ]; then
-    
+
     # 1. 配置参数 (必须在 source 之前定义)
     export ZSH_READLINE_MAX_PREDICTIONS=10
     export ZSH_READLINE_MIN_INPUT=1
@@ -103,23 +103,82 @@ if [ -f /usr/share/zsh/plugins/zsh-readline/zsh-readline.plugin.zsh ] || [ -f "$
     else
         source "$ZSH_CUSTOM/plugins/zsh-readline/zsh-readline.plugin.zsh"
     fi
+
+    _zsh_readline_down_fixed() {
+        # 冻结 autosuggestions，防止其产生 _zsh... 乱码行
+        (( $+functions[_zsh_autosuggest_disable] )) && _zsh_autosuggest_disable
+        unset POSTDISPLAY # 物理清除灰色文字缓存
+
+        if [[ "$_zsh_readline_active" == "1" ]]; then
+            # 备份当前输入内容，解决 1 字符时 BUFFER 改变导致列表关闭的问题
+            local current_input="$_zsh_readline_last_input"
+
+            # 执行移动
+            zle _zsh_readline_down
+
+            # 状态补偿：使插件认为输入没变，维持列表显示
+            _zsh_readline_active=1
+            _zsh_readline_last_input="$current_input"
+        else
+            # 如果不在预测模式，执行标准的向下搜索
+            zle .down-line-or-history
+        fi
+
+        # 重新启用并立即刷新重绘
+        (( $+functions[_zsh_autosuggest_enable] )) && _zsh_autosuggest_enable
+
+        # 清空并重新渲染当前行，消除 "_zsheval" 幻影行
+        zle -R
+    }
+
+    _zsh_readline_up_fixed() {
+        (( $+functions[_zsh_autosuggest_disable] )) && _zsh_autosuggest_disable
+        unset POSTDISPLAY
+
+        if [[ "$_zsh_readline_active" == "1" ]]; then
+            local current_input="$_zsh_readline_last_input"
+            zle _zsh_readline_up
+            _zsh_readline_active=1
+            _zsh_readline_last_input="$current_input"
+        else
+            zle .up-line-or-history
+        fi
+
+        (( $+functions[_zsh_autosuggest_enable] )) && _zsh_autosuggest_enable
+        zle -R
+    }
+
+    zle -N _zsh_readline_down_fixed
+    zle -N _zsh_readline_up_fixed
+
+    # 重新绑定
+    bindkey '^[[A' _zsh_readline_up_fixed
+    bindkey '^[[B' _zsh_readline_down_fixed
+    bindkey '^[OA' _zsh_readline_up_fixed
+    bindkey '^[OB' _zsh_readline_down_fixed
 fi
 
 # -----------------------------------------------------------------
 # 加载系统级插件 (pacman 安装的插件)
 # -----------------------------------------------------------------
 
-# [zsh-autosuggestions] - 灰色历史命令提示
+# [zsh-autosuggestions] - 命令提示
 if [ -f /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh ]; then
     source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
-    # 配置灰色提示的颜色：fg=8 表示浅灰色，可以根据需要调整
+    # 配置灰色提示的颜色：fg=8 表示浅灰色
     export ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=8"
-    # 快捷键：按 Ctrl+Space 或 方向键右 采纳建议
+    # 快捷键：采纳建议
+    bindkey '\ea' autosuggest-accept
+    ZSH_AUTOSUGGEST_CLEAR_WIDGETS=(
+      ${ZSH_AUTOSUGGEST_CLEAR_WIDGETS}
+      up-history
+      down-history
+    )
     # 增加补全策略：历史记录与补全系统
     export ZSH_AUTOSUGGEST_STRATEGY=(history completion)
 fi
 
-# [zsh-syntax-highlighting] - 必须最后加载
+# [zsh-syntax-highlighting]
 if [ -f /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]; then
     source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
     
@@ -139,37 +198,19 @@ if [ -f /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.z
     ZSH_HIGHLIGHT_STYLES[error]='fg=#f38ba8'            # Red
 fi
 
-# -----------------------------------------------------------------
-# Vi 模式与终端体验 (对应 PSReadLine)
-# -----------------------------------------------------------------
-# 启用 Vi 模式
-bindkey -v
-
-# 光标形状切换 (Command=方块, Insert=竖线)
-function zle-keymap-select() {
-    case $KEYMAP in
-        vicmd)      echo -ne "\e[1 q" ;;
-        viins|main) echo -ne "\e[5 q" ;;
-    esac
-}
-zle -N zle-keymap-select
-
-# 确保每次新命令行时光标重置为竖线
-function zle-line-init() {
-    echo -ne "\e[5 q"
-}
-zle -N zle-line-init
-
-# 修复 Vi 模式下的退格键行为
-bindkey "^?" backward-delete-char
-bindkey "^H" backward-delete-char
-
-# 上下箭头历史搜索 (对应 PSReadLine 的 HistorySearchBackward/Forward)
-bindkey '^[[A' history-search-backward
-bindkey '^[[B' history-search-forward
-# Vi 模式(命令模式)下的 k 和 j 同样支持搜索
-bindkey -M vicmd 'k' history-search-backward
-bindkey -M vicmd 'j' history-search-forward
+# zsh-vi-mode
+# if [ -f "$ZSH_CUSTOM/plugins/zsh-vi-mode/zsh-vi-mode.plugin.zsh" ]; then
+#
+#     # --- 配置项 (必须在 source 之前) ---
+#
+#     # 启用系统剪贴板，会自动检测 Wayland (wl-copy)
+#     # export ZVM_SYSTEM_CLIPBOARD_ENABLED=true
+#
+#     # 总是以 Insert 模式启动新命令行
+#     export ZVM_LINE_INIT_MODE=$ZVM_MODE_INSERT
+#
+#     source "$ZSH_CUSTOM/plugins/zsh-vi-mode/zsh-vi-mode.plugin.zsh"
+# fi
 
 # 撤销快捷键 (Ctrl+z)
 bindkey '^Z' undo
