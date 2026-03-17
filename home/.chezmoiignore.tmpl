@@ -1,3 +1,11 @@
+.oh-my-zsh/**
+!.oh-my-zsh/plugins
+{{ range .zshPlugins }}
+!.oh-my-zsh/custom/plugins/{{ . }}
+!.oh-my-zsh/custom/plugins/{{ . }}/**
+{{ end }}
+!.oh-my-zsh/custom/themes/powerlevel10k/**
+
 {{ if ne .chezmoi.os "darwin" }}
 .chezmoiscripts/darwin/**
 .config/aerospace
@@ -50,13 +58,6 @@ Documents
 {{ .ignore_path }}
 {{-     end }}
 {{-   end }}
-.oh-my-zsh/**
-!.oh-my-zsh/plugins
-{{ range .zshPlugins }}
-!.oh-my-zsh/custom/plugins/{{ . }}
-!.oh-my-zsh/custom/plugins/{{ . }}/**
-{{ end }}
-!.oh-my-zsh/custom/themes/powerlevel10k/**
 .config/nvim/lua/plugins/preview/mdmath.lua
 .config/kitty
 {{- end }}
