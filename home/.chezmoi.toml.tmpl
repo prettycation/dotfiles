@@ -38,8 +38,49 @@
     {{- end -}}
 {{- end -}}
 
-{{/* --- 邮箱配置 --- */}}
-{{- $email := "a2095578831@outlook.com" -}}
+{{/* --- 变量初始化 (if 之前) --- */}}
+
+{{/* --- email --- */}}
+{{- $email := "" -}}
+{{- $omail := "" -}}
+{{- $gmail := "" -}}
+{{- $qmail := "" -}}
+
+{{/* --- password --- */}}
+{{- $kp_password := "" -}}
+{{- $wd_password := "" -}}
+{{- $gm_password := "" -}}
+{{- $bw_password := "" -}}
+
+{{/* --- other --- */}}
+{{- $mihomo_secret := "" -}}
+{{- $airport_sub := "" -}}
+
+{{- if (env "BW_SESSION") -}}
+    {{- $outlookItem := bitwarden "item" "outlook" -}}
+    {{- $gmailItem := bitwarden "item" "gmail" -}}
+    {{- $qmailItem := bitwarden "item" "qq" -}}
+
+    {{- $kpItem := bitwarden "item" "keepassxc" -}}
+    {{- $wdItem := bitwarden "item" "windowshellopin" -}}
+    {{- $bwItem := bitwarden "item" "bitwarden" -}}
+
+    {{- $mhItem := bitwarden "item" "mihomo-secret" -}}
+    {{- $asItem := bitwarden "item" "airport-sub" -}}
+
+    {{- $email = $outlookItem.login.username -}}
+    {{- $omail = $outlookItem.login.username -}}
+    {{- $gmail = $gmailItem.login.username -}}
+    {{- $qmail = $qmailItem.login.username -}}
+
+    {{- $gm_password = $gmailItem.login.password -}}
+    {{- $kp_password = $kpItem.login.password -}}
+    {{- $wd_password = $wdItem.login.password -}}
+    {{- $bw_password = $bwItem.login.password -}}
+
+    {{- $mihomo_secret = $mhItem.login.password -}}
+    {{- $airport_sub = $asItem.login.password -}}
+{{- end -}}
 {{- if $work -}}
 {{-   $email = "work@example.com" -}}
 {{- end -}}
@@ -53,7 +94,22 @@
     personal = {{ $personal }}
     osid = {{ $osID | quote }}
 
-   {{/* --- git 配置 --- */}} 
+    {{/* --- account --- */}}
+    omail = {{ $omail | quote }}
+    gmail = {{ $gmail | quote }}
+    qmail = {{ $qmail | quote }}
+
+    {{/* --- password --- */}}
+    kp_password = {{ $kp_password | quote }}
+    wd_password = {{ $wd_password | quote }}
+    gm_password = {{ $gm_password | quote }}
+    bw_password = {{ $bw_password | quote }}
+
+    {{/* --- other --- */}}
+    mihomo_secret = {{ $mihomo_secret | quote }}
+    airport_sub = {{ $airport_sub | quote }}
+
+    {{/* --- git 配置 --- */}}
     name = "prettycation"
     git_signing_key = ""
     git_gpg_format = ""
@@ -69,6 +125,9 @@
     zshPlugins = [
         "zsh-syntax-highlighting",
         "zsh-autosuggestions",
+        "fzf-tab",
+        "zsh-vi-mode",
+        "zsh-readline",
     ]
 
 # --- GitHub API 频率限制---

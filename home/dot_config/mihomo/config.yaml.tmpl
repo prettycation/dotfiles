@@ -7,7 +7,11 @@ mode: rule # 规则模式
 log-level: info
 ipv6: false
 external-controller: 127.0.0.1:9090 # API 端口
-secret: '{{ (bitwarden "item" "mihomo-secret").login.password }}' # API 密钥 (留空则无)
+{{- if .mihomo_secret }}
+secret: {{ .mihomo_secret }}
+{{- else}}
+secret: {{ (bitwarden "item" "mihomo-secret").login.password }} # API 密钥 (留空则无)
+{{- end}}
 
 # --- 2. DNS 配置 (Fake-IP) ---
 dns:
@@ -34,7 +38,11 @@ dns:
 proxy-providers:
   Airport:
     type: http
-    url: '{{ (bitwarden "item" "airport-sub").login.password}}'
+    {{- if .airport_sub }}
+    url: {{ .airport_sub }}
+    {{- else }}
+    url: {{ (bitwarden "item" "airport-sub").login.password}}
+    {{- end }}
     interval: 3600
     path: ./airport.yaml
     health-check:

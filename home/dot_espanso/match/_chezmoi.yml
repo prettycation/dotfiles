@@ -14,6 +14,9 @@ matches:
   - trigger: "u.ad"
     replace: "chezmoi add --template "
 
+  - trigger: "u.mg"
+    replace: "chezmoi merge --verbose "
+
   - trigger: "u.ac"
     replace: '{{ (bitwarden "item" "$|$").login.username}}'
 
@@ -23,8 +26,14 @@ matches:
   - trigger: "u.dl"
     replace: '# chezmoi:template:left-delimiter="[[", right-delimiter="]]"'
 
-  - trigger: "u.hm"
-    replace: "{{ .chezmoi.homeDir }}"
+  - trigger: "u.dc"
+    replace: "chezmoi doctor"
+
+  - trigger: "u.da"
+    replace: "{{ .$|$ | quote  }}"
+
+  - trigger: "u.if"
+    replace: "{{- if .$|$ }}"
 
   - trigger: "u.osw"
     replace: '{{- if eq .chezmoi.os "windows" }}'
@@ -34,3 +43,6 @@ matches:
 
   - trigger: "u.osd"
     replace: '{{- if eq .chezmoi.os "darwin" }}'
+
+  - trigger: "u.ed"
+    replace: "{{- end }}"
