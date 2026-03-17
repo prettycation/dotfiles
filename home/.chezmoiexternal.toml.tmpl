@@ -32,14 +32,6 @@
     refreshPeriod = "168h"
     exclude = [ "*/.*", "*/templates", "*/themes" ]
 
-# 插件：zsh-syntax-highlighting
-[".oh-my-zsh/custom/plugins/zsh-syntax-highlighting"]
-    type = "archive"
-    url = "https://github.com/zsh-users/zsh-syntax-highlighting/archive/master.tar.gz"
-    exact = true
-    stripComponents = 1
-    refreshPeriod = "168h"
-
 # 插件：fzf-tab
 [".oh-my-zsh/custom/plugins/fzf-tab"]
     type = "archive"
@@ -48,14 +40,32 @@
     stripComponents = 1
     refreshPeriod = "168h"
 
+# 插件：zsh-readline
+[".oh-my-zsh/custom/plugins/zsh-readline"]
+    type = "archive"
+    url = "https://github.com/michielvha/zsh-readline/archive/master.tar.gz"
+    exact = true
+    stripComponents = 1
+    refreshPeriod = "168h"
+
+{{/*
+# 插件：zsh-syntax-highlighting
+  [".oh-my-zsh/custom/plugins/zsh-syntax-highlighting"]
+    type = "archive"
+    url = "https://github.com/zsh-users/zsh-syntax-highlighting/archive/master.tar.gz"
+    exact = true
+    stripComponents = 1
+    refreshPeriod = "168h"
+
 # 主题：Powerlevel10k
-# [".oh-my-zsh/custom/themes/powerlevel10k"]
-#    type = "archive"
-#    # 使用 gitHubLatestRelease 获取 TagName，确保版本最新且带 API 认证
-#    url = "https://github.com/romkatv/powerlevel10k/archive/{{ (gitHubLatestRelease "romkatv/powerlevel10k").TagName }}.tar.gz"
-#    exact = true
-#    stripComponents = 1
-#    refreshPeriod = "168h"
+[".oh-my-zsh/custom/themes/powerlevel10k"]
+    type = "archive"
+    # 使用 gitHubLatestRelease 获取 TagName，确保版本最新且带 API 认证
+    url = "https://github.com/romkatv/powerlevel10k/archive/{{ (gitHubLatestRelease "romkatv/powerlevel10k").TagName }}.tar.gz"
+    exact = true
+    stripComponents = 1
+    refreshPeriod = "168h"
+*/}}
 
 {{- end }}
 
