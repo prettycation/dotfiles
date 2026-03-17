@@ -1,12 +1,18 @@
 matches:
+  {{- if .gmail }}
   # gmail
   - trigger: "a.gm"
-    replace: '{{ (bitwarden "item" "gmail").login.username }}'
+    replace: {{ .gmail | quote  }}
+  {{- end }}
 
+  {{- if .email }}
   # outlook
   - trigger: "a.ot"
-    replace: '{{ (bitwarden "item" "outlook").login.username}}'
+    replace: {{ .email | quote  }}
+  {{- end }}
 
+  {{- if .qmail }}
   # qq
   - trigger: "a.qq"
-    replace: '{{ (bitwarden "item" "qq").login.username}}'
+    replace: {{ .qmail | quote  }}
+  {{- end }}

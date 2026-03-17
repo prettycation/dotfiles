@@ -20,7 +20,6 @@ export XDG_CACHE_HOME=$HOME/.cache
 export PATH="$HOME/.local/share/bob/nvim-bin:$PATH"
 {{- end }}
 
-# 正常的家目录 bin 路径
 {{- $paths := list -}}
 {{- $homeDir := .chezmoi.homeDir -}}
 {{- range $_, $relPath := list "bin" "go/bin" ".cargo/bin" ".local/bin" -}}
@@ -30,6 +29,7 @@ export PATH="$HOME/.local/share/bob/nvim-bin:$PATH"
 {{-   end -}}
 {{- end -}}
 {{- if $paths -}}
+# 正常的家目录 bin 路径
 export PATH={{ toStrings $paths | join ":" }}:$PATH
 {{ end }}
 
@@ -80,6 +80,30 @@ zstyle ':completion:*' menu no
 zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
 # 接受建议的快捷键设为 Tab
 zstyle ':fzf-tab:*' fzf-flags --bind=tab:accept
+
+# -----------------------------------------------------------------
+# zsh-readline (历史预测 ListView)
+# -----------------------------------------------------------------
+# 路径检查：优先使用系统级路径，如果不存在，则检查 Oh My Zsh custom 路径
+if [ -f /usr/share/zsh/plugins/zsh-readline/zsh-readline.plugin.zsh ] || [ -f "$ZSH_CUSTOM/plugins/zsh-readline/zsh-readline.plugin.zsh" ]; then
+    
+    # 1. 配置参数 (必须在 source 之前定义)
+    export ZSH_READLINE_MAX_PREDICTIONS=10
+    export ZSH_READLINE_MIN_INPUT=1
+    export ZSH_READLINE_REMOVE_DUPLICATE_HISTORY_ENTRIES=1
+
+    # 2. 确保 History 设置
+    setopt SHARE_HISTORY
+    HISTSIZE=10000
+    SAVEHIST=10000
+
+    # 3. 加载插件
+    if [ -f /usr/share/zsh/plugins/zsh-readline/zsh-readline.plugin.zsh ]; then
+        source /usr/share/zsh/plugins/zsh-readline/zsh-readline.plugin.zsh
+    else
+        source "$ZSH_CUSTOM/plugins/zsh-readline/zsh-readline.plugin.zsh"
+    fi
+fi
 
 # -----------------------------------------------------------------
 # 加载系统级插件 (pacman 安装的插件)
@@ -265,7 +289,7 @@ export EDITOR=vim
 # FZF-TAB 配色调整
 # -----------------------------------------------------------------
 # 1. 补全组标题颜色
-zstyle ':completion:*:descriptions' format $'\e[48;2;69;71;90m\e[1m %d \e[0m'
+zstyle ':completion:*:descriptions' format $'[ %d ]'
 # 2. 选中条目的色彩 (与 FZF 保持一致)
 # zstyle ':fzf-tab:*' fzf-flags --color=prompt:#CBA6F7,hl:#F38BA8,hl+:#F38BA8,pointer:#F5E0DC,info:#89DCEB --bind=tab:accept
 # --color: 设置 prompt, hl(匹配高亮), pointer(选中箭头), info(信息区)
