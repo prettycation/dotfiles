@@ -25,7 +25,7 @@ return {
       -- 行内显示策略：
       -- "fixed_size": 图片大小受限于文本区域（较稳定）
       -- "flex_size": 根据图片大小自动伸缩（视觉效果更好，但需 conceallevel >= 1）
-      inline_strategy = "fixed_size",
+      inline_strategy = "flex_size",
 
       -- 居中显示独立段落公式 ($$ ... $$)
       center_display = true,

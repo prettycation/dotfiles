@@ -11,7 +11,20 @@ vim.api.nvim_create_autocmd("FileType", {
   pattern = { "markdown", "typst", "txt" },
 
   callback = function()
+    -- 禁用拼写检查
     vim.opt_local.spell = false
+  end,
+})
+
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = { "markdown" },
+  callback = function()
+    -- 禁用自动换行
+    vim.opt_local.wrap = false
+    -- 水平滚动光标右侧缓冲距离
+    vim.opt_local.sidescrolloff = 58
+    -- 每次滚动 1 个字符，而不是一次跳半屏
+    vim.opt_local.sidescroll = 1
   end,
 })
 
