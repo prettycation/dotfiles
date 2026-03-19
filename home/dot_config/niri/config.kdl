@@ -192,7 +192,7 @@ layout {
 }
 
 // ===================================================================
-// ==                      启动项 (正确语法)                        ==
+// ==                            启动项                           ==
 // ===================================================================
 // 每一个需要在启动时运行的程序，都使用一个独立的 spawn-at-startup 指令。
 
@@ -208,6 +208,9 @@ spawn-at-startup "/usr/lib/polkit-kde-authentication-agent-1"
 
 // 启动 XSettings 守护进程
 spawn-at-startup "xsettingsd"
+
+// 启动 Espanso
+spawn-at-startup "espanso" "service" "start" "--unmanaged"
 
 // -------------------------------------------------------------------
 // 其他杂项设置
