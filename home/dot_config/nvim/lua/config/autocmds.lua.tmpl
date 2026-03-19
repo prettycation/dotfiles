@@ -16,6 +16,7 @@ vim.api.nvim_create_autocmd("FileType", {
   end,
 })
 
+{{- if ne .chezmoi.os "windows" }}
 vim.api.nvim_create_autocmd("FileType", {
   pattern = { "markdown" },
   callback = function()
@@ -27,6 +28,42 @@ vim.api.nvim_create_autocmd("FileType", {
     vim.opt_local.sidescroll = 1
   end,
 })
+
+{{- if eq .chezmoi.os "linux" }}
+
+-- Fcitx5 输入法自动切换
+-- 离开插入模式关闭输入法，回到插入模式恢复之前的状态
+local fcitx5_group = vim.api.nvim_create_augroup("Fcitx5Shell", { clear = true })
+local fcitx_state = "1" -- 默认 1 为英文状态
+
+vim.api.nvim_create_autocmd("InsertLeave", {
+  group = fcitx5_group,
+  pattern = "*",
+  callback = function()
+    -- 获取当前状态: 1=Inactive, 2=Active
+    local handle = io.popen("fcitx5-remote")
+    if handle then
+      local result = handle:read("*a")
+      handle:close()
+      fcitx_state = result:sub(1, 1)
+      -- 离开时切换回英文 (Close)
+      os.execute("fcitx5-remote -c")
+    end
+  end,
+})
+
+vim.api.nvim_create_autocmd("InsertEnter", {
+  group = fcitx5_group,
+  pattern = "*",
+  callback = function()
+    -- 如果离开前是中文状态 (2)，进入时重新开启 (Open)
+    if fcitx_state == "2" then
+      os.execute("fcitx5-remote -o")
+    end
+  end,
+})
+{{- end }}
+{{- end }}
 
 -- 退出 nvim 后恢复默认光标
 vim.api.nvim_create_autocmd("VimLeave", {
