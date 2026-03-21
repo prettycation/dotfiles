@@ -449,3 +449,12 @@ binds {
     // 关闭显示器电源。移动鼠标或按任意键可唤醒。
     Mod+Shift+P { power-off-monitors; }
 }
+
+// include "dms/alttab.kdl"
+// include "dms/binds.kdl"
+include "dms/colors.kdl"
+include "dms/cursor.kdl"
+include "dms/layout.kdl"
+// include "dms/outputs.kdl"
+// include "dms/windowrules.kdl"
+// include "dms/wpblur.kdl"
