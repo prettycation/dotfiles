@@ -1,18 +1,24 @@
 matches:
-  {{- if .gmail }}
+  {{- if (hasKey . "gmail") }}
+  {{-   if .gmail }}
   # gmail
   - trigger: "a.gm"
     replace: {{ .gmail | quote  }}
+  {{-   end }}
   {{- end }}
 
-  {{- if .email }}
+  {{- if (hasKey . "email") }}
+  {{-   if .email }}
   # outlook
   - trigger: "a.ot"
     replace: {{ .email | quote  }}
+  {{-   end }}
   {{- end }}
 
-  {{- if .qmail }}
+  {{- if (hasKey . "qmail") }}
+  {{-   if .qmail }}
   # qq
   - trigger: "a.qq"
     replace: {{ .qmail | quote  }}
+  {{-   end }}
   {{- end }}
