@@ -33,7 +33,17 @@ matches:
     replace: "{{ .$|$ | quote  }}"
 
   - trigger: "u.if"
-    replace: "{{- if .$|$ }}"
+    replace: |
+      \{\{- if (hasKey . "{{f.v}}") \}\}
+      \{\{-   if .{{f.v}} \}\}
+      $|$
+      \{\{-   end \}\}
+      \{\{- end \}\}
+    vars:
+      - name: f
+        type: form
+        params:
+          layout: "Variable Name: [[v]]"
 
   - trigger: "u.osw"
     replace: '{{- if eq .chezmoi.os "windows" }}'
