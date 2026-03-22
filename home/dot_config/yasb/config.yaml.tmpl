@@ -1,0 +1,289 @@
+# ==================================================================================
+# YASB 配置文件 (GlazeWM 适配)
+# ==================================================================================
+watch_stylesheet: true
+watch_config: true
+debug: false
+bars:
+  primary-bar:
+    enabled: true
+    screens: ["*"]
+    class_name: "yasb-bar"
+    alignment:
+      position: "top"
+      center: false
+    blur_effect:
+      enabled: false
+      acrylic: false
+      dark_mode: true
+      round_corners: false
+      border_color: None
+    window_flags:
+      always_on_top: false
+      windows_app_bar: true
+      hide_on_fullscreen: true
+    dimensions:
+      width: "100%"
+      height: 32
+    padding:
+      top: 8
+      left: 6
+      bottom: 2
+      right: 6
+    animation:
+      enabled: false
+    widgets:
+      left: ["glazewm_workspaces", "active_window"]
+      center: []
+      right:
+        - "systray"
+        - "traffic"
+        - "cpu"
+        - "memory"
+        - "disk"
+        - "volume"
+        - "weather"
+        - "clock"
+        - "media"
+        - "notifications"
+
+widgets:
+  glazewm_workspaces:
+    type: "glazewm.workspaces.GlazewmWorkspacesWidget"
+    options:
+      offline_label: "GlazeWM OFFLINE"
+      hide_empty_workspaces: true
+      hide_if_offline: true
+      app_icons:
+        enabled_populated: true
+        enabled_active: true
+        size: 16
+
+  # 网速组件逻辑 (带弹窗菜单)
+  traffic:
+    type: "yasb.traffic.TrafficWidget"
+    options:
+      label: "<span>\udb83\udc9d</span>"
+      label_alt: "<span>\udb83\udc9d</span> \ueab4 {download_speed} | \ueab7 {upload_speed}"
+      update_interval: 1000
+
+      menu:
+        blur: false
+        round_corners: true
+        round_corners_type: "normal"
+        border_color: "system"
+        alignment: "center"
+        direction: "down"
+      callbacks:
+        on_left: "toggle_menu"
+        on_middle: "toggle_label"
+        on_right: "exec cmd.exe /c start ms-settings:network-status"
+
+  memory:
+    type: "yasb.memory.MemoryWidget"
+    options:
+      # 默认: 图标 + 百分比
+      label: "<span>\uefc5</span> {virtual_mem_percent}%"
+      # 点击后: 图标 + 具体用量
+      label_alt: "<span>\uefc5</span> {virtual_mem_used}"
+      update_interval: 5000
+      callbacks:
+        on_left: "toggle_label" # 左键切换显示模式
+        on_middle: "toggle_label"
+        on_right: "exec cmd /c Taskmgr"
+      memory_thresholds:
+        low: 25
+        medium: 50
+        high: 90
+
+  # 磁盘组件 (带详情弹窗)
+  disk:
+    type: "yasb.disk.DiskWidget"
+    options:
+      # 添加了硬盘图标 \udb80\udec8
+      label: "{volume_label}: {space[used][percent]}"
+      label_alt: "{volume_label}: {space[used][gb]} / {space[total][gb]}"
+      volume_label: "C"
+      decimal_display: 1
+      update_interval: 60
+      group_label:
+        volume_labels: ["C", "D", "E", "F", "G"]
+        show_label_name: true
+        blur: True
+        round_corners: True
+        round_corners_type: "normal"
+        border_color: "System"
+        alignment: "center"
+        direction: "down"
+      callbacks:
+        on_left: "toggle_group"
+        on_middle: "toggle_label"
+      disk_thresholds:
+        low: 25
+        medium: 50
+        high: 90
+
+  media:
+    type: "yasb.media.MediaWidget"
+    options:
+      label: "{artist}"
+      label_alt: "{title}"
+      max_field_size:
+        label: 40
+        label_alt: 40
+      show_thumbnail: false
+      controls_hide: false
+      hide_empty: true
+      thumbnail_alpha: 80
+      thumbnail_padding: 0
+      thumbnail_corner_radius: 0
+      icons:
+        prev_track: "\ue892"
+        next_track: "\ue893"
+        play: "\ue768"
+        pause: "\ue769"
+      callbacks:
+        on_right: "toggle_label" # 右键切换
+
+  active_window:
+    type: "yasb.active_window.ActiveWindowWidget"
+    options:
+      label: "{win[process][name]}"
+      label_alt: "{win[title]}"
+      label_no_window: ""
+      label_icon: false
+      label_icon_size: 12
+      max_length: 50
+      max_length_ellipsis: "..."
+      monitor_exclusive: false
+      callbacks:
+        on_right: "toggle_label" # 右键切换
+
+  volume:
+    type: "yasb.volume.VolumeWidget"
+    options:
+      label: "<span>{icon}</span> {level}"
+      volume_icons:
+        - "\ueee8"
+        - "\uf026"
+        - "\uf027"
+        - "\uf027"
+        - "\uf028"
+
+  notifications:
+    type: "yasb.notifications.NotificationsWidget"
+    options:
+      label: "<span>\uf476</span> {count}"
+      label_alt: "{count} notifications"
+      hide_empty: true
+      tooltip: false
+      container_padding:
+        top: 0
+        left: 10
+        bottom: 0
+        right: 12
+      callbacks:
+        on_left: "toggle_notification"
+        on_right: "toggle_label"
+      label_shadow:
+        enabled: true
+        color: "black"
+        radius: 3
+        offset: [1, 1]
+
+  cpu:
+    type: "yasb.cpu.CpuWidget"
+    options:
+      # 默认: 图标 + 百分比
+      label: "<span>\uf4bc</span> {info[percent][total]}%"
+      # 点击后: 图标 + 频率
+      label_alt: "<span>\uf4bc</span> {info[freq][current]} GHz"
+      update_interval: 1000
+      callbacks:
+        on_left: "toggle_label" # 左键切换显示模式
+        on_right: "exec cmd /c Taskmgr"
+      container_padding:
+        top: 0
+        left: 0
+        bottom: 0
+        right: 0
+
+  systray:
+    type: "yasb.systray.SystrayWidget"
+    options:
+      class_name: "systray"
+      show_unpinned: true
+      show_unpinned_button: true
+      show_battery: false
+      show_volume: false
+      show_network: false
+
+  weather:
+    type: "yasb.weather.WeatherWidget"
+    options:
+      label: "<span>{icon}</span> {temp}"
+      label_alt: "{location}: {temp} ({min_temp}-{max_temp})"
+      api_key: "3bf4cf9a7c3f40d6b31174128242807"
+      update_interval: 600
+      hide_decimal: true
+      {{- if (hasKey . "location") }}
+      {{-   if .location }}
+      location: {{ .location | quote }}
+      {{-   end }}
+      {{- end }}
+      callbacks:
+        # 点击显示天气卡片 (Menu)
+        on_left: "toggle_card"
+        on_right: "exec cmd.exe /c start msnweather:"
+      icons:
+        # 图标列表
+        sunnyDay: "\ue30d"
+        clearNight: "\ue32b"
+        cloudyDay: "\ue312"
+        cloudyNight: "\ue311"
+        rainyDay: "\ue308"
+        rainyNight: "\ue333"
+        snowyDay: "\ue30a"
+        snowyNight: "\ue335"
+        blizzardDay: "\udb83\udf36"
+        blizzardNight: "\udb83\udf36"
+        foggyDay: "\ue303"
+        foggyNight: "\ue346"
+        thunderstormDay: "\ue30f"
+        thunderstormNight: "\ue338"
+        default: "\uebaa"
+      # 天气卡片配置
+      weather_card:
+        blur: true
+        round_corners: true
+        round_corners_type: "normal"
+        border_color: "system"
+        alignment: "center"
+        direction: "down"
+        icon_size: 64
+        show_hourly_forecast: true
+        time_format: "24h"
+
+  clock:
+    type: "yasb.clock.ClockWidget"
+    options:
+      label: "{%H:%M:%S}"
+      # 详细模式
+      label_alt: "{%A, %d %B %Y}"
+      timezones: []
+      callbacks:
+        on_left: "toggle_calendar" # 左键点击弹出日历
+        on_middle: "next_timezone"
+        on_right: "exec cmd.exe /c start ms-clock:"
+      # 日历弹窗配置
+      calendar:
+        blur: true
+        round_corners: true
+        round_corners_type: "normal"
+        border_color: "system" # CSS会覆盖此设置
+        alignment: "center"
+        direction: "down"
+        show_holidays: true
+        show_week_numbers: true
+        # 节假日高亮色 (可填颜色代码，也可由CSS控制)
+        holiday_color: "#f38ba8" # Catppuccin Red

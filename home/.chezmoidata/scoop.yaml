@@ -39,7 +39,7 @@ scoop:
       includes:
         - "**"
 
-    - name: "Rime.Weasel"
+    - name: "Weasel"
       scoop_app: "Rime.Weasel"
       source_base: "dot_local/share/fcitx5/rime"
       target_base: "AppData/Roaming/Rime"
@@ -47,7 +47,7 @@ scoop:
       includes:
         - "**"
 
-    - name: "Starship.Starship"
+    - name: "Starship"
       scoop_app: "Starship.Starship"
       source_base: "dot_config/starship.toml"
       target_base: ".config/starship.toml"
@@ -58,5 +58,13 @@ scoop:
       source_base: "dot_config/wezterm"
       target_base: ".config/wezterm"
       ignore_path: ".config/wezterm"
+      includes:
+        - "**"
+
+    - name: "yasb"
+      scoop_app: "AmN.yasb"
+      source_base: "dot_config/yasb"
+      target_base: ".config/yasb"
+      ignore_path: ".config/yasb"
       includes:
         - "**"
