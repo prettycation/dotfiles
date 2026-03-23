@@ -51,7 +51,7 @@ patch:
       reset: 0
     - name: prediction
       states: [预测关, 预测开]
-      reset: 0
+      reset: 1
 
   #通过下面的设置可以让你自己的文件引入而与仓库custom_phrase.txt不同，防止更新时被仓库文件覆盖
   custom_phrase/user_dict: custom_phrase01 # 这里改成什么就需要手动创建同名的 custom_phrasexx.txt 文件在用户目录，这个文件主要用于置顶，编码为自定义编码的词汇
@@ -60,9 +60,16 @@ patch:
 
   # 输入引擎
   # 使用 *文件名*对象名 的语法直接加载 Lua 插件
-  "engine/processors/@before0": predictor
-  "engine/translators/@before0": predict_translator
 
+  # 预测引擎
+  # ⚠️ 必须放在靠前位置（以确保精准拦截按键）
+  # "engine/processors/@before0": lua_processor@*wanxiang.user_predict*P
+  # 负责生成上屏后的预测候选词
+  # "engine/translators/@next": lua_translator@*wanxiang.user_predict*T
+  # ⚠️ 负责最终的候选词实时提权调频
+  # "engine/filters/@next": lua_filter@*wanxiang.user_predict*F
+
+  # rime-trans 翻译插件
   # 挂载处理器 (处理快捷键)
   "engine/processors/@next": lua_processor@*input_text*processor
 
@@ -78,10 +85,20 @@ patch:
     rear_penalty: -18
     weak_collocation_penalty: -24
 
-  predictor:
-    db: wanxiang-lts-zh-hans-predict.db
-    max_candidates: 10
-    max_iterations: 2
+  user_predict:
+    enable_post_predict: true # 引擎 A：是否开启上屏后的联想预测
+    enable_context_reorder: true # 引擎 B：是否开启输入过程中的实时上下文调频
+    max_candidates: 5 # 候选栏中最多显示的联想词数量
+    max_predictions: 3 # 级联深度：允许连续自动预测的最大跳数
+    expiry_days: 90 # 物理生命周期：超 90 天未使用的 1/2-Gram 将被销毁
+    activation_days: 7 # 激活锁：新词若 7 天内不再使用，将被视为噪音冷冻
+    decay_rate: 0.85 # 遗忘衰减率：数值越小，旧词权重掉得越快
+    context_timeout: 5000 # 语境熔断 (ms)：停顿超 5 秒自动切断上下文，防远距离穿透
+    enable_predict_space: false # 键盘双模式 AB 面开关
+    db_name: "lua/predict"
+  # 模式 B (默认 false，沉浸预测流)：Space 空格键交由 Rime 原生系统顺滑选词；按下 Tab、→、\ 或 Alt 等替身键时，打断联想并强制输出物理空格。
+
+  # 模式 A (true，精准空格流)：Space 强制打断联想并输出物理空格；替身键仅作纯粹的打断清空。
 
   # Tips 配置项
   tips:
@@ -106,8 +123,6 @@ patch:
   "super_comment/corrector_type": "comment" # 错音措字，随意更换左右括号，比如"〔comment〕" 不加括号为无括号，comment占位不能动
   "super_comment/chaifen": "chaifen" # 拆分显示，随意更换左右括号，比如"〔chaifen〕" 不加括号为无括号，chaifen占位不能动
   "super_comment/cand_type/sentence": "∞"
-
-  "super_processor/enable_predict_space": false
 
   #在8105基础上你可以通过黑白名单微调你自己的字符集过滤清单，主数据库位于lua/charset.bin不可编辑
   charsetlist: [你]
