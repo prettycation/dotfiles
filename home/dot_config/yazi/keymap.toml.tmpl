@@ -9,17 +9,22 @@ keymap = [
   # plugins
   # smart-filter
   { on = "F", run = "plugin smart-filter", desc = "智能过滤器" },
+
   # zoom
   { on = "+", run = "plugin zoom 1", desc = "放大悬停文件" },
   { on = "_", run = "plugin zoom -1", desc = "缩小悬停文件" },
+
   # tv
   { on = "<C-f>", run = "plugin tv", desc = "通过 telivision 跳转到文件" },
   { on = "<C-t>", run = "plugin tv text", desc = "使用 neovim 打开文件并跳转到该字符串所在的位置" },
   { on = "<C-d>", run = "plugin tv dirs", desc = "通过 telivision 跳转到目录" },
+
   # easyjump
   { on = "f", run = "plugin easyjump", desc = "easyjump" },
+
   # searchjump
   { on = "s", run = "plugin searchjump", desc = "searchjump" },
+
   # project
   { on = ["P", "s"], run = "plugin projects save", desc = "保存当前的项目" },
   { on = ["P", "l"], run = "plugin projects load", desc = "加载项目" },
@@ -29,6 +34,24 @@ keymap = [
   { on = ["P", "m"], run = "plugin projects 'merge current'", desc = "merge 当前的 tab 到另一个项目" },
   { on = ["P", "M"], run = "plugin projects 'merge all'", desc = "merge 当前的项目到另一个项目" },
   { on = ["P", "u"], run = "plugin projects 'load chezmoi'", desc = "加载 chezmoi 项目" },
+
+  {{- if ne .chezmoi.os "windows" }}
+  # recycle-bin
+  { on = ["R","o"], run = "plugin recycle-bin -- open",        desc = "打开回收站" },
+  { on = ["R","e"], run = "plugin recycle-bin -- empty",       desc = "清空回收站" },
+  { on = ["R","D"], run = "plugin recycle-bin -- emptyDays",   desc = "按删除天数清空" },
+  { on = ["R","d"], run = "plugin recycle-bin -- delete",      desc = "从回收站删除" },
+  { on = ["R","r"], run = "plugin recycle-bin -- restore",     desc = "从回收站恢复" },
+  {{- end }}
+
+  # mediainfo
+  { on = "<F9>", run = "plugin mediainfo -- toggle-metadata", desc = "切换媒体预览元数据显示" },
+
+  # duckdb
+  # { on = "H", run = "plugin duckdb -1", desc = "向左滚动一列表格" },
+  # { on = "L", run = "plugin duckdb +1", desc = "向右滚动一列表格" },
+  # { on = ["g", "o"], run = "plugin duckdb -open", desc = "使用 DuckDB 打开" },
+  # { on = ["g", "u"], run = "plugin duckdb -ui", desc = "在 DuckDB UI 中打开" },
 
   {{- if eq .chezmoi.os "windows" }}
   # Windows
@@ -88,8 +111,8 @@ keymap = [
   { on = "<Left>", run = "leave", desc = "返回上级目录" },
   { on = "<Right>", run = "enter", desc = "进入子目录" },
 
-  { on = "H", run = "back", desc = "返回上一个目录" },
-  { on = "L", run = "forward", desc = "前进到下一个目录" },
+  # { on = "H", run = "back", desc = "返回上一个目录" },
+  # { on = "L", run = "forward", desc = "前进到下一个目录" },
 
   # Toggle
   { on = "<Space>", run = [
