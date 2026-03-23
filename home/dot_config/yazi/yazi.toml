@@ -16,7 +16,7 @@ sort_dir_first = true
 # 排序时是否对非 ASCII 字符进行音译转换 (如将 'ü' 视为 'u')。
 sort_translit = false
 # 是否在文件名旁边显示额外信息，如 "size", "mtime" (修改时间)。
-linemode = "none"
+linemode = "mtime"
 # 是否默认显示以 '.' 开头的隐藏文件。
 show_hidden = false
 # 是否显示符号链接 (在 Windows 上不常用)。
@@ -195,15 +195,24 @@ spotters = [
   { url = "*/", run = "folder" },
   { mime = "text/*", run = "code" },
   { mime = "application/{mbox,javascript,wine-extension-ini}", run = "code" },
-  { mime = "image/{avif,hei?,jxl}", run = "magick" },
-  { mime = "image/svg+xml", run = "svg" },
-  { mime = "image/*", run = "image" },
-  { mime = "video/*", run = "video" },
+  # [mediainfo] 使用 mediainfo 替代原有图片和视频的 spotters
+  { mime = "{audio,video,image}/*", run = "mediainfo" },
+  { mime = "application/subrip", run = "mediainfo" },
+  { mime = "application/postscript", run = "mediainfo" },
   { url = "*", run = "file" },
 ]
 
 # "preloaders" 在文件进入视野时提前加载预览内容。
 preloaders = [
+  # --- DuckDB 数据预览预加载开始 (已注释等待修复) ---
+  # { url = "*.csv", run = "duckdb", multi = false },
+  # { url = "*.tsv", run = "duckdb", multi = false },
+  # { url = "*.json", run = "duckdb", multi = false },
+  # { url = "*.parquet", run = "duckdb", multi = false },
+  # { url = "*.txt", run = "duckdb", multi = false },
+  # { url = "*.xlsx", run = "duckdb", multi = false },
+  # --- DuckDB 数据预览预加载结束 ---
+
   # --- Office 文档预览规则开始 ---
   # 规则1: 匹配所有 Office Open XML 格式的MIME类型。
   # 这包括了 .docx, .xlsx, .pptx 等现代Office文件。
@@ -226,10 +235,11 @@ preloaders = [
 
   # --- Office 文档预览规则结束 ---
 
-  { mime = "image/{avif,hei?,jxl}", run = "magick" },
-  { mime = "image/svg+xml", run = "svg" },
-  { mime = "image/*", run = "image" },
-  { mime = "video/*", run = "video" },
+  # [mediainfo] 使用 mediainfo 替代原有的 magick, image, video 规则
+  { mime = "{audio,video,image}/*", run = "mediainfo" },
+  { mime = "application/subrip", run = "mediainfo" },
+  { mime = "application/postscript", run = "mediainfo" },
+
   { mime = "application/pdf", run = "pdf" },
   { mime = "font/*", run = "font" },
   { mime = "application/ms-opentype", run = "font" },
@@ -237,6 +247,25 @@ preloaders = [
 
 # "previewers" 定义了针对不同文件类型，应该使用哪个内置的预览器插件。
 previewers = [
+  # --- DuckDB 数据预览规则开始 (由于其支持表格视图，建议放在 Office 和 Code 之前) (已注释等待修复) ---
+  # { url = "*.csv", run = "duckdb" },
+  { mime = "text/*", run = "code" },
+  # { url = "*.tsv", run = "duckdb" },
+  { mime = "text/*", run = "code" },
+  # { url = "*.json", run = "duckdb" },
+  { mime = "application/{json,ndjson}", run = "json" },
+  # { url = "*.parquet", run = "duckdb" },
+  { url = "*", run = "file" },
+  # { url = "*.txt", run = "duckdb" },
+  { mime = "text/*", run = "code" },
+  # { url = "*.xlsx", run = "duckdb" },
+  { url = "*.xlsx", run = "office" },
+  # { url = "*.db", run = "duckdb" },
+  { url = "*", run = "file" },
+  # { url = "*.duckdb", run = "duckdb" },
+  { url = "*", run = "file" },
+  # --- DuckDB 数据预览规则结束 ---
+
   # --- Office 文档预览规则开始 ---
 
   # 规则1: 匹配 Office Open XML 格式 (.docx, .xlsx, .pptx)
@@ -258,14 +287,16 @@ previewers = [
   { url = "*.ppt", run = "office" },
   # --- Office 文档预览规则结束 ---
 
-  { url = "*/", run = "folder" },                                                                                            # 文件夹使用 'folder' 预览器
-  { mime = "text/*", run = "code" },                                                                                         # 文本文件使用 'code' 预览器 (它会调用 bat)
+  { url = "*/", run = "folder" },                                              # 文件夹使用 'folder' 预览器
+  { mime = "text/*", run = "code" },                                           # 文本文件使用 'code' 预览器 (它会调用 bat)
   { mime = "application/{mbox,javascript,wine-extension-ini}", run = "code" },
-  { mime = "application/{json,ndjson}", run = "json" },                                                                      # JSON 文件使用 'json' 预览器 (它也会调用 bat)
-  { mime = "image/{avif,hei?,jxl}", run = "magick" },                                                                        # 特殊图片格式使用 'magick' (ImageMagick)
-  { mime = "image/svg+xml", run = "svg" },
-  { mime = "image/*", run = "image" },                                                                                       # 普通图片使用 'image' 预览器
-  { mime = "video/*", run = "video" },                                                                                       # 视频文件使用 'video' 预览器
+  { mime = "application/{json,ndjson}", run = "json" },                        # JSON 文件使用 'json' 预览器 (它也会调用 bat)
+
+  # [mediainfo] 使用 mediainfo 替代原有的 magick, image, video 规则
+  { mime = "{audio,video,image}/*", run = "mediainfo" },
+  { mime = "application/subrip", run = "mediainfo" },
+  { mime = "application/postscript", run = "mediainfo" },
+
   { mime = "application/pdf", run = "pdf" },                                                                                 # PDF 文件使用 'pdf' 预览器 (它会调用 pdftoppm)
   { mime = "application/{zip,rar,7z*,tar,gzip,xz,zstd,bzip*,lzma,compress,archive,cpio,arj,xar,ms-cab*}", run = "archive" }, # 压缩包使用 'archive' 预览器
   { url = "*.{AppImage,appimage}", run = "archive" },
@@ -348,4 +379,3 @@ sort_by = "none"
 sort_sensitive = false
 sort_reverse = false
 sort_translit = false
-
