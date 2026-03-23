@@ -1,22 +1,17 @@
 [[plugin.deps]]
 use = "yazi-rs/plugins:smart-filter"
-rev = "1962818"
 
 [[plugin.deps]]
 use = "yazi-rs/plugins:zoom"
-rev = "1962818"
 
 [[plugin.deps]]
 use = "cap153/tv"
-rev = "b6b1f12"
 
 [[plugin.deps]]
 use = "Rolv-Apneseth/starship"
-rev = "eca1861"
 
 [[plugin.deps]]
 use = "mikavilpas/easyjump.yazi:easyjump"
-rev = "73a5d57"
 
 [[plugin.deps]]
 use = "prettycation/office"
@@ -24,11 +19,23 @@ rev = "fix/windows-compatibility"
 
 [[plugin.deps]]
 use = "MasouShizuka/projects"
-rev = "198c2ba"
 
 [[plugin.deps]]
 use = "DreamMaoMao/searchjump"
-rev = "cab627c"
+
+[[plugin.deps]]
+use = "yazi-rs/plugins:full-border"
+
+[[plugin.deps]]
+use = "boydaihungst/mediainfo"
+
+[[plugin.deps]]
+use = "wylie102/duckdb"
+
+{{- if ne .chezmoi.os "windows" }}
+[[plugin.deps]]
+use = "uhs-robert/recycle-bin"
+{{- end }}
 
 [flavor]
 deps = []
