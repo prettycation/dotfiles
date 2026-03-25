@@ -1,0 +1,65 @@
+{{- if eq .chezmoi.os "linux" }}
+matches:
+  # refresh
+ 
+  # 刷新数据库 paru -y
+  - trigger: "pa.up"
+    replace: "paru --refresh"
+
+  # query
+ 
+  - trigger: "pa.st"
+    replace: "paru --query --upgrades"
+
+  - trigger: "pa.ex"
+    replace: "paru -Qqe | jq -R . | jq -s . > /tmp/packages.json"
+
+  # paru -Qua   打印可用的 AUR 更新
+  - trigger: "pa.qua"
+    replace: "paru --sync --sysupgrade --aur"
+
+  # paru -Qun   打印可用的官方仓库更新
+  - trigger: "pa.qun"
+    replace: "paru --sync --sysupgrade --native "
+
+  # paru -Qi    显示本地包的详细信息
+  - trigger: "pa.if"
+    replace: "paru --query --info "
+
+  # sync
+
+  # paru -Syu
+  - trigger: "pa.is"
+    replace: "paru --sync --refresh --sysupgrade"
+ 
+  # paru -Sua   仅升级 AUR 包
+  - trigger: "pa.sua"
+    replace: "paru --sync --sysupgrade --aur"
+
+  # paru -Syu --repo  仅升级官方仓库包
+  - trigger: "pa.sur"
+    replace: "paru --sync --sysupgrade --repo"
+
+  # paru -Ss   搜索远程包
+  - trigger: "pa.sc"
+    replace: "paru --sync --search "
+
+  # paru -Sc  清理未安装包的缓存和 AUR 克隆
+  - trigger: "pa.cca"
+    replace: "paru --sync --clean"
+
+  # clean
+ 
+  # paru -c    依赖清理孤立依赖包（删除不再需要的包）
+  - trigger: "pa.ccr"
+    replace: "paru --clean"
+
+  # 清理旧版本缓存（保留最近 2 个版本）
+  - trigger: "pa.cl"
+    replace: "paccache -rk2"
+
+  # remove
+  # paru -Rs    移除包及其未被使用的依赖
+  - trigger: "pa.ui"
+    replace: "paru --remove --recursive "
+{{- end }}
