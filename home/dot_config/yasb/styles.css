@@ -171,6 +171,26 @@
   color: white;
 }
 
+/* --- 组件悬浮高亮效果 --- */
+
+/* CPU (图标是绿色 var(--green)) */
+.cpu-widget:hover {
+  background-color: var(--surface1);
+  border: 1px solid var(--green);
+}
+
+/* 内存 (图标是黄色 var(--yellow)) */
+.memory-widget:hover {
+  background-color: var(--surface1);
+  border: 1px solid var(--yellow);
+}
+
+/* 磁盘 (图标是蓝色 var(--sapphire)) */
+.disk-widget:hover {
+  background-color: var(--surface1);
+  border: 1px solid var(--sapphire);
+}
+
 /* --- 网络流量 (Bar上的外观) --- */
 /* 1. 最外层容器，负责外观 */
 .traffic-widget {
@@ -181,6 +201,14 @@
   padding-left: 6px; /* 图标左右边距 */
   padding-right: 9px;
   min-height: 20px;
+}
+
+/* --- 组件悬浮高亮效果 --- */
+
+/* 网络流量 (图标是青色 var(--teal)) */
+.traffic-widget:hover {
+  background-color: var(--surface1);
+  border: 1px solid var(--teal);
 }
 
 /* 2. 图标颜色 */
@@ -423,6 +451,14 @@
   padding: 0 10px;
 }
 
+/* --- 组件悬浮高亮效果 --- */
+
+/* 音量 (图标是淡紫色 var(--lavender)) */
+.volume-widget:hover {
+  background-color: var(--surface1);
+  border: 1px solid var(--lavender);
+}
+
 .volume-widget .icon {
   color: var(--lavender);
 }
@@ -622,7 +658,7 @@
 /* --- Bar上的图标/文字按钮样式 --- */
 .power-menu-widget {
   background-color: var(--surface0);
-  border: 1px solid var(--surface1);
+  border: 1px solid var(--overlay0);
   border-radius: 8px;
   /* 调整内边距以防文字/图标裁剪 */
   padding: 4px 12px;
