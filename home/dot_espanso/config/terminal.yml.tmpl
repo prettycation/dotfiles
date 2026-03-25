@@ -10,6 +10,8 @@ filter_exec: ".*(Kitty|WezTerm|iTerm2|Terminal)$"
 extra_includes:
 {{- if eq .chezmoi.os "windows" }}
   - "../match/_scoop.yml"
+{{- else if eq .chezmoi.os "linux" }}
+  - "../match/_paru.yml"
 {{- end }}
   - "../match/_cargo.yml"
   - "../match/_bitwarden.yml"
