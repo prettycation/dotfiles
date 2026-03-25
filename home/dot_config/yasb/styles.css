@@ -685,29 +685,30 @@
 /* --- 弹窗整体样式 --- */
 .power-menu-popup {
   background-color: var(--mantle);
-  border-radius: 8px;
+  border-radius: 12px; /* 稍微大一点的圆角 */
   border: 1px solid var(--surface1);
-  padding: 8px;
+  padding: 12px; /* 增加弹窗内边距 */
 }
 
 .power-menu-popup .uptime {
-  font-size: 14px;
-  margin-bottom: 12px;
-  padding: 4px 8px;
-  color: var(--subtext0);
+  font-size: 15px; /* 增大运行时间显示 */
+  margin-bottom: 15px;
+  padding: 4px 12px;
+  color: var(--subtext1);
   font-weight: bold;
 }
 
 /* --- 弹窗内按钮 --- */
 .power-menu-popup .button {
-  padding: 10px;
-  width: 120px; /* 调整为更紧凑的尺寸 */
-  height: 80px;
-  border-radius: 8px;
+  width: 160px;
+  height: 100px;
+
+  margin: 6px; /* 按钮间距 */
+  padding: 12px;
+  border-radius: 10px;
   background-color: var(--surface0);
-  color: var(--text);
   border: 1px solid var(--surface1);
-  margin: 4px;
+  color: var(--text);
 }
 
 .power-menu-popup .button:hover {
@@ -715,41 +716,62 @@
   border: 1px solid var(--surface2);
 }
 
-.power-menu-popup .button .label {
-  font-size: 13px;
-  font-weight: bold;
-  margin-top: 4px;
+/* 图标样式 */
+.power-menu-popup .button .icon {
+  font-size: 32px;
+  /* 【对齐纠偏】：如果图标偏右，增加右边距将其向左推 */
+  padding-right: 6px;
+  margin: 0;
 }
 
-.power-menu-popup .button .icon {
-  font-size: 24px;
+/* 文字标签样式 */
+.power-menu-popup .button .label {
+  font-size: 15px;
+  font-weight: bold;
+  margin-top: 8px;
+  /* 【对齐纠偏】：保持与图标垂直对齐 */
+  padding-right: 3px;
 }
 
 /* --- 按钮类型色彩映射 --- */
-.power-menu-popup .button.cancel .icon, 
-.power-menu-popup .button.cancel .label { color: var(--green); }
+.power-menu-popup .button.cancel .icon,
+.power-menu-popup .button.cancel .label {
+  color: var(--green);
+}
 
-.power-menu-popup .button.shutdown .icon, 
+.power-menu-popup .button.shutdown .icon,
 .power-menu-popup .button.shutdown .label,
-.power-menu-popup .button.force_shutdown .icon, 
+.power-menu-popup .button.force_shutdown .icon,
 .power-menu-popup .button.force_shutdown .label,
-.power-menu-popup .button.force_restart .icon, 
-.power-menu-popup .button.force_restart .label { color: var(--red); }
+.power-menu-popup .button.force_restart .icon,
+.power-menu-popup .button.force_restart .label {
+  color: var(--red);
+}
 
-.power-menu-popup .button.restart .icon, 
-.power-menu-popup .button.restart .label { color: var(--peach); }
+.power-menu-popup .button.restart .icon,
+.power-menu-popup .button.restart .label {
+  color: var(--peach);
+}
 
-.power-menu-popup .button.signout .icon, 
-.power-menu-popup .button.signout .label { color: var(--yellow); }
+.power-menu-popup .button.signout .icon,
+.power-menu-popup .button.signout .label {
+  color: var(--yellow);
+}
 
-.power-menu-popup .button.sleep .icon, 
-.power-menu-popup .button.sleep .label { color: var(--lavender); }
+.power-menu-popup .button.sleep .icon,
+.power-menu-popup .button.sleep .label {
+  color: var(--lavender);
+}
 
-.power-menu-popup .button.hibernate .icon, 
-.power-menu-popup .button.hibernate .label { color: var(--maroon); }
+.power-menu-popup .button.hibernate .icon,
+.power-menu-popup .button.hibernate .label {
+  color: var(--maroon);
+}
 
-.power-menu-popup .button.lock .icon, 
-.power-menu-popup .button.lock .label { color: var(--blue); }
+.power-menu-popup .button.lock .icon,
+.power-menu-popup .button.lock .label {
+  color: var(--blue);
+}
 
 /* --- 系统托盘/全局右键菜单样式 --- */
 
