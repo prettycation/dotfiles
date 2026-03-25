@@ -4,48 +4,44 @@ scoop:
       scoop_app: "sharkdp.bat"
       source_base: "dot_config/bat"
       target_base: "AppData/Roaming/bat"
-      ignore_path: ".config/bat" # Windows 下忽略 ~/.config/bat，防止冲突
-      includes:
-        - "**"
+      ignore_path: ".config/bat" # 供 .chezmoiignore 使用，Windows 下忽略 ~/.config/bat，防止与 scoop 自动创建的 junction 冲突
+      # 如果不写 includes，默认包含了 dot_config/wezterm 下的所有文件
+      # includes:
+      #   - "**"
+      # excludes:
+      #   - ".git"            # 排除特定文件夹下的所有内容
+      #   - "*.log"           # 排除所有以 .log 结尾的文件
+      #   - "cache/*"         # 排除 cache 目录下的所有文件
+      #   - "temp_config.lua" # 排除特定文件名的文件
 
     - name: "espanso"
       scoop_app: "espanso"
       source_base: "dot_espanso"
       target_base: ".espanso"
       ignore_path: ".espanso"
-      includes:
-        - "**"
 
     - name: "eza"
       scoop_app: "eza-community.eza"
       source_base: "dot_config/eza"
       target_base: ".config/eza"
       ignore_path: ".config/eza"
-      includes:
-        - "**"
 
     - name: "ExplorerTabUtility"
       scoop_app: "w4po.ExplorerTabUtility"
       source_base: ".chezmoitemplates/windows-apps/ExplorerTabUtility"
       target_base: "AppData/Roaming/ExplorerTabUtility"
-      includes:
-        - "**"
 
     - name: "flow-launcher"
       scoop_app: "flow-launcher"
       source_base: ".chezmoitemplates/windows-apps/flow-launcher"
       target_base: "UserData"
       # 不写 ignore_path，因为它在 templates 里，本来就不会被 Chezmoi 默认映射
-      includes:
-        - "**"
 
     - name: "Weasel"
       scoop_app: "Rime.Weasel"
       source_base: "dot_local/share/fcitx5/rime"
       target_base: "AppData/Roaming/Rime"
       ignore_path: ".local/share/fcitx5"
-      includes:
-        - "**"
 
     - name: "Starship"
       scoop_app: "Starship.Starship"
@@ -58,13 +54,9 @@ scoop:
       source_base: "dot_config/wezterm"
       target_base: ".config/wezterm"
       ignore_path: ".config/wezterm"
-      includes:
-        - "**"
 
     - name: "yasb"
       scoop_app: "AmN.yasb"
       source_base: "dot_config/yasb"
       target_base: ".config/yasb"
       ignore_path: ".config/yasb"
-      includes:
-        - "**"
