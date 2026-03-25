@@ -48,9 +48,11 @@
   padding: 0;
   margin: 0;
 }
+
 .widget .icon {
   font-size: 16px;
 }
+
 .widget .label {
   color: white;
 }
@@ -59,6 +61,7 @@
 .glazewm-workspaces {
   margin-right: 4px;
 }
+
 .glazewm-workspaces .ws-btn {
   font-family: Arial;
   font-size: 14px;
@@ -71,9 +74,11 @@
   height: 28px;
   min-width: 28px;
 }
+
 .glazewm-workspaces .ws-btn.populated {
   color: white;
 }
+
 .glazewm-workspaces .ws-btn.active_populated,
 .glazewm-workspaces .ws-btn.active_empty {
   background-color: var(--blue);
@@ -87,6 +92,7 @@
   border-radius: 8px;
   padding: 0 12px;
 }
+
 .active-window-widget .label {
   color: var(--base);
   font-family: Arial;
@@ -102,27 +108,30 @@
   margin-right: 4px;
   padding: 3px;
 }
+
 .systray .button {
   padding: 2px;
   border-radius: 6px;
   transition: background-color 0.2s ease;
 }
-.systray .button:hover {
-  background-color: var(--surface2) !important;
-}
+
 .systray .button[dragging="true"] {
   background: var(--surface1);
   border-color: var(--surface1);
 }
+
 .systray .unpinned-visibility-btn {
   border-radius: 6px;
   height: 20px;
   width: 20px;
   color: var(--text);
 }
+
 .systray .unpinned-visibility-btn:checked {
   background: var(--surface0);
 }
+
+.systray .button:hover,
 .systray .unpinned-visibility-btn:hover {
   background-color: var(--surface2) !important;
 }
@@ -142,20 +151,21 @@
   color: var(--green);
   margin-right: 10px;
 }
+
 .memory-widget .icon {
   color: var(--yellow);
   margin-right: 10px;
 }
+
 .disk-widget .icon {
   color: var(--sapphire);
   margin-right: 10px;
 }
+
 .cpu-widget .label,
 .memory-widget .label,
 .disk-widget .label {
-  font-family:
-    Arial,
-    JetBrainsMono NF;
+  font-family: Arial, "JetBrainsMono NF";
   font-size: 14px;
   font-weight: bold;
   color: white;
@@ -181,13 +191,14 @@
   font-weight: bold;
 }
 
-/* --- 1. Calendar (日历弹窗) [新增] --- */
+/* --- 1. Calendar (日历弹窗) --- */
 .calendar {
   background-color: var(--mantle);
   border: 1px solid var(--surface1);
   padding: 10px;
   border-radius: 12px;
 }
+
 .calendar .calendar-table,
 .calendar .calendar-table::item {
   background-color: transparent;
@@ -198,6 +209,7 @@
   border: none;
   outline: none;
 }
+
 /* 选中的日期 */
 .calendar .calendar-table::item:selected {
   color: var(--base);
@@ -205,6 +217,7 @@
   border-radius: 8px;
   font-weight: bold;
 }
+
 /* 悬浮日期 */
 .calendar .calendar-table::item:hover {
   background-color: var(--surface1);
@@ -220,6 +233,7 @@
   font-family: Arial, sans-serif;
   margin-bottom: 10px;
 }
+
 /* 月份标签 */
 .calendar .month-label {
   font-size: 20px;
@@ -227,12 +241,14 @@
   font-weight: normal;
   margin-bottom: 4px;
 }
+
 /* 星期几标签 */
 .calendar .day-label {
   font-family: "JetBrainsMono NF";
   font-size: 14px;
   color: var(--overlay2);
 }
+
 /* 周数和节假日 */
 .calendar .week-label,
 .calendar .holiday-label {
@@ -240,6 +256,7 @@
   font-weight: bold;
   color: var(--overlay1);
 }
+
 .calendar .holiday-label {
   color: var(--red); /* 节假日显示红色 */
 }
@@ -252,12 +269,14 @@
   min-width: 320px;
   padding-bottom: 10px;
 }
+
 .traffic-menu .header .title {
   padding: 14px;
   font-size: 18px;
   font-weight: bold;
   color: var(--mauve);
 }
+
 .traffic-menu .header .reset-button {
   font-size: 12px;
   padding: 4px 8px;
@@ -267,6 +286,7 @@
   background-color: var(--surface0);
   border: 1px solid var(--surface1);
 }
+
 .traffic-menu .reset-button:hover {
   background-color: var(--surface1);
   color: var(--text);
@@ -278,18 +298,22 @@
   padding: 10px;
   margin: 16px 12px 0 12px;
 }
+
 .traffic-menu .upload-speed-value,
 .traffic-menu .download-speed-value {
   font-size: 24px;
   font-weight: 900;
   font-family: Arial;
 }
+
 .traffic-menu .download-speed-value {
   color: var(--teal);
 }
+
 .traffic-menu .upload-speed-value {
   color: var(--sky);
 }
+
 .traffic-menu .upload-speed-unit,
 .traffic-menu .download-speed-unit {
   font-size: 14px;
@@ -305,17 +329,20 @@
   margin-bottom: 4px;
   padding-left: 10px;
 }
+
 .traffic-menu .session-section,
 .traffic-menu .today-section,
 .traffic-menu .alltime-section {
   margin: 8px;
   padding: 0 10px 10px 10px;
 }
+
 .traffic-menu .data-text {
   font-size: 13px;
   color: var(--subtext0);
   padding: 2px 0;
 }
+
 .traffic-menu .data-value {
   font-weight: bold;
   font-size: 13px;
@@ -332,9 +359,11 @@
   background-color: var(--crust);
   border-radius: 0 0 8px 8px;
 }
+
 .traffic-menu .internet-info.connected {
   color: var(--green);
 }
+
 .traffic-menu .internet-info.disconnected {
   color: var(--red);
 }
@@ -346,6 +375,7 @@
   border-radius: 8px;
   padding: 10px;
 }
+
 .disk-group-row {
   min-width: 250px;
   max-width: 300px;
@@ -355,10 +385,12 @@
   border: 1px solid transparent;
   background-color: var(--base);
 }
+
 .disk-group-row:hover {
   background-color: var(--surface0);
   border: 1px solid var(--surface1);
 }
+
 .disk-group-label-bar {
   margin-bottom: 8px;
   max-height: 6px;
@@ -366,15 +398,18 @@
   border-radius: 4px;
   border: none;
 }
+
 .disk-group-label-bar::chunk {
   background-color: var(--mauve);
   border-radius: 4px;
 }
+
 .disk-group-label {
   font-size: 14px;
   font-weight: bold;
   color: var(--text);
 }
+
 .disk-group-label-size {
   font-size: 12px;
   color: var(--subtext0);
@@ -387,20 +422,24 @@
   border-radius: 8px;
   padding: 0 10px;
 }
+
 .volume-widget .icon {
   color: var(--lavender);
 }
+
 .volume-widget .label {
   font-family: Arial;
   font-size: 15px;
   font-weight: bold;
   padding-left: 10px;
 }
+
 /* 音量下拉菜单 */
 .audio-menu {
   background-color: var(--mantle);
   border: 1px solid var(--surface1);
 }
+
 .audio-container .device {
   background-color: var(--surface0);
   border-radius: 8px;
@@ -408,6 +447,7 @@
   margin: 2px 0;
   color: var(--text);
 }
+
 .audio-container .device.selected {
   background-color: var(--green);
   color: var(--crust);
@@ -443,9 +483,7 @@
 }
 
 .weather-widget .label {
-  font-family:
-    Arial,
-    JetBrainsMono NF;
+  font-family: Arial, "JetBrainsMono NF";
   font-size: 14px;
   font-weight: bold;
 }
@@ -464,7 +502,7 @@
 
   /* 间距控制 */
   margin-left: 0;
-  margin-right: 4px;
+  margin-right: 0;
 
   padding-left: 8px;
   background-color: var(--surface0);
@@ -491,12 +529,14 @@
   font-size: 14px;
   color: var(--text);
 }
+
 .weather-card-today .label.location {
   font-size: 20px;
   font-weight: bold;
   color: var(--mauve);
   margin-bottom: 5px;
 }
+
 .weather-card-today .label.alert {
   color: var(--red);
   border: 1px solid var(--red);
@@ -528,21 +568,25 @@
   padding: 0 12px;
   margin: 0;
 }
+
 .media-widget .label {
   color: var(--crust);
   font-family: Arial;
   font-size: 14px;
   font-weight: bold;
 }
+
 .media-widget .btn {
   font-family: "Segoe Fluent Icons";
   color: var(--crust);
   padding: 0 0 0 5px;
 }
+
 .media-widget .btn:hover {
   color: var(--crust);
   opacity: 0.8;
 }
+
 .media-widget .btn.disabled {
   opacity: 0.5;
 }
@@ -553,22 +597,123 @@
   border-radius: 8px;
   margin-left: 4px;
 }
+
 .notification-widget .widget-container {
   background-color: var(--surface0);
   border-radius: 6px;
   padding: 0 10px;
 }
+
 .notification-widget .icon {
   font-size: 16px;
   color: var(--peach);
   margin-right: 6px;
 }
+
 .notification-widget .label.new-notification {
   color: white;
   font-family: Arial;
   font-size: 15px;
   font-weight: bold;
 }
+
+/* Power Menu (电源菜单) */
+
+/* --- Bar上的图标/文字按钮样式 --- */
+.power-menu-widget {
+  background-color: var(--surface0);
+  border: 1px solid var(--surface1);
+  border-radius: 8px;
+  /* 调整内边距以防文字/图标裁剪 */
+  padding: 4px 12px;
+  margin-left: 4px;
+  margin-right: 4px;
+}
+
+.power-menu-widget:hover {
+  /* 鼠标悬浮时背景提亮，边框变成红色 */
+  background-color: var(--surface1);
+  border: 1px solid var(--red);
+}
+
+/* 针对 .label.power-button 进行样式控制 */
+.power-menu-widget .label.power-button {
+  color: var(--red);
+  font-size: 16px; /* 图标字体大小 */
+  font-family: "JetBrainsMono NF", Arial, sans-serif; /* 确保图标字体生效 */
+  /* 组件内部边界到内容的距离（内边距）。4 个数值遵循上、右、下、左（顺时针方向）的规则 */
+  padding: 0 4px 0 0;
+  margin: 0;
+}
+
+/* --- 弹窗整体样式 --- */
+.power-menu-popup {
+  background-color: var(--mantle);
+  border-radius: 8px;
+  border: 1px solid var(--surface1);
+  padding: 8px;
+}
+
+.power-menu-popup .uptime {
+  font-size: 14px;
+  margin-bottom: 12px;
+  padding: 4px 8px;
+  color: var(--subtext0);
+  font-weight: bold;
+}
+
+/* --- 弹窗内按钮 --- */
+.power-menu-popup .button {
+  padding: 10px;
+  width: 120px; /* 调整为更紧凑的尺寸 */
+  height: 80px;
+  border-radius: 8px;
+  background-color: var(--surface0);
+  color: var(--text);
+  border: 1px solid var(--surface1);
+  margin: 4px;
+}
+
+.power-menu-popup .button:hover {
+  background-color: var(--surface1);
+  border: 1px solid var(--surface2);
+}
+
+.power-menu-popup .button .label {
+  font-size: 13px;
+  font-weight: bold;
+  margin-top: 4px;
+}
+
+.power-menu-popup .button .icon {
+  font-size: 24px;
+}
+
+/* --- 按钮类型色彩映射 --- */
+.power-menu-popup .button.cancel .icon, 
+.power-menu-popup .button.cancel .label { color: var(--green); }
+
+.power-menu-popup .button.shutdown .icon, 
+.power-menu-popup .button.shutdown .label,
+.power-menu-popup .button.force_shutdown .icon, 
+.power-menu-popup .button.force_shutdown .label,
+.power-menu-popup .button.force_restart .icon, 
+.power-menu-popup .button.force_restart .label { color: var(--red); }
+
+.power-menu-popup .button.restart .icon, 
+.power-menu-popup .button.restart .label { color: var(--peach); }
+
+.power-menu-popup .button.signout .icon, 
+.power-menu-popup .button.signout .label { color: var(--yellow); }
+
+.power-menu-popup .button.sleep .icon, 
+.power-menu-popup .button.sleep .label { color: var(--lavender); }
+
+.power-menu-popup .button.hibernate .icon, 
+.power-menu-popup .button.hibernate .label { color: var(--maroon); }
+
+.power-menu-popup .button.lock .icon, 
+.power-menu-popup .button.lock .label { color: var(--blue); }
 
 /* --- 系统托盘/全局右键菜单样式 --- */
 
@@ -590,14 +735,9 @@ QMenu::item {
   color: var(--text);
 }
 
-/* 3. 使用 !important 强制覆盖系统默认的蓝色 */
-QMenu::item:selected {
-  background-color: var(--surface2) !important;
-  color: var(--mauve) !important; /* 悬停时文字变为淡紫色 */
-}
-
-/* 4. 类名选择器，增加一层保险 */
+/* 3 & 4. 强制覆盖系统默认的蓝色 */
+QMenu::item:selected,
 .context-menu::item:selected {
   background-color: var(--surface2) !important;
-  color: var(--mauve) !important;
+  color: var(--mauve) !important; /* 悬停时文字变为淡紫色 */
 }
