@@ -46,6 +46,7 @@ bars:
         - "clock"
         - "media"
         - "notifications"
+        - "power_menu"
 
 widgets:
   glazewm_workspaces:
@@ -287,3 +288,20 @@ widgets:
         show_week_numbers: true
         # 节假日高亮色 (可填颜色代码，也可由CSS控制)
         holiday_color: "#f38ba8" # Catppuccin Red
+
+  power_menu:
+    type: "yasb.power_menu.PowerMenuWidget"
+    options:
+      label: "\uf011"
+      uptime: True
+      blur: False
+      blur_background: True
+      animation_duration: 300 # Milisecond
+      button_row: 3 # Number of buttons in row, min 1 max 5
+      buttons:
+        lock: ["\uea75", "Lock"]
+        signout: ["\udb80\udf43", "Sign out"]
+        shutdown: ["\uf011", "Shut Down"]
+        restart: ["\uead2", "Restart"]
+        hibernate: ["\uf28e", "Hibernate"]
+        cancel: ["\udb81\udf3a", "Cancel"]
