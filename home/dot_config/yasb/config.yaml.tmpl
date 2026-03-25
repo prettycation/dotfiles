@@ -101,9 +101,10 @@ widgets:
   disk:
     type: "yasb.disk.DiskWidget"
     options:
-      # 添加了硬盘图标 \udb80\udec8
-      label: "{volume_label}: {space[used][percent]}"
-      label_alt: "{volume_label}: {space[used][gb]} / {space[total][gb]}"
+      label: "<font color='#74c7ec'>{volume_label}:</font> {space[used][percent]}"
+      label_alt: "<font color='#74c7ec'>{volume_label}:</font> {space[used][gb]} / {space[total][gb]}"
+      # label: "{volume_label}: {space[used][percent]}"
+      # label_alt: "{volume_label}: {space[used][gb]} / {space[total][gb]}"
       volume_label: "C"
       decimal_display: 1
       update_interval: 60
