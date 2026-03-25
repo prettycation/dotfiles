@@ -77,33 +77,33 @@ crust = "#11111b"
 
 # --- Catppuccin Mocha 风格 ---
 arrow = "#6c7086"      # (Overlay0) 提示符分隔符，低调的灰色
-os = "#89dceb"          # (Sky) 操作系统标识，醒目的天蓝色
-os_admin = "#f38ba8"    # (Red) 管理员权限！使用红色作为强烈的警告
-directory = "#89b4fa"   # (Blue) 目录路径，蓝色是最适合文件系统的颜色
-time = "#74c7ec"        # (Sapphire) 时间戳，用蓝宝石色与目录区分
-node = "#a6e3a1"        # (Green) Node.js 环境，绿色代表健康和稳定
-git = "#fab387"         # (Peach) Git 分支，桃色温暖而清晰
-git_status = "#cdd6f4"  # (Text) Git 状态文本，使用标准文字颜色
-python = "#f9e2af"      # (Yellow) Python 环境，黄色是 Python 的标志色之一
-conda = "#a6e3a1"       # (Green) Conda 环境，同样使用绿色
-java = "#f38ba8"        # (Red) Java 环境，红色系
-rust = "#fab387"        # (Peach) Rust 环境，与 Git 共享桃色
-clang = "#74c7ec"       # (Sapphire) C/C++ 环境
-duration = "#f38ba8"    # (Red) 命令执行时间过长，用红色提示
-text_color = "#cdd6f4"  # (Text) 默认前景色
-text_light = "#11111b"  # (Crust) 用于浅色背景下的文字颜色（最高对比度）
+os = "#89dceb"         # (Sky) 操作系统标识，醒目的天蓝色
+os_admin = "#f38ba8"   # (Red) 管理员权限！使用红色作为强烈的警告
+directory = "#89b4fa"  # (Blue) 目录路径，蓝色是最适合文件系统的颜色
+time = "#74c7ec"       # (Sapphire) 时间戳，用蓝宝石色与目录区分
+node = "#a6e3a1"       # (Green) Node.js 环境，绿色代表健康和稳定
+git = "#fab387"        # (Peach) Git 分支，桃色温暖而清晰
+git_status = "#cdd6f4" # (Text) Git 状态文本，使用标准文字颜色
+python = "#f9e2af"     # (Yellow) Python 环境，黄色是 Python 的标志色之一
+conda = "#a6e3a1"      # (Green) Conda 环境，同样使用绿色
+java = "#f38ba8"       # (Red) Java 环境，红色系
+rust = "#fab387"       # (Peach) Rust 环境，与 Git 共享桃色
+clang = "#74c7ec"      # (Sapphire) C/C++ 环境
+duration = "#f38ba8"   # (Red) 命令执行时间过长，用红色提示
+text_color = "#cdd6f4" # (Text) 默认前景色
+text_light = "#11111b" # (Crust) 用于浅色背景下的文字颜色（最高对比度）
 
 [username]
 style_user = 'bold os'
 style_root = 'bold os_admin'
-format = '[  $user](fg:$style) '
+format = '[ $user](fg:$style) '
 disabled = false
 show_always = true
 
 [os]
-format = "on [($name)]($style) "
+format = "on [$symbol$name]($style) "
 style = "bold blue"
-disabled = true
+disabled = false
 
 [os.symbols]
 Alpine = " "
@@ -136,7 +136,7 @@ before_repo_root_style = "fg:directory"
 truncation_symbol = "…/"
 # 在 git 仓库中显示完整的绝对路径
 truncate_to_repo = false
-read_only ="  "
+read_only = "  "
 
 [time]
 disabled = true
@@ -160,11 +160,11 @@ style = "fg:text_color bg:git"
 disabled = true
 
 [docker_context]
-disabled=true
+disabled = true
 symbol = " "
 
 [package]
-disabled=true
+disabled = true
 
 [fill]
 symbol = " "
@@ -174,10 +174,10 @@ format = "[ $symbol$version ]($style)"
 style = "bg:node fg:text_light"
 symbol = " "
 version_format = "${raw}"
-disabled=false
+disabled = false
 
 [python]
-disabled=false
+disabled = false
 format = '[ ${symbol}${pyenv_prefix}(${version})( \($virtualenv\)) ]($style)'
 symbol = " "
 version_format = "${raw}"
@@ -202,11 +202,11 @@ format = "[ $symbol($version(-$name)) ]($style)"
 style = "bg:clang fg:text_light"
 symbol = " "
 version_format = "${raw}"
-disabled=true
+disabled = true
 
 [rust]
-format ="[ $symbol$version ]($style)"
+format = "[ $symbol$version ]($style)"
 style = "bg:rust fg:text_light"
 symbol = " "
 version_format = "${raw}"
-disabled=true
+disabled = true
