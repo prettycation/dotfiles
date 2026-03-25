@@ -86,16 +86,61 @@ foreach ($app in $apps) {
         continue
     }
 
+    # 判断是目录还是单文件
+    $isDir = (Get-Item $appSourceRoot).PSIsContainer
     $fileMap = @{}
-    foreach ($pattern in $app.includes) {
-        if ($pattern -eq '**') {
-            $files = Get-ChildItem -Path $appSourceRoot -File -Recurse
-        } else {
-            $searchPath = Join-Path $appSourceRoot $pattern
-            $files = Get-ChildItem -Path $searchPath -File -ErrorAction SilentlyContinue
+
+    if (-not $isDir) {
+        # 单文件模式：直接将该文件加入映射
+        $item = Get-Item $appSourceRoot
+        $fileMap[$item.FullName] = $item
+    } else {
+        # 目录模式：读取 includes 规则
+        $includes = $app.includes
+        # 如果没有定义 includes 或数组为空，默认扫描该目录下所有文件
+        if ($null -eq $includes -or $includes.Count -eq 0) {
+            $includes = @('**')
         }
-        foreach ($f in $files) {
-            $fileMap[$f.FullName] = $f
+
+        foreach ($pattern in $includes) {
+            if ($pattern -eq '**') {
+                $files = Get-ChildItem -Path $appSourceRoot -File -Recurse
+            } else {
+                $searchPath = Join-Path $appSourceRoot $pattern
+                $files = Get-ChildItem -Path $searchPath -File -ErrorAction SilentlyContinue
+            }
+            if ($files) {
+                foreach ($f in $files) {
+                    $fileMap[$f.FullName] = $f
+                }
+            }
+        }
+
+        # 处理 excludes 排除逻辑
+        $excludes = $app.excludes
+        if ($null -ne $excludes -and $excludes.Count -gt 0) {
+            $keysToRemove = @()
+            foreach ($key in $fileMap.Keys) {
+                $file = $fileMap[$key]
+                $relPath = $file.FullName.Substring($appSourceRoot.Length).TrimStart('\', '/').Replace('\', '/')
+                $normRelPath = $relPath.Replace('\', '/')
+
+                foreach ($exPattern in $excludes) {
+                    $normPattern = $exPattern.Replace('\', '/')
+
+                    # 匹配规则：完全匹配、作为目录前缀、作为后缀、或者包含在路径中间
+                    if ($normRelPath -like $normPattern -or
+                        $normRelPath -like "$normPattern/*" -or
+                        $normRelPath -like "*/$normPattern" -or
+                        $normRelPath -like "*/$normPattern/*") {
+                        $keysToRemove += $key
+                        break
+                    }
+                }
+            }
+            foreach ($k in $keysToRemove) {
+                $fileMap.Remove($k)
+            }
         }
     }
 
@@ -108,10 +153,22 @@ foreach ($app in $apps) {
         $totalScanned++
 
         $srcItem = Get-Item $file.FullName
-        $relPath = $file.FullName.Substring($appSourceRoot.Length).TrimStart('\', '/').Replace('\', '/')
         $isTmpl = $file.Extension -eq '.tmpl'
-        $targetRelPath = if ($isTmpl) { $relPath -replace '\.tmpl$', '' } else { $relPath }
-        $targetFile = Join-Path $targetRoot $targetRelPath.Replace('/', [System.IO.Path]::DirectorySeparatorChar)
+
+        # 根据单文件/目录决定如何计算目标路径
+        if (-not $isDir) {
+            $targetFile = $targetRoot
+            $targetRelPath = Split-Path $targetRoot -Leaf
+        } else {
+            $relPath = $file.FullName.Substring($appSourceRoot.Length).TrimStart('\', '/').Replace('\', '/')
+            $targetRelPath = if ($isTmpl) { $relPath -replace '\.tmpl$', '' } else { $relPath }
+
+            if ([string]::IsNullOrEmpty($targetRelPath)) {
+                $targetFile = $targetRoot
+            } else {
+                $targetFile = Join-Path $targetRoot $targetRelPath.Replace('/', [System.IO.Path]::DirectorySeparatorChar)
+            }
+        }
 
         $targetParent = Split-Path $targetFile -Parent
         if (-not (Test-Path $targetParent)) {
@@ -120,7 +177,7 @@ foreach ($app in $apps) {
 
         $srcLen = [int64]$srcItem.Length
         $srcTicks = [int64]$srcItem.LastWriteTimeUtc.Ticks
-        
+
         $tgtItem = $null
         $tgtLen = 0
         $tgtTicks = 0
@@ -162,7 +219,7 @@ foreach ($app in $apps) {
         $didWrite = $false
 
         if ($isTmpl) {
-            # 模板文件：老老实实渲染并对比内容
+            # 模板文件：渲染并对比内容
             $renderedContent = (Get-Content $file.FullName -Raw | chezmoi execute-template) -join "`r`n"
             $shouldWrite = $true
 
@@ -173,8 +230,7 @@ foreach ($app in $apps) {
                 }
             }
 
-            if ($forceRefresh -or $shouldWrite) {
-                [System.IO.File]::WriteAllText($targetFile, $renderedContent, [System.Text.Encoding]::UTF8)
+            if ($forceRefresh -or $shouldWrite) {[System.IO.File]::WriteAllText($targetFile, $renderedContent, [System.Text.Encoding]::UTF8)
                 Write-Host "  -> Rendered: $($app.name) / $targetRelPath" -ForegroundColor Green
                 $didWrite = $true
             }
@@ -230,7 +286,7 @@ foreach ($app in $apps) {
 # 5) 写回缓存 state
 # ----------------------------
 $stateJson = $state | ConvertTo-Json -Depth 8
-[System.IO.File]::WriteAllText($statePath, $stateJson, [System.Text.Encoding]::UTF8)
+[System.IO.File]::WriteAllText($statePath, $stateJson,[System.Text.Encoding]::UTF8)
 
 $sw.Stop()
 Write-Host ("Done. scanned={0}, updated={1}, skipped={2}, elapsed={3:n2}s" -f $totalScanned, $totalUpdated, $totalSkipped, $sw.Elapsed.TotalSeconds) -ForegroundColor Magenta
