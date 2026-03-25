@@ -15,7 +15,9 @@ use = "mikavilpas/easyjump.yazi:easyjump"
 
 [[plugin.deps]]
 use = "prettycation/office"
+{{- if eq .chezmoi.os "windows" }}
 rev = "fix/windows-compatibility"
+{{- end }}
 
 [[plugin.deps]]
 use = "MasouShizuka/projects"
