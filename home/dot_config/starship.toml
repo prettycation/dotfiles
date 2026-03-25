@@ -1,7 +1,7 @@
 format = """\
 [╭╴](fg:arrow)\
-$username\
 $os\
+$username\
 $git_branch\
 (\
     at \
@@ -96,13 +96,13 @@ text_light = "#11111b" # (Crust) 用于浅色背景下的文字颜色（最高�
 [username]
 style_user = 'bold os'
 style_root = 'bold os_admin'
-format = '[ $user](fg:$style) '
+format = '[$user](fg:$style) '
 disabled = false
 show_always = true
 
 [os]
-format = "on [$symbol$name]($style) "
-style = "bold blue"
+format = "[$symbol]($style)"
+style = "bold os"
 disabled = false
 
 [os.symbols]
