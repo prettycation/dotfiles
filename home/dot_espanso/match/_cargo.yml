@@ -11,7 +11,7 @@ matches:
   - trigger: "c.ui"
     replace: "cargo uninstall $|$"
 
-  - trigger: "c.ul"
+  - trigger: "c.st"
     replace: "cargo install-update -l"
 
   - trigger: "c.up"
@@ -19,9 +19,6 @@ matches:
 
   - trigger: "c.cl"
     replace: "cargo cache --autoclean"
-
-  - trigger: "c.ccr"
-    replace: "cargo cache -a"
 
   - trigger: "c.ccs"
     replace: "cargo cache"
