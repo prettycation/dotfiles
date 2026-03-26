@@ -40,6 +40,11 @@
     prune = true
 
 [merge]
+    {{- if eq .chezmoi.os "linux" }}
+    {{-   if lookPath "meld" }}
+    tool = meld
+    {{-   end }}
+    {{- end }}
     conflictstyle = zdiff3
 
 [mergetool]

@@ -168,3 +168,22 @@
 
 [github]
     refreshPeriod = "12h"
+
+{{- if lookPath "meld" }}
+[merge]
+    command = "meld"
+    args = [
+        {{ printf "%q" "{{ .Destination }}" }},
+        {{ printf "%q" "{{ .Source }}" }},
+        {{ printf "%q" "{{ .Target }}" }},
+    ]
+{{- else if lookPath "nvim" }}
+[merge]
+    command = "nvim"
+    args = [
+        "-d",
+        {{ printf "%q" "{{ .Destination }}" }},
+        {{ printf "%q" "{{ .Source }}" }},
+        {{ printf "%q" "{{ .Target }}" }},
+    ]
+{{- end }}
