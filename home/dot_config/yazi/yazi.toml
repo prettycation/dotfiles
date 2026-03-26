@@ -18,7 +18,7 @@ sort_translit = false
 # 是否在文件名旁边显示额外信息，如 "size", "mtime" (修改时间)。
 linemode = "mtime"
 # 是否默认显示以 '.' 开头的隐藏文件。
-show_hidden = false
+show_hidden = true
 # 是否显示符号链接 (在 Windows 上不常用)。
 show_symlink = true
 # 在列表顶部和底部滚动时，光标与边缘之间保留的行数。
