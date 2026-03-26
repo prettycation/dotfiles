@@ -1,10 +1,5 @@
 {{- if eq .chezmoi.os "linux" }}
 matches:
-  # refresh
- 
-  # 刷新数据库 paru -y
-  - trigger: "pa.up"
-    replace: "paru --refresh"
 
   # query
  
@@ -28,6 +23,10 @@ matches:
 
   # sync
 
+  # 刷新数据库 paru -Sy
+  - trigger: "pa.up"
+    replace: "paru --sync --refresh"
+
   # paru -Syu
   - trigger: "pa.is"
     replace: "paru --sync --refresh --sysupgrade"
@@ -36,7 +35,7 @@ matches:
   - trigger: "pa.sua"
     replace: "paru --sync --sysupgrade --aur"
 
-  # paru -Syu --repo  仅升级官方仓库包
+  # paru -Su --repo 仅升级官方仓库包
   - trigger: "pa.sur"
     replace: "paru --sync --sysupgrade --repo"
 
