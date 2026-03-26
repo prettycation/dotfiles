@@ -11,11 +11,11 @@ matches:
 
   # paru -Qua   打印可用的 AUR 更新
   - trigger: "pa.qua"
-    replace: "paru --sync --sysupgrade --aur"
+    replace: "paru --query --upgrades --aur"
 
   # paru -Qun   打印可用的官方仓库更新
   - trigger: "pa.qun"
-    replace: "paru --sync --sysupgrade --native "
+    replace: "paru --query --upgrades --native"
 
   # paru -Qi    显示本地包的详细信息
   - trigger: "pa.if"
