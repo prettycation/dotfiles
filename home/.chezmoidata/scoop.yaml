@@ -37,6 +37,12 @@ scoop:
       target_base: "UserData"
       # 不写 ignore_path，因为它在 templates 里，本来就不会被 Chezmoi 默认映射
 
+    - name: "InputTip"
+      scoop_app: "abgox.InputTip-zip"
+      source_base: ".chezmoitemplates/windows-apps/abgox.InputTip-zip/InputTip.ini.tmpl"
+      target_base: "InputTip.ini"
+      # 单目录 target_base 可留空，单文件需指定
+
     - name: "Weasel"
       scoop_app: "Rime.Weasel"
       source_base: "dot_local/share/fcitx5/rime"
