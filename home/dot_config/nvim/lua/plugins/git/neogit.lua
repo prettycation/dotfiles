@@ -3,7 +3,8 @@ return {
   lazy = true,
   dependencies = {
     "nvim-lua/plenary.nvim", -- required
-    "sindrets/diffview.nvim", -- optional - Diff integration
+    -- "sindrets/diffview.nvim", -- optional - Diff integration
+    "esmuellert/codediff.nvim",
     "folke/snacks.nvim", -- optional
   },
   cmd = "Neogit",
