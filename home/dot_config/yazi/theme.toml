@@ -10,28 +10,28 @@
 cwd = { fg = "#94e2d5" }
 
 # 光标悬停行的颜色
-hovered         = { fg = "#11111b", bg = "#89b4fa", bold = true }
+hovered = { fg = "#11111b", bg = "#89b4fa", bold = true }
 # 多选模式下选中的样式
 selection_style = { bg = "#585b70" }
 
 # 搜索
-find_keyword  = { fg = "#f9e2af", bold = true, italic = true, underline = true }
+find_keyword = { fg = "#f9e2af", bold = true, italic = true, underline = true }
 find_position = { fg = "#f5c2e7", bg = "reset", bold = true, italic = true }
 
 # 标记 (复制、剪切等图标)
-marker_copied   = { fg = "#a6e3a1", bg = "#a6e3a1" }
-marker_cut      = { fg = "#f38ba8", bg = "#f38ba8" }
-marker_marked   = { fg = "#89dceb", bg = "#89dceb" }
+marker_copied = { fg = "#a6e3a1", bg = "#a6e3a1" }
+marker_cut = { fg = "#f38ba8", bg = "#f38ba8" }
+marker_marked = { fg = "#89dceb", bg = "#89dceb" }
 marker_selected = { fg = "#f9e2af", bg = "#f9e2af" }
 
 # 标记计数
-count_copied   = { fg = "#11111b", bg = "#a6e3a1" }
-count_cut      = { fg = "#11111b", bg = "#f38ba8" }
+count_copied = { fg = "#11111b", bg = "#a6e3a1" }
+count_cut = { fg = "#11111b", bg = "#f38ba8" }
 count_selected = { fg = "#11111b", bg = "#f9e2af" }
 
 # 边框
 border_symbol = "│"
-border_style  = { fg = "#6c7086" }
+border_style = { fg = "#6c7086" }
 
 # : }}}
 
@@ -49,7 +49,7 @@ preview = { fg = "#89b4fa", underline = true }
 # : Tabs (标签页) {{{
 
 [tabs]
-active   = { fg = "#11111b", bg = "#89b4fa", bold = true }
+active = { fg = "#11111b", bg = "#89b4fa", bold = true }
 inactive = { fg = "#a6adc8", bg = "#45475a" }
 
 # : }}}
@@ -60,15 +60,15 @@ inactive = { fg = "#a6adc8", bg = "#45475a" }
 [mode]
 # Normal 模式
 normal_main = { fg = "#11111b", bg = "#89b4fa", bold = true }
-normal_alt  = { fg = "#89b4fa", bg = "#45475a" }
+normal_alt = { fg = "#89b4fa", bg = "#45475a" }
 
 # Select 模式
 select_main = { fg = "#11111b", bg = "#cba6f7", bold = true }
-select_alt  = { fg = "#cba6f7", bg = "#45475a" }
+select_alt = { fg = "#cba6f7", bg = "#45475a" }
 
 # Unset 模式
 unset_main = { fg = "#11111b", bg = "#94e2d5", bold = true }
-unset_alt  = { fg = "#94e2d5", bg = "#45475a" }
+unset_alt = { fg = "#94e2d5", bg = "#45475a" }
 
 # : }}}
 
@@ -77,16 +77,16 @@ unset_alt  = { fg = "#94e2d5", bg = "#45475a" }
 
 [status]
 # 权限
-perm_sep   = { fg = "#6c7086" }
-perm_type  = { fg = "#89b4fa" }
-perm_read  = { fg = "#f9e2af" }
+perm_sep = { fg = "#6c7086" }
+perm_type = { fg = "#89b4fa" }
+perm_read = { fg = "#f9e2af" }
 perm_write = { fg = "#f38ba8" }
-perm_exec  = { fg = "#a6e3a1" }
+perm_exec = { fg = "#a6e3a1" }
 
 # 进度条
-progress_label  = { fg = "#cdd6f4", bold = true }
+progress_label = { fg = "#cdd6f4", bold = true }
 progress_normal = { fg = "#a6e3a1", bg = "#45475a" }
-progress_error  = { fg = "#f38ba8", bg = "#f9e2af" }
+progress_error = { fg = "#f38ba8", bg = "#f9e2af" }
 
 # : }}}
 
@@ -94,8 +94,8 @@ progress_error  = { fg = "#f38ba8", bg = "#f9e2af" }
 # : Pick (文件选择器) {{{
 
 [pick]
-border   = { fg = "#cba6f7" }
-active   = { fg = "#f5c2e7", bold = true }
+border = { fg = "#cba6f7" }
+active = { fg = "#f5c2e7", bold = true }
 inactive = {}
 
 # : }}}
@@ -104,9 +104,9 @@ inactive = {}
 # : Input (输入框) {{{
 
 [input]
-border   = { fg = "#cba6f7" }
-title    = {}
-value    = {}
+border = { fg = "#cba6f7" }
+title = {}
+value = {}
 selected = { bg = "#585b70" } # 修改：输入框选中背景改为 Surface2 灰色
 
 # : }}}
@@ -123,8 +123,8 @@ border = { fg = "#cba6f7" }
 # : Tasks (任务管理器) {{{
 
 [tasks]
-border  = { fg = "#cba6f7" }
-title   = {}
+border = { fg = "#cba6f7" }
+title = {}
 hovered = { fg = "#f5c2e7", bold = true, underline = true }
 
 # : }}}
@@ -133,11 +133,11 @@ hovered = { fg = "#f5c2e7", bold = true, underline = true }
 # : Which (快捷键提示) {{{
 
 [which]
-mask            = { bg = "#11111b" }
-cand            = { fg = "#94e2d5" }
-rest            = { fg = "#a6adc8" }
-desc            = { fg = "#f5c2e7" }
-separator       = "  "
+mask = { bg = "#11111b" }
+cand = { fg = "#94e2d5" }
+rest = { fg = "#a6adc8" }
+desc = { fg = "#f5c2e7" }
+separator = "  "
 separator_style = { fg = "#6c7086" }
 
 # : }}}
@@ -146,10 +146,10 @@ separator_style = { fg = "#6c7086" }
 # : Help (帮助菜单) {{{
 
 [help]
-on      = { fg = "#94e2d5" }
-run     = { fg = "#f5c2e7" }
+on = { fg = "#94e2d5" }
+run = { fg = "#f5c2e7" }
 hovered = { fg = "#11111b", bg = "#cdd6f4", bold = true }
-footer  = { fg = "#11111b", bg = "#cdd6f4" }
+footer = { fg = "#11111b", bg = "#cdd6f4" }
 
 # : }}}
 
@@ -157,9 +157,9 @@ footer  = { fg = "#11111b", bg = "#cdd6f4" }
 # : Spotter (文件探测器) {{{
 
 [spot]
-border   = { fg = "#cba6f7" }
-title    = { fg = "#cba6f7" }
-tbl_col  = { fg = "#94e2d5" }
+border = { fg = "#cba6f7" }
+title = { fg = "#cba6f7" }
+tbl_col = { fg = "#94e2d5" }
 tbl_cell = { fg = "#f5c2e7", bg = "#45475a" }
 
 # : }}}
@@ -168,8 +168,8 @@ tbl_cell = { fg = "#f5c2e7", bg = "#45475a" }
 # : Notification (通知) {{{
 
 [notify]
-title_info  = { fg = "#a6e3a1" } # 成功/信息
-title_warn  = { fg = "#f9e2af" } # 警告
+title_info = { fg = "#a6e3a1" }  # 成功/信息
+title_warn = { fg = "#f9e2af" }  # 警告
 title_error = { fg = "#f38ba8" } # 错误
 
 # : }}}
@@ -198,3 +198,39 @@ rules = [
 ]
 
 # : }}}
+
+[icon]
+
+dirs = [
+  { name = ".config", text = "", fg = "#f5c2e7" },
+  { name = ".git", text = "", fg = "#94e2d5" },
+  { name = ".github", text = "", fg = "#89b4fa" },
+  { name = ".npm", text = "", fg = "#89b4fa" },
+  { name = "Desktop", text = "", fg = "#94e2d5" },
+  { name = "Development", text = "", fg = "#94e2d5" },
+  { name = "Documents", text = "", fg = "#94e2d5" },
+  { name = "Downloads", text = "", fg = "#94e2d5" },
+  { name = "Library", text = "", fg = "#94e2d5" },
+  { name = "Movies", text = "", fg = "#94e2d5" },
+  { name = "Music", text = "", fg = "#94e2d5" },
+  { name = "Pictures", text = "", fg = "#94e2d5" },
+  { name = "Public", text = "", fg = "#94e2d5" },
+  { name = "Videos", text = "", fg = "#94e2d5" },
+]
+conds = [
+  # Special files
+  { if = "orphan", text = "", fg = "#cdd6f4" },
+  { if = "link", text = "", fg = "#7f849c" },
+  { if = "block", text = "", fg = "#f2cdcd" },
+  { if = "char", text = "", fg = "#f2cdcd" },
+  { if = "fifo", text = "", fg = "#f2cdcd" },
+  { if = "sock", text = "", fg = "#f2cdcd" },
+  { if = "sticky", text = "", fg = "#f2cdcd" },
+  { if = "dummy", text = "", fg = "#f38ba8" },
+
+  # Fallback
+  { if = "dir & hovered", text = "", fg = "#89b4fa" },
+  { if = "dir", text = "", fg = "#89b4fa" },
+  { if = "exec", text = "", fg = "#a6e3a1" },
+  { if = "!dir", text = "", fg = "#cdd6f4" },
+]
