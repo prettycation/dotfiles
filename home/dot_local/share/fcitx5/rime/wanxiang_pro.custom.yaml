@@ -101,10 +101,11 @@ patch:
   # 模式 A (true，精准空格流)：Space 强制打断联想并输出物理空格；替身键仅作纯粹的打断清空。
 
   # Tips 配置项
-  tips:
+  "super_tips/disabled_types/+":
+    - "化学式"
+    - "车牌"
     # 禁用的 tips 类型，初始化 tips 数据库的时候会直接忽略相关规则，修改部署后生效
     # 可选项为：偏旁，符号，化学式，时间，符号，组字，翻译，表情，货币，车牌
-    disabled_types: [化学式，车牌]
 
   # 将分词符指向一个不常用的按键（冒号）,第一位为视觉分词符，第二位为手动分词符
   speller/delimiter: "':"
@@ -113,6 +114,7 @@ patch:
   # 第一处分词时替换滤镜 xform 还没生效，还是会显示 “：”
   # translator/preedit_format:
   #   - "xform/:/'/"
+
   # 关闭数字后自动半角功能
   punctuator/digit_separators: commit
   #下面是候选数量，未来7890分别代表1234声，请候选长度不要大于6避免冲突
@@ -123,10 +125,43 @@ patch:
   "super_comment/corrector_type": "comment" # 错音措字，随意更换左右括号，比如"〔comment〕" 不加括号为无括号，comment占位不能动
   "super_comment/chaifen": "chaifen" # 拆分显示，随意更换左右括号，比如"〔chaifen〕" 不加括号为无括号，chaifen占位不能动
   "super_comment/cand_type/sentence": "∞"
+  "super_comment/cand_type/predict": "*"
 
-  #在8105基础上你可以通过黑白名单微调你自己的字符集过滤清单，主数据库位于lua/charset.bin不可编辑
-  charsetlist: [你]
-  charsetblacklist: [鹵, 彔]
+  # 字符集过滤lua
+  # a,通用规范汉字表
+  # b,GB2312,
+  # g,GBK,
+  # T,Big5,(台港澳常用)
+  # j,简体,OpenCC (t2s)
+  # f,通用繁体,OpenCC (s2t)
+  # h,香港繁体, OpenCC (s2hk)
+  # t,台湾繁体, OpenCC (s2tw)
+  # u,基本区,U+4E00 - U+9FFF
+  # A-I,扩展 A-I 区,U+3400 及各扩展区 (支持到 Ext-I)
+  # c,兼容区汉字
+  # 你可以通过黑白名单微调你自己每个开关下面的字符集过滤清单，主数据库位于lua/charset.reverse.bin不可编辑
+  # 你可以按上面提到的规则代号在base处填写上基础集，还可以在每一个开关的开白名单设置微调数据，就像默认添加的字符集过滤在8105基础上新增了一些
+  # 你可以定义多个开关，多个开启状态的开关求并集，比如charset_filter开着，s2hk也开着，那么就会显示这两个集合的所有汉字
+  # 优雅的地方在于s2hk开着，charset_filter关着 我们照样能使用 港繁能用到的所有字，是真正的本体，无关字会被过滤，而当都开着则是享受简体转换成繁体的后的结果
+  # 这个设计真正的兼容了简繁转换与字符集过滤的矛盾，还能满足用户多种自定义需求，你可以在开关增加类别，并在charset下面新增option类去选择按照字区去过滤，等多种组合方式
+  charset:
+    - option: charset_filter
+      base: aj #可以填入多个类别如aj
+      addlist:
+        - "诶濛硷氽尛躝〇冇吔咗囧屌鲶芶咲畑垅燐"
+      blacklist: [鹵, 彔]
+    - option: s2t
+      base: fa
+      addlist: []
+      blacklist: []
+    - option: s2hk
+      base: ha
+      addlist: []
+      blacklist: []
+    - option: s2tw
+      base: ta
+      addlist: []
+      blacklist: []
 
   #下面用于对/rq和N20250101这样的日期候选自定义（顺序、类型、候选个数）由你完全掌控，前面是对于公历后面默认携带农历
   # 通用日期时间格式化函数（供 /rq、/sj、/dt、N0101、N20150101 场景复用）
@@ -155,47 +190,37 @@ patch:
   # 【时区】
   #   O  带冒号格式        +08:00、-04:30、+05:45
   #   o  不带冒号格式      +0800、-0430、+0545
-  date_formats:
-    - "Y年m月d日"
-    - "Y-m-d"
-    - "Y/m/d"
-    - "Y.m.d"
-    - "Ymd"
-    - "Y年n月j日"
-    - "y年n月j日"
-    - "n月j日"
-  time_formats:
-    - "H:M"
-    - "H点M分"
-    - "H:M:S"
-    - "H时M分S秒"
-    - "下午I:M"
-    - "I:M P"
-  datetime_formats:
-    - "Y-m-d H:M:S"
-    - "Y-m-dTH:M:S O"
-    - "YmdHMS"
-    - "Y年m月d日 H点M分"
-    - "y/m/d I:M p"
+  # date_formats:
+  #   - "Y年m月d日"
+
+  # time_formats:
+  #   - "H:M"
+
+  # datetime_formats:
+  # - "Y-m-d H:M:S"
+
   #下面用来改变你的windows小狼毫右下角软件图标
   #schema/+:
   #  icon: "icons/zhong.ico"
   #  ascii_icon: "icons/ying.ico"
+
   #下面这个可以改变tips上屏的按键
-  key_binder/tips_key: "comma" #修改时候去default找，默认是逗号
-  key_binder/sequence: # Lua 配置：手动排序的快捷键 super_sequence.lua，不要用方向键，各种冲突，一定要避免冲突
-    up: "Control+j" # 上移
-    down: "Control+k" # 下移
-    reset: "Control+l" # 重置
-    pin: "Control+p" # 置顶
+  super_tips/tips_key: "comma" #修改时候去default找，默认是逗号
+
+  # super_sequence/sequence: # Lua 配置：手动排序的快捷键 super_sequence.lua，不要用方向键，各种冲突，一定要避免冲突
+  #   up: "Control+j" # 上移
+  #   down: "Control+k" # 下移
+  #   reset: "Control+l" # 重置
+  #   pin: "Control+p" # 置顶
+
   key_binder/bindings/+: # 追加
     # 翻页键设置
     - { accept: minus, send: Page_Up, when: paging }
     - { accept: equal, send: Page_Down, when: has_menu }
-    - { accept: comma, send: Page_Up, when: paging }
-    - { accept: period, send: Page_Down, when: has_menu }
-    - { accept: bracketleft, send: Page_Up, when: paging }
-    - { accept: bracketright, send: Page_Down, when: has_menu }
+    # - { accept: comma, send: Page_Up, when: paging }
+    # - { accept: period, send: Page_Down, when: has_menu }
+    # - { accept: bracketleft, send: Page_Up, when: paging }
+    # - { accept: bracketright, send: Page_Down, when: has_menu }
     # 次选和三选
     - { accept: semicolon, send: 2, when: has_menu } # 分号次选
     - { accept: apostrophe, send: 3, when: has_menu } # 单引号三选
@@ -203,142 +228,34 @@ patch:
   # 快符功能：
   # a/、单字母组合，触发预设编码自动上屏快符，支持将值设为"repeat" 以支持对应按键重复上屏功能，custom>schema>lua最终合并键值
   # 现在就支持26字母快符，结合成对符号输入，这边的压力小一些
-  quick_symbol_text:
-    trigger: "^([a-z])/$"
-    symkey:
-      q: "repeat"
-      w: "？"
-      e: "（"
-      r: "）"
-      t: "~"
-      y: "·"
-      u: "『"
-      i: "』"
-      o: "〖"
-      p: "〗"
-      a: "！"
-      s: "……"
-      d: "、"
-      f: "“"
-      g: "”"
-      h: "‘"
-      j: "’"
-      k: "【"
-      l: "】"
-      z: "。”"
-      x: "？”"
-      c: "！”"
-      v: "——"
-      b: "%"
-      n: "《"
-      m: "》"
+  # quick_symbol_text:
+  #   trigger: "^([a-z])/$"
+  #   symkey:
+  #     q: "repeat"
+  #     ......
 
   #通过在有候选的情况下，通过末尾检测到形如\a来触发为第一候选进行成对符号包裹例如nihao\c 候选[你好]
   #trigger只能设置为单符号，因为按下一次锁定第一候选，按下映射开始包裹符号pro用户不能设置为/
   #两个字符可以不用|默认前后分割，需要明确区分前后的使用|分割，可以有一侧为空，不可以使用多个||
-  paired_symbols:
-    #sort_window: 10
-    trigger: "\\" #(注意反斜杠这是转义写法\\使用时\单反斜杠即可)
-    mirror: true #包裹后完全替换第一候选true,原候选后移到第二false
-    symkey:
-      # ===== 基本括号与引号 =====
-      a: "[]" # 方括号
-      b: "【】" # 黑方头括号
-      c: "❲❳" # 双大括号 / 装饰括号
-      d: "〔〕" # 方头括号
-      e: "⟮⟯" # 小圆括号 / 装饰括号
-      f: "⟦⟧" # 双方括号 / 数学集群括号
-      g: "「」" # 直角引号
-      # h: 预留用于 Markdown 一级标题
-      i: "『』" # 双直角引号
-      j: "<>" # 尖括号
-      k: "《》" # 书名号（双）
-      l: "〈〉" # 书名号（单）
-      m: "‹›" # 法文单书名号
-      n: "«»" # 法文双书名号
-      o: "⦅⦆" # 白圆括号
-      p: "⦇⦈" # 白方括号
-      q: "()" # 圆括号
-      r: "|儿" #儿化候选
-      s: "［］" # 全角方括号
-      t: "⟨⟩" # 数学角括号
-      u: "〈〉" # 数学尖括号
-      v: "〖〗" # 装饰花括号
-      w: "（）" # 全角圆括号
-      x: "｛｝" # 全角花括号
-      y: "⟪⟫" # 双角括号
-      z: "{}" # 花括号
+  # paired_symbols:
+  #   #sort_window: 10
+  #   trigger: "\\" #(注意反斜杠这是转义写法\\使用时\单反斜杠即可)
+  #   mirror: true #包裹后完全替换第一候选true,原候选后移到第二false
+  #   symkey:
+  #     # ===== 基本括号与引号 =====
+  #     a: "[]" # 方括号
 
-      # ===== 扩展括号族 / 引号 =====
-      dy: "''" # 英文单引号
-      sy: '""' # 英文双引号
-      zs: "“”" # 中文弯双引号
-      zd: "‘’" # 中文弯单引号
-      fy: "``" # 反引号
+  # # ===== 扩展括号族 / 引号 =====
+  # dy: "''" # 英文单引号
 
-      # ===== 双字母括号族 =====
-      aa: "〚〛" # 双中括号
-      bb: "〘〙" # 双中括号（小）
-      cc: "〚〛" # 双中括号（重复，可用于 Lua 匹配）
-      dd: "❨❩" # 小圆括号装饰
-      ee: "❪❫" # 小圆括号装饰
-      ff: "❬❭" # 小尖括号装饰
-      gg: "⦉⦊" # 双弯方括号
-      ii: "⦍⦎" # 双弯方括号
-      jj: "⦏⦐" # 双弯方括号
-      kk: "⦑⦒" # 双弯方括号
-      ll: "❮❯" # 小尖括号装饰
-      mm: "⌈⌉" # 上取整 / 数学符号
-      nn: "⌊⌋" # 下取整 / 数学符号
-      oo: "⦗⦘" # 双方括号装饰（补齐）
-      pp: "⦙⦚" # 双方括号装饰（补齐）
-      qq: "⟬⟭" # 小双角括号
-      rr: "❴❵" # 花括号装饰
-      ss: "⌜⌝" # 数学上角符号
-      tt: "⌞⌟" # 数学下角符号
-      uu: "⸢⸣" # 装饰方括号
-      vv: "⸤⸥" # 装饰方括号
-      ww: "﹁﹂" # 中文书名号 / 注释引号
-      xx: "﹃﹄" # 中文书名号 / 注释引号
-      yy: "⌠⌡" # 数学 / 程序符号
-      zz: "⟅⟆" # 数学 / 装饰括号
+  # # ===== 双字母括号族 =====
+  # aa: "〚〛" # 双中括号
 
-      # ===== Markdown / 标记 =====
-      md: "**|**" # Markdown 粗体
-      jc: "**|**" # 加粗
-      it: "__|__" # 斜体
-      st: "~~|~~" # 删除线
-      eq: "==|==" # 高亮
-      ln: "`|`" # 行内代码
-      cb: "```|```" # 代码块
-      qt: "> |" # 引用
-      ul: "- |" # 无序列表项
-      ol: "1. |" # 有序列表项
-      lk: "[|](url)" # 链接
-      im: "![|](img)" # 图片
-      h: "# |" # 一级标题
-      hh: "## |" # 二级标题
-      hhh: "### |" # 三级标题
-      hhhh: "#### |" # 四级标题
-      sp: "\\|" # 反斜杠转义
-      br: "|  " # 换行
-      cm: "<!--|-->" # 注释
+  # # ===== Markdown / 标记 =====
+  # md: "**|**" # Markdown 粗体
 
-      # ===== 运算与标记符 =====
-      pl: "++"
-      mi: "--"
-      sl: "//"
-      bs: "\\\\"
-      at: "@@"
-      dl: "$$"
-      pc: "%%"
-      an: "&&"
-      cr: "^^"
-      cl: "::"
-      sc: ";;"
-      ex: "!!"
-      qu: "??"
-      sb: "sb"
+  # # ===== 运算与标记符 =====
+  # pl: "++"
 
   #开启自动无词频造词（默认已经开了）
   #add_user_dict/enable_auto_phrase: true
