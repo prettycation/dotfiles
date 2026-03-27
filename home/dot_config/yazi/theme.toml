@@ -31,7 +31,7 @@ count_selected = { fg = "#11111b", bg = "#f9e2af" }
 
 # 边框
 border_symbol = "│"
-border_style = { fg = "#6c7086" }
+border_style = { fg = "#b4befe" }
 
 # : }}}
 
@@ -49,8 +49,11 @@ preview = { fg = "#89b4fa", underline = true }
 # : Tabs (标签页) {{{
 
 [tabs]
+# 当前标签文字颜色、背景颜色
 active = { fg = "#11111b", bg = "#89b4fa", bold = true }
 inactive = { fg = "#a6adc8", bg = "#45475a" }
+sep_inner = { open = "", close = "" }
+sep_outer = { open = "", close = "" }
 
 # : }}}
 
