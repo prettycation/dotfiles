@@ -332,7 +332,7 @@ $currentEnv = if ($env:VIRTUAL_ENV) { $env:VIRTUAL_ENV } else { $env:CONDA_PREFI
 if ($currentEnv) {
     # 尝试寻找标准的 Activate.ps1 (uv, venv, poetry)
     $venvScript = Join-Path $currentEnv "Scripts\Activate.ps1"
-    
+
     if (Test-Path $venvScript) {
         # 情况 A: 标准 Venv
         Write-Host "⚡ Auto-activating Venv (uv/std)..." -ForegroundColor Green
@@ -341,16 +341,16 @@ if ($currentEnv) {
         # 情况 B: Conda 环境
         if (Get-Command conda -ErrorAction SilentlyContinue) {
             Write-Host "⚡ Auto-activating Conda..." -ForegroundColor Green
-            
+
             # 注册 Hook (让 conda activate 生效)
             (& conda "shell.powershell" "hook") | Out-String | Invoke-Expression
-            
+
             # 提取环境名
             $envName = Split-Path $currentEnv -Leaf
-            
+
             # 激活
             conda activate $envName
-            
+
             # 确保 Starship 也能看到名字
             if (-not $env:CONDA_DEFAULT_ENV) {
                 $env:CONDA_DEFAULT_ENV = $envName
@@ -362,10 +362,25 @@ if ($currentEnv) {
 # 初始显示 Fastfetch
 Clear-Host
 
+# ——— WezTerm Shell Integration (OSC 7) ———
+# 在第一个 Pane/选项卡/窗口之后创建的 Pane/选项卡/窗口通常会尝试解析当前 Pane 的当前工作目录，优先使用由 OSC 7 设置的值（../shell-integration.md），如果没有则退回到尝试查找附加到本地 Pane 的当前进程组组长的 cwd。如果无法解析任何 cwd，则使用 default_cwd。
+# 定义在 starship init 之前，Starship 会自动调用此钩子函数
+function Invoke-Starship-PreCommand {
+    $current_location = $executionContext.SessionState.Path.CurrentLocation
+    if ($current_location.Provider.Name -eq "FileSystem") {
+        $ansi_escape = [char]27
+        # 将 Windows 路径斜杠替换为 URI 标准的斜杠
+        $provider_path = $current_location.ProviderPath -replace "\\", "/"
+        # 发送 OSC 7 序列告知 WezTerm 当前目录
+        $osc7 = "$ansi_escape]7;file://${env:COMPUTERNAME}/${provider_path}$ansi_escape\"
+        $host.ui.Write($osc7)
+    }
+}
+
 # 工具初始化钩子
 
-#  加载社区提供的额外 Tab 补全规则 
-Import-Module PSCompletions 
+#  加载社区提供的额外 Tab 补全规则
+Import-Module PSCompletions
 
 # 绘制命令提示符
 # oh-my-posh init pwsh --config "$env:POSH_THEMES_PATH\montys.omp.json" | Invoke-Expression
