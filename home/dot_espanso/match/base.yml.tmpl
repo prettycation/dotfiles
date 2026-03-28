@@ -20,3 +20,10 @@ matches:
     {{- else }}
     replace: "nvim (Get-PSReadLineOption).HistorySavePath"
     {{- end }}
+
+  - trigger: "n.pr"
+    {{- if ne .chezmoi.os "windows" }}
+    replace: "nvim ~/.zsh_profile"
+    {{- else }}
+    replace: "nvim $profile"
+    {{- end }}
