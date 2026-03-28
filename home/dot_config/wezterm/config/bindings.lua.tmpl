@@ -52,6 +52,9 @@ local keys = {
    { key = 'LeftArrow',  mods = mod.SUPER,     action = act.SendString '\u{1b}OH' },
    { key = 'RightArrow', mods = mod.SUPER,     action = act.SendString '\u{1b}OF' },
    { key = 'Backspace',  mods = mod.SUPER,     action = act.SendString '\u{15}' },
+   -- ScrollToPrompt 动作依赖于 shell 发射 OSC 133 序列来标记语义区域（输出、输入、提示符）
+   -- { key = 'UpArrow', mods = 'SHIFT', action = act.ScrollToPrompt(-1) },
+   -- { key = 'DownArrow', mods = 'SHIFT', action = act.ScrollToPrompt(1) },
 
    -- copy/paste --
    { key = 'c',          mods = 'CTRL|SHIFT',  action = act.CopyTo('Clipboard') },
@@ -193,8 +196,8 @@ local keys = {
    },
 
    -- panes: scroll pane
-   { key = 'u',        mods = mod.SUPER, action = act.ScrollByLine(-5) },
-   { key = 'd',        mods = mod.SUPER, action = act.ScrollByLine(5) },
+   { key = 'u',        mods = 'CTRL', action = act.ScrollByLine(-5) },
+   { key = 'd',        mods = 'CTRL', action = act.ScrollByLine(5) },
    { key = 'PageUp',   mods = 'NONE',    action = act.ScrollByPage(-0.75) },
    { key = 'PageDown', mods = 'NONE',    action = act.ScrollByPage(0.75) },
 
