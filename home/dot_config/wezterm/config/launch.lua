@@ -15,7 +15,7 @@ if platform.is_win then
       { label = 'Msys2', args = { 'ucrt64.cmd' } },
       {
          label = 'Git Bash',
-         args = { '%scoop%\\apps\\git\\current\\bin\\bash.exe' },
+         args = { 'bash.exe', '-l' },
       },
    }
 elseif platform.is_mac then
