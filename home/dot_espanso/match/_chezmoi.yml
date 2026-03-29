@@ -6,13 +6,13 @@ matches:
     replace: "chezmoi apply"
 
   - trigger: "u.in"
-    replace: "chezmoi init --source ."
+    replace: "chezmoi init"
 
   - trigger: "u.sp"
     replace: "chezmoi source-path"
 
   - trigger: "u.ad"
-    replace: "chezmoi add --template "
+    replace: "chezmoi add "
 
   - trigger: "u.mg"
     replace: "chezmoi merge --verbose "

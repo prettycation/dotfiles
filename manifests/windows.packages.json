@@ -95,6 +95,10 @@
       "bucket": "abyss"
     },
     {
+      "name": "abgox.SpaceKey",
+      "bucket": "abyss"
+    },
+    {
       "name": "AlexanderPro.SmartContextMenu",
       "bucket": "abyss"
     },
@@ -189,6 +193,10 @@
     {
       "name": "emeditor-pro",
       "bucket": "ZhangTianrong_scoop-bucket"
+    },
+    {
+      "name": "ente-auth",
+      "bucket": "extras"
     },
     {
       "name": "espanso",
