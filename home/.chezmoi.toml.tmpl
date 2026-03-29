@@ -51,6 +51,9 @@
 {{- $wd_password := "" -}}
 {{- $gm_password := "" -}}
 {{- $bw_password := "" -}}
+{{- $et_password := "" -}}
+{{- $cb_password := "" -}}
+{{- $tg_password := "" -}}
 
 {{/* --- other --- */}}
 {{- $mihomo_secret := "" -}}
@@ -61,18 +64,21 @@
 
 {{- if and $personal (eq .chezmoi.os "windows") -}}
   {{- $psCommand := "$l='Beijing, China'; try { $r = Invoke-RestMethod 'http://myip.ipip.net' -TimeoutSec 10; $c = (-split $r)[4]; if($c) { $tr = Invoke-RestMethod \"https://api.mymemory.translated.net/get?q=$c&langpair=zh|en\" -TimeoutSec 10; $e = $tr.responseData.translatedText.Replace(' City',''); if($e){ $l = \"$e, China\" } } } catch {}; $l" -}}
-  
+
   {{- $location = output "powershell.exe" "-NoProfile" "-NonInteractive" "-Command" $psCommand | trim -}}
 {{- end -}}
 
 {{- if and $personal (env "BW_SESSION") -}}
     {{- $outlookItem := bitwarden "item" "outlook" -}}
-    {{- $gmailItem := bitwarden "item" "gmail" -}}
+    {{- $gmailItem := bitwarden "item" "googlemail" -}}
     {{- $qmailItem := bitwarden "item" "qq" -}}
 
     {{- $kpItem := bitwarden "item" "keepassxc" -}}
     {{- $wdItem := bitwarden "item" "windowshellopin" -}}
     {{- $bwItem := bitwarden "item" "bitwarden" -}}
+    {{- $etItem := bitwarden "item" "enteauth" -}}
+    {{- $cbItem := bitwarden "item" "codeberg" -}}
+    {{- $tgItem := bitwarden "item" "tangled" -}}
 
     {{- $mhItem := bitwarden "item" "mihomo-secret" -}}
     {{- $asItem := bitwarden "item" "airport-sub" -}}
@@ -86,6 +92,9 @@
     {{- $kp_password = $kpItem.login.password -}}
     {{- $wd_password = $wdItem.login.password -}}
     {{- $bw_password = $bwItem.login.password -}}
+    {{- $et_password = $etItem.login.password -}}
+    {{- $cb_password = $cbItem.login.password -}}
+    {{- $tg_password = $tgItem.login.password -}}
 
     {{- $mihomo_secret = $mhItem.login.password -}}
     {{- $airport_sub = $asItem.login.password -}}
@@ -113,6 +122,9 @@
     wd_password = {{ $wd_password | quote }}
     gm_password = {{ $gm_password | quote }}
     bw_password = {{ $bw_password | quote }}
+    et_password = {{ $et_password | quote }}
+    cb_password = {{ $cb_password | quote }}
+    tg_password = {{ $tg_password | quote }}
 
     {{/* --- location (for yasb) --- */}}
     location = {{ $location | quote }}
