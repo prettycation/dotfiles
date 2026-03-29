@@ -70,15 +70,37 @@ $totalSkipped = 0
 # 4) 主循环
 # ----------------------------
 foreach ($app in $apps) {
-    $persistBase = Join-Path $scoopRoot "persist\$($app.scoop_app)"
-
+    # 先确定该应用是否安装在 Global 目录
     $userAppPath = Join-Path $scoopRoot "apps\$($app.scoop_app)"
     $globalAppPath = Join-Path $scoopGlobalRoot "apps\$($app.scoop_app)"
-    if (-not (Test-Path $userAppPath) -and (Test-Path $globalAppPath)) {
-        $persistBase = Join-Path $scoopGlobalRoot "persist\$($app.scoop_app)"
+    $isGlobal = (-not (Test-Path $userAppPath) -and (Test-Path $globalAppPath))
+
+    # 判断是否配置了 app_path (如果未配置，PowerShell 中该属性为 $null)
+    if ($null -ne $app.app_path) {
+        # --- 模式 A: 部署到 app 目录 ---
+        $appBase = if ($isGlobal) {
+            Join-Path $scoopGlobalRoot "apps\$($app.scoop_app)\current\app"
+        } else {
+            Join-Path $scoopRoot "apps\$($app.scoop_app)\current\app"
+        }
+
+        # 将 app_path 作为相对路径拼接到 app 目录下 (处理空字符串的情况)
+        if ([string]::IsNullOrWhiteSpace($app.app_path)) {
+            $targetRoot = $appBase
+        } else {
+            $targetRoot = Join-Path $appBase $app.app_path
+        }
+        Write-Host "  [$($app.name)] Target mode: App Directory ($targetRoot)" -ForegroundColor DarkGray
+    } else {
+        # --- 模式 B: 传统的 persist 目录 (后备默认) ---
+        $persistBase = if ($isGlobal) {
+            Join-Path $scoopGlobalRoot "persist\$($app.scoop_app)"
+        } else {
+            Join-Path $scoopRoot "persist\$($app.scoop_app)"
+        }
+        $targetRoot = Join-Path $persistBase $app.target_base
     }
 
-    $targetRoot = Join-Path $persistBase $app.target_base
     $appSourceRoot = Join-Path $sourceDir $app.source_base
 
     if (-not (Test-Path $appSourceRoot)) {
@@ -247,7 +269,7 @@ foreach ($app in $apps) {
 
             if ($forceRefresh -or $shouldWrite) {
                 Copy-Item -Path $file.FullName -Destination $targetFile -Force
-                Write-Host "  -> Copied: $($app.name) / $targetRelPath" -ForegroundColor Green
+                Write-Host "  -> Copied: $($app.name) /$targetRelPath" -ForegroundColor Green
                 $didWrite = $true
             }
         }
