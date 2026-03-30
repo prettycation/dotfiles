@@ -1,3 +1,15 @@
+{{- /* 判断系统并定义变量 */ -}}
+{{- $isWindows := eq .chezmoi.os "windows" -}}
+{{- $pythonCmd := "python3" -}}
+{{- $shellCmd := "zsh" -}}
+{{- $clearCmd := "clear" -}}
+
+{{- if $isWindows -}}
+  {{- $pythonCmd = "python" -}}
+  {{- $shellCmd = "powershell" -}}
+  {{- $clearCmd = "cls" -}}
+{{- end -}}
+
 return {
   -- 1. Code Runner: 负责运行整个文件
   {
@@ -10,6 +22,7 @@ return {
     },
     opts = {
       mode = "float",
+      -- 浮窗样式
       float = {
         border = "rounded",
         height = 0.8,
@@ -18,7 +31,7 @@ return {
         y = 0.5,
       },
       filetype = {
-        python = "{{ if eq .chezmoi.os "windows" }}python -u{{ else }}python3 -u{{ end }}",
+        python = "{{ $pythonCmd }} -u",
         typst = "typst compile",
         rust = "cd $dir && rustc $fileName && $dir/$fileNameWithoutExt",
         lua = "lua",
@@ -42,20 +55,21 @@ return {
           -- 语言定义
           repl_definition = {
             python = {
-              command = { "{{ if eq .chezmoi.os "windows" }}python -u{{ else }}python3 -u{{ end }}" },
+              -- 使用 Table 格式，不能用空格拼接字符串
+              command = { "{{ $pythonCmd }}", "-u" },
               format = common.bracketed_paste_python,
             },
             lua = {
               command = { "lua" },
             },
             sh = {
-              command = { "{{ if eq .chezmoi.os "windows" }}powershell{{ else }}zsh{{ end }}" },
+              command = { "{{ $shellCmd }}" },
             },
           },
         },
 
         -- 键位映射
-        -- 注意：我们移除了 clear 和 exit，改在下方的 keys 中自定义实现
+        -- 移除了 clear 和 exit，改在下方的 keys 中自定义实现
         keymaps = {
           toggle_repl = "<leader>ro",
           visual_send = "<leader>rs",
@@ -64,12 +78,13 @@ return {
           restart_repl = "<leader>rR", -- 重启 REPL
         },
 
+        -- 高亮配置
         highlight = {
           italic = true,
         },
       }
     end,
-    -- 自定义按键绑定 (解决 Windows 兼容性问题)
+    -- 自定义按键绑定 (解决 Windows 兼容性问题与 crunner 冲突)
     keys = {
       { "<leader>ro", desc = "Toggle REPL" },
       { "<leader>rs", mode = { "n", "v" }, desc = "Send to REPL" },
