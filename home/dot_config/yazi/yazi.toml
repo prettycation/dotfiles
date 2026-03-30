@@ -249,21 +249,13 @@ preloaders = [
 previewers = [
   # --- DuckDB 数据预览规则开始 (由于其支持表格视图，建议放在 Office 和 Code 之前) (已注释等待修复) ---
   # { url = "*.csv", run = "duckdb" },
-  { mime = "text/*", run = "code" },
   # { url = "*.tsv", run = "duckdb" },
-  { mime = "text/*", run = "code" },
   # { url = "*.json", run = "duckdb" },
-  { mime = "application/{json,ndjson}", run = "json" },
   # { url = "*.parquet", run = "duckdb" },
-  { url = "*", run = "file" },
   # { url = "*.txt", run = "duckdb" },
-  { mime = "text/*", run = "code" },
   # { url = "*.xlsx", run = "duckdb" },
-  { url = "*.xlsx", run = "office" },
   # { url = "*.db", run = "duckdb" },
-  { url = "*", run = "file" },
   # { url = "*.duckdb", run = "duckdb" },
-  { url = "*", run = "file" },
   # --- DuckDB 数据预览规则结束 ---
 
   # --- Office 文档预览规则开始 ---
