@@ -26,8 +26,9 @@ scrollback_pager sh -c 'NVIM_MODE="kitty-copy" {{ $nvimExecutable }} 63<&0 </dev
 map alt+q show_scrollback
 
 # split window
-map alt+shift+\\ launch --bias=50 --location=vsplit --cwd=current
-map alt+\\ launch --bias=50 --location=hsplit --cwd=current
+# backslash is '\'
+map alt+backslash launch --bias=50 --location=vsplit --cwd=current
+map alt+shift+backslash launch --bias=50 --location=hsplit --cwd=current
 
 # window navigator
 map alt+j kitten scripts/pass_keys.py bottom alt+j
