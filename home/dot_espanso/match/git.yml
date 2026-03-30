@@ -18,6 +18,12 @@ matches:
   - trigger: "g.ra"
     replace: "git remote add origin $|$"
 
+  - trigger: "g.rmt"
+    replace: "git remote add upstream $|$"
+
+  - trigger: "g.rmv"
+    replace: " git rm --cached $|$"
+
   # git push
 
   - trigger: "g.ps"
@@ -29,14 +35,11 @@ matches:
   - trigger: "g.pu"
     replace: "git push -u upstream feat/"
 
-  - trigger: "g.rmt"
-    replace: "git remote add upstream $|$"
-
-  - trigger: "g.rmv"
-    replace: " git rm --cached $|$"
+  - trigger: "g.pl"
+    replace: "git pull -X theirs"
 
   - trigger: "g.fc"
-    replace: "git fetch upstream"
+    replace: "git fetch --all"
 
   - trigger: "g.br"
     replace: "git branch -m feat/"
