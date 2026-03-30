@@ -16,11 +16,11 @@ if ($forceRefresh) {
 }
 
 # ----------------------------
-# 1) Scoop 根目录
+# 1) Scoop 根目录 (使用底层 Combine 提速)
 # ----------------------------
 $scoopRoot = $env:SCOOP
 if ([string]::IsNullOrWhiteSpace($scoopRoot)) {
-    $scoopRoot = Join-Path $env:USERPROFILE "scoop"
+    $scoopRoot =[System.IO.Path]::Combine($env:USERPROFILE, "scoop")
 }
 $scoopGlobalRoot = $env:SCOOP_GLOBAL
 if ([string]::IsNullOrWhiteSpace($scoopGlobalRoot)) {
@@ -33,26 +33,25 @@ if ([string]::IsNullOrWhiteSpace($scoopGlobalRoot)) {
 $appsJson = @'
 {{ .scoop.apps | toJson }}
 '@
-$apps = $appsJson | ConvertFrom-Json
+$apps = ConvertFrom-Json -InputObject $appsJson
 $sourceDir = "{{ .chezmoi.sourceDir }}"
 
 # ----------------------------
-# 3) 读取缓存 state
+# 3) 读取缓存 state (去除缓慢的管道)
 # ----------------------------
-$stateDir = Join-Path $env:LOCALAPPDATA "chezmoi"
-$statePath = Join-Path $stateDir "scoop-deploy-state.json"
+$stateDir = [System.IO.Path]::Combine($env:LOCALAPPDATA, "chezmoi")
+$statePath = [System.IO.Path]::Combine($stateDir, "scoop-deploy-state.json")
+
 if (-not ([System.IO.Directory]::Exists($stateDir))) {
-    New-Item -ItemType Directory -Path $stateDir -Force | Out-Null
+    [void][System.IO.Directory]::CreateDirectory($stateDir)
 }
 
-$state = @{
-    version = 1
-    entries = @{}
-}
+$state = @{ version = 1; entries = @{} }
 
 if (([System.IO.File]::Exists($statePath)) -and (-not $forceRefresh)) {
     try {
-        $loaded = Get-Content $statePath -Raw | ConvertFrom-Json -AsHashtable
+        $rawStateJson = [System.IO.File]::ReadAllText($statePath, [System.Text.Encoding]::UTF8)
+        $loaded = ConvertFrom-Json -InputObject $rawStateJson -AsHashtable
         if ($loaded -and $loaded.version -eq 1 -and $loaded.entries) {
             $state = $loaded
         }
@@ -66,42 +65,35 @@ $totalScanned = 0
 $totalUpdated = 0
 $totalSkipped = 0
 
+# 全局缓存
+$dirCache = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
+$trimChars = [char[]]('\', '/')
+
 # ----------------------------
 # 4) 主循环
 # ----------------------------
 foreach ($app in $apps) {
-    # 先确定该应用是否安装在 Global 目录 (优化：使用 .NET 方法加速验证)
-    $userAppPath = Join-Path $scoopRoot "apps\$($app.scoop_app)"
-    $globalAppPath = Join-Path $scoopGlobalRoot "apps\$($app.scoop_app)"
+    # 先确定该应用是否安装在 Global 目录 (弃用 Join-Path，换用底层 Combine)
+    $userAppPath = [System.IO.Path]::Combine($scoopRoot, "apps", $app.scoop_app)
+    $globalAppPath = [System.IO.Path]::Combine($scoopGlobalRoot, "apps", $app.scoop_app)
     $isGlobal = (-not ([System.IO.Directory]::Exists($userAppPath)) -and ([System.IO.Directory]::Exists($globalAppPath)))
 
     # 判断是否配置了 app_path (如果未配置，PowerShell 中该属性为 $null)
     if ($null -ne $app.app_path) {
         # --- 模式 A: 部署到 app 目录 ---
-        $appBase = if ($isGlobal) {
-            Join-Path $scoopGlobalRoot "apps\$($app.scoop_app)\current\app"
-        } else {
-            Join-Path $scoopRoot "apps\$($app.scoop_app)\current\app"
-        }
-
-        # 将 app_path 作为相对路径拼接到 app 目录下 (处理空字符串的情况)
-        if ([string]::IsNullOrWhiteSpace($app.app_path)) {
-            $targetRoot = $appBase
-        } else {
-            $targetRoot = Join-Path $appBase $app.app_path
-        }
+        $appBase = if ($isGlobal) { [System.IO.Path]::Combine($scoopGlobalRoot, "apps", $app.scoop_app, "current", "app") } 
+                   else { [System.IO.Path]::Combine($scoopRoot, "apps", $app.scoop_app, "current", "app") }
+        $targetRoot = if ([string]::IsNullOrWhiteSpace($app.app_path)) { $appBase } 
+                      else { [System.IO.Path]::Combine($appBase, $app.app_path) }
         Write-Host "[$($app.name)] Target mode: App Directory ($targetRoot)" -ForegroundColor DarkGray
     } else {
         # --- 模式 B: 传统的 persist 目录 (后备默认) ---
-        $persistBase = if ($isGlobal) {
-            Join-Path $scoopGlobalRoot "persist\$($app.scoop_app)"
-        } else {
-            Join-Path $scoopRoot "persist\$($app.scoop_app)"
-        }
-        $targetRoot = Join-Path $persistBase $app.target_base
+        $persistBase = if ($isGlobal) {[System.IO.Path]::Combine($scoopGlobalRoot, "persist", $app.scoop_app) } 
+                       else { [System.IO.Path]::Combine($scoopRoot, "persist", $app.scoop_app) }
+        $targetRoot = [System.IO.Path]::Combine($persistBase, $app.target_base)
     }
 
-    $appSourceRoot = Join-Path $sourceDir $app.source_base
+    $appSourceRoot = [System.IO.Path]::Combine($sourceDir, $app.source_base)
 
     if (-not ([System.IO.Directory]::Exists($appSourceRoot) -or [System.IO.File]::Exists($appSourceRoot))) {
         Write-Host "  Skipping $($app.name): source '$appSourceRoot' not found." -ForegroundColor DarkGray
@@ -110,97 +102,102 @@ foreach ($app in $apps) {
 
     # 判断是目录还是单文件
     $isDir = [System.IO.Directory]::Exists($appSourceRoot)
-    $fileList = @()
+    $fileList = [System.Collections.Generic.List[System.IO.FileInfo]]::new()
 
     if (-not $isDir) {
         # 单文件模式：直接将该文件加入映射
-        $fileList = @(Get-Item $appSourceRoot)
+        $fileList.Add([System.IO.FileInfo]::new($appSourceRoot))
     } else {
         # 目录模式：读取 includes 规则
         $includes = $app.includes
         # 如果没有定义 includes 或数组为空，默认扫描该目录下所有文件
-        if ($null -eq $includes -or $includes.Count -eq 0) {
-            $includes = @('**')
-        }
+        if ($null -eq $includes -or $includes.Count -eq 0) { $includes = @('**') }
 
+        # 1. 获取文件：使用底层 .NET GetFiles 提速，避开缓慢的 Get-ChildItem
+        $rawFiles = [System.Collections.Generic.List[System.IO.FileInfo]]::new()
         foreach ($pattern in $includes) {
             if ($pattern -eq '**') {
-                $fileList += Get-ChildItem -Path $appSourceRoot -File -Recurse
+                try {
+                    $dirInfo = [System.IO.DirectoryInfo]::new($appSourceRoot)
+                    $rawFiles.AddRange($dirInfo.GetFiles("*", [System.IO.SearchOption]::AllDirectories))
+                } catch {}
             } else {
-                $searchPath = Join-Path $appSourceRoot $pattern
-                $fileList += Get-ChildItem -Path $searchPath -File -ErrorAction SilentlyContinue
+                # 对非通用通配符，安全降级回 Get-ChildItem 但直接强转数组
+                $searchPath = [System.IO.Path]::Combine($appSourceRoot, $pattern)
+                $items = [System.IO.FileInfo[]]@(Get-ChildItem -Path $searchPath -File -ErrorAction SilentlyContinue)
+                $rawFiles.AddRange($items)
             }
         }
 
-        # 处理 excludes 排除逻辑
+        # 2. 无管道处理 excludes 排除逻辑
         $excludes = $app.excludes
-        if ($null -ne $excludes -and $excludes.Count -gt 0) {
-            $fileList = $fileList | Where-Object {
-                $relPath = $_.FullName.Substring($appSourceRoot.Length).TrimStart('\', '/').Replace('\', '/')
-                $matched = $false
-                foreach ($exPattern in $excludes) {
-                    $normPattern = $exPattern.Replace('\', '/')
-                    # 匹配规则：完全匹配、作为目录前缀、作为后缀、或者包含在路径中间
-                    if ($relPath -like $normPattern -or
-                        $relPath -like "$normPattern/*" -or
-                        $relPath -like "*/$normPattern" -or
-                        $relPath -like "*/$normPattern/*") {
-                        $matched = $true
-                        break
-                    }
-                }
-                return (-not $matched) # 如果匹配到了排除规则，则返回 false 过滤掉
-            }
+        $normExcludes = [System.Collections.Generic.List[string]]::new()
+        if ($null -ne $excludes) {
+            foreach ($ex in $excludes) { [void]$normExcludes.Add($ex.Replace('\', '/')) }
         }
+
+        # 3. 内存过滤去重
+        $uniqueFiles =[System.Collections.Generic.Dictionary[string, System.IO.FileInfo]]::new([StringComparer]::OrdinalIgnoreCase)
+        $appSourceLen = $appSourceRoot.Length
+
+        foreach ($f in $rawFiles) {
+            $relPath = $f.FullName.Substring($appSourceLen).TrimStart($trimChars).Replace('\', '/')
+            $matched = $false
+            foreach ($normPattern in $normExcludes) {
+                if ($relPath -like $normPattern -or
+                    $relPath -like "$normPattern/*" -or
+                    $relPath -like "*/$normPattern" -or
+                    $relPath -like "*/$normPattern/*") {
+                    $matched = $true
+                    break
+                }
+            }
+            if (-not $matched) { $uniqueFiles[$f.FullName] = $f }
+        }
+        $fileList.AddRange([System.IO.FileInfo[]]@($uniqueFiles.Values))
     }
 
     $appScanned = 0
     $appUpdated = 0
     $appSkipped = 0
 
-    # 使用 Sort-Object 保证唯一，且不破坏 FileInfo 对象结构
-    if ($fileList.Count -gt 1) {
-        $fileList = $fileList | Sort-Object -Property FullName -Unique
-    }
-
     foreach ($file in $fileList) {
         $appScanned++
         $totalScanned++
 
-        $isTmpl = $file.Extension -eq '.tmpl'
+        $isTmpl = $file.Extension.EndsWith(".tmpl", [System.StringComparison]::OrdinalIgnoreCase)
 
         # 根据单文件/目录决定如何计算目标路径
         if (-not $isDir) {
             $targetFile = $targetRoot
-            $targetRelPath = Split-Path $targetRoot -Leaf
+            $targetRelPath = [System.IO.Path]::GetFileName($targetRoot) # 替代 Split-Path
         } else {
-            $relPath = $file.FullName.Substring($appSourceRoot.Length).TrimStart('\', '/').Replace('\', '/')
-            $targetRelPath = if ($isTmpl) { $relPath -replace '\.tmpl$', '' } else { $relPath }
+            $relPath = $file.FullName.Substring($appSourceRoot.Length).TrimStart($trimChars).Replace('\', '/')
+            # 底层截断替代耗时的正则 `-replace`
+            $targetRelPath = if ($isTmpl) { $relPath.Substring(0, $relPath.Length - 5) } else { $relPath }
 
             if ([string]::IsNullOrEmpty($targetRelPath)) {
                 $targetFile = $targetRoot
             } else {
-                $targetFile = Join-Path $targetRoot $targetRelPath.Replace('/', [System.IO.Path]::DirectorySeparatorChar)
+                $targetFile =[System.IO.Path]::Combine($targetRoot, $targetRelPath.Replace('/', [System.IO.Path]::DirectorySeparatorChar))
             }
         }
 
         $targetParent = [System.IO.Path]::GetDirectoryName($targetFile)
-        if (-not ([System.IO.Directory]::Exists($targetParent))) {
-            New-Item -ItemType Directory -Path $targetParent -Force | Out-Null
+        if (-not $dirCache.Contains($targetParent)) {
+            if (-not [System.IO.Directory]::Exists($targetParent)) {
+                [void][System.IO.Directory]::CreateDirectory($targetParent)
+            }
+            [void]$dirCache.Add($targetParent)
         }
-
         # 获取文件元数据
-        $srcLen = [int64]$file.Length
-        $srcTicks = [int64]$file.LastWriteTimeUtc.Ticks
 
-        $tgtFileInfo = $null
-        $tgtLen = 0
-        $tgtTicks = 0
-        if ([System.IO.File]::Exists($targetFile)) {
-            $tgtFileInfo = [System.IO.FileInfo]::new($targetFile)
-            $tgtLen = [int64]$tgtFileInfo.Length
-            $tgtTicks = [int64]$tgtFileInfo.LastWriteTimeUtc.Ticks
-        }
+        $srcLen = $file.Length
+        $srcTicks = $file.LastWriteTimeUtc.Ticks
+
+        $tgtFileInfo = [System.IO.FileInfo]::new($targetFile)
+        $tgtLen = if ($tgtFileInfo.Exists) { $tgtFileInfo.Length } else { 0 }
+        $tgtTicks = if ($tgtFileInfo.Exists) { $tgtFileInfo.LastWriteTimeUtc.Ticks } else { 0 }
 
         # 缓存键名增加 app_path，解决多路径映射下的缓存冲突
         $entryKey = "$($app.name)|$($app.app_path)|$targetRelPath"
@@ -210,7 +207,7 @@ foreach ($app in $apps) {
         # 签名快筛 (Fast Skip)
         # ----------------------------------------------------
         $fastSkip = $false
-        if (-not $forceRefresh -and $cached -and $tgtFileInfo) {
+        if (-not $forceRefresh -and $cached -and $tgtFileInfo.Exists) {
             $expectedMode = if ($isTmpl) { "tmpl" } else { "copy" }
             if (
                 $cached.mode -eq $expectedMode -and
@@ -239,27 +236,22 @@ foreach ($app in $apps) {
             $renderedContent = (Get-Content $file.FullName -Raw | chezmoi execute-template) -join "`r`n"
             $shouldWrite = $true
 
-            if ($tgtFileInfo -and -not $forceRefresh) {
-                $existingContent = [System.IO.File]::ReadAllText($targetFile, [System.Text.Encoding]::UTF8)
-                if ($existingContent -eq $renderedContent) {
-                    $shouldWrite = $false
-                }
+            if ($tgtFileInfo.Exists -and -not $forceRefresh) {
+                $existingContent = [System.IO.File]::ReadAllText($targetFile,[System.Text.Encoding]::UTF8)
+                if ($existingContent -eq $renderedContent) { $shouldWrite = $false }
             }
 
-            if ($forceRefresh -or $shouldWrite) {
-                [System.IO.File]::WriteAllText($targetFile, $renderedContent, [System.Text.Encoding]::UTF8)
+            if ($forceRefresh -or $shouldWrite) {[System.IO.File]::WriteAllText($targetFile, $renderedContent, [System.Text.Encoding]::UTF8)
                 Write-Host "  -> Rendered: $($app.name)/$targetRelPath" -ForegroundColor Green
                 $didWrite = $true
             }
         } else {
             # 普通文件：算 Hash 兜底 (MD5 算法比 SHA256 更快)
             $shouldWrite = $true
-            if ($tgtFileInfo -and -not $forceRefresh) {
+            if ($tgtFileInfo.Exists -and -not $forceRefresh) {
                 $srcHash = (Get-FileHash $file.FullName -Algorithm MD5).Hash
                 $tgtHash = (Get-FileHash $targetFile -Algorithm MD5).Hash
-                if ($srcHash -eq $tgtHash) {
-                    $shouldWrite = $false
-                }
+                if ($srcHash -eq $tgtHash) { $shouldWrite = $false }
             }
 
             if ($forceRefresh -or $shouldWrite) {
@@ -285,15 +277,15 @@ foreach ($app in $apps) {
             mode     = if ($isTmpl) { "tmpl" } else { "copy" }
             srcLen   = $srcLen
             srcTicks = $srcTicks
-            tgtLen   = [int64]$finalTgtItem.Length
-            tgtTicks = [int64]$finalTgtItem.LastWriteTimeUtc.Ticks
+            tgtLen   = $finalTgtItem.Length
+            tgtTicks = $finalTgtItem.LastWriteTimeUtc.Ticks
         }
     }
 
     if ($appScanned -eq 0) {
         Write-Host "  [$($app.name)] no files matched." -ForegroundColor DarkGray
     } elseif ($appUpdated -gt 0) {
-        Write-Host "  [$($app.name)] updated $appUpdated files, skipped $appSkipped." -ForegroundColor Cyan
+        Write-Host "[$($app.name)] updated $appUpdated files, skipped $appSkipped." -ForegroundColor Cyan
     } else {
         Write-Host "[$($app.name)] all $appSkipped files are up to date." -ForegroundColor DarkGray
     }
@@ -302,8 +294,10 @@ foreach ($app in $apps) {
 # ----------------------------
 # 5) 写回缓存 state
 # ----------------------------
-$stateJson = $state | ConvertTo-Json -Depth 8
-[System.IO.File]::WriteAllText($statePath, $stateJson, [System.Text.Encoding]::UTF8)
+if ($totalUpdated -gt 0 -or $forceRefresh) {
+    $stateJson = ConvertTo-Json -InputObject $state -Depth 8
+    [System.IO.File]::WriteAllText($statePath, $stateJson, [System.Text.Encoding]::UTF8)
+}
 
 $sw.Stop()
 Write-Host ("Done. scanned={0}, updated={1}, skipped={2}, elapsed={3:n2}s" -f $totalScanned, $totalUpdated, $totalSkipped, $sw.Elapsed.TotalSeconds) -ForegroundColor Magenta
