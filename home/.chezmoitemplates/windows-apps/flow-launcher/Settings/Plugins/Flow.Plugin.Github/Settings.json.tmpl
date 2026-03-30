@@ -1,3 +1,9 @@
 {
-  "GithubApiToken": "{{ (bitwarden "item" "GithubApiToken").login.password }}"
+  {{- if (hasKey . "github_token") }}
+  {{-   if .github_token }}
+  "GithubApiToken": {{ .github_token | quote }},
+  {{-   end }}
+  {{- else }}
+  "GithubApiToken": "",
+  {{- end }}
 }
