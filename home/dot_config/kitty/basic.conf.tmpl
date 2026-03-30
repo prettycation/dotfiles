@@ -66,9 +66,9 @@ mark3_background #1E1E2E    # 标记类型3的背景色（深色）
 # 定义标记切换规则：使用正则表达式匹配日志级别并应用对应的标记颜色
 # 1 = 使用mark1颜色, 2 = 使用mark2颜色, 3 = 使用mark3颜色
 toggle_marker regex 1 \\bINFO\\b 2 \\bWARNING\\b 3 \\bERROR\\b 3 \\bFATAL\\b
-  
+
 # 键盘快捷键：Ctrl+Shift+M 触发标记切换功能
 map ctrl+shift+m toggle_marker regex 1 \\bINFO\\b 2 \\bWARNING\\b 3 \\bERROR\\b 3 \\bFATAL\\b
 
 # 开启手动分屏、垂直方向分屏和全屏模式
-enabled_layouts spilts,fat:bias=50,stack
+enabled_layouts splits,fat:bias=50,stack
