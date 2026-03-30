@@ -3,7 +3,7 @@ watch_config_changes: True
 
 # enable_logging: Log messages (info, warnings, and errors) to a file.
 # NOTE: Changes require an application restart to take effect.
-enable_logging: True
+enable_logging: False
 
 # rendering_backend: Type of renderer. Supported values:
 #   - V2: A more complex, feature-rich renderer. Available in v1.2.0 and above.
@@ -92,11 +92,11 @@ global:
   # komorebi_colors: Additional integration for komorebi's special window kinds
   #   - active_color is used for komorebi's "Single" window kind
   #   - inactive_color is used for komorebi's "Unfocused" window kind
-  komorebi_colors:
-    stack_color: "#e762b7"
-    monocle_color: "#62e793"
-    floating_color: "#f5f5a5"
-    enabled: False
+  # komorebi_colors:
+  #   stack_color: "#e762b7"
+  #   monocle_color: "#62e793"
+  #   floating_color: "#f5f5a5"
+  #   enabled: False
 
   # animations: Configure animation behavior for window borders
   #   active: Animations for active windows
