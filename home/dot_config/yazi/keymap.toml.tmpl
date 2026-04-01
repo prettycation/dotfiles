@@ -48,10 +48,10 @@ keymap = [
   { on = "<F9>", run = "plugin mediainfo -- toggle-metadata", desc = "切换媒体预览元数据显示" },
 
   # duckdb
-  # { on = "H", run = "plugin duckdb -1", desc = "向左滚动一列表格" },
-  # { on = "L", run = "plugin duckdb +1", desc = "向右滚动一列表格" },
-  # { on = ["g", "o"], run = "plugin duckdb -open", desc = "使用 DuckDB 打开" },
-  # { on = ["g", "u"], run = "plugin duckdb -ui", desc = "在 DuckDB UI 中打开" },
+  { on = "H", run = "plugin duckdb -1", desc = "向左滚动一列表格" },
+  { on = "L", run = "plugin duckdb +1", desc = "向右滚动一列表格" },
+  { on = ["g", "o"], run = "plugin duckdb -open", desc = "使用 DuckDB 打开" },
+  { on = ["g", "u"], run = "plugin duckdb -ui", desc = "在 DuckDB UI 中打开" },
 
   {{- if eq .chezmoi.os "windows" }}
   # Windows

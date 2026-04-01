@@ -4,9 +4,9 @@
 # 管理器界面，即 yazi 的主视图 (左中右三个窗格) 的行为设置。
 [mgr]
 # 三个窗格的宽度比例：父目录:当前目录:预览。
-ratio = [1, 4, 3]
+ratio = [1, 3, 4]
 # 默认排序方式："alphabetical" (字母序), "natural" (自然序, 1 < 2 < 10), "mtime" (修改时间) 等。
-sort_by = "alphabetical"
+sort_by = "extension"
 # 排序时是否区分大小写。
 sort_sensitive = false
 # 是否反向排序。
@@ -247,15 +247,15 @@ preloaders = [
 
 # "previewers" 定义了针对不同文件类型，应该使用哪个内置的预览器插件。
 previewers = [
-  # --- DuckDB 数据预览规则开始 (由于其支持表格视图，建议放在 Office 和 Code 之前) (已注释等待修复) ---
-  # { url = "*.csv", run = "duckdb" },
-  # { url = "*.tsv", run = "duckdb" },
-  # { url = "*.json", run = "duckdb" },
-  # { url = "*.parquet", run = "duckdb" },
-  # { url = "*.txt", run = "duckdb" },
-  # { url = "*.xlsx", run = "duckdb" },
-  # { url = "*.db", run = "duckdb" },
-  # { url = "*.duckdb", run = "duckdb" },
+  # --- DuckDB 数据预览规则开始 (由于其支持表格视图，建议放在 Office 和 Code 之前) ---
+  { url = "*.csv", run = "duckdb" },
+  { url = "*.tsv", run = "duckdb" },
+  { url = "*.json", run = "duckdb" },
+  { url = "*.parquet", run = "duckdb" },
+  { url = "*.txt", run = "duckdb" },
+  { url = "*.xlsx", run = "duckdb" },
+  { url = "*.db", run = "duckdb" },
+  { url = "*.duckdb", run = "duckdb" },
   # --- DuckDB 数据预览规则结束 ---
 
   # --- Office 文档预览规则开始 ---
@@ -305,7 +305,7 @@ previewers = [
 # 这些部分定义了 yazi 内部各种交互式对话框（如重命名、搜索、确认）的外观和行为。
 [input]
 # 输入框光标是否闪烁。
-cursor_blink = false
+cursor_blink = true
 # "cd" 命令输入框的标题、位置和大小。
 cd_title = "Change directory:"
 cd_origin = "top-center"
