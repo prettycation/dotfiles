@@ -21,10 +21,26 @@
 {{- end }}
 
 [core]
+    {{- /* 换行符 */}}
     autocrlf  = {{ if eq .chezmoi.os "windows" }}true{{ else }}input{{ end }}
     longpaths = true
     editor    = nvim
     quotepath = false
+{{- if lookPath "delta" }}
+    {{- /* 分页器 */}}
+    pager = delta
+
+[interactive]
+    diffFilter = delta-color-only
+
+[delta]
+    {{- /* 按 n/N 在 diff 间跳转 */}}
+    navigate = true
+    light = false
+    {{- /* 开启侧边对比模式 */}}
+    side-by-side = true
+    line-numbers = true
+{{- end }}
 
 [init]
     defaultBranch = main
@@ -38,6 +54,12 @@
 
 [fetch]
     prune = true
+    {{- /* 下载主仓库时，顺便下载子模块的新代码 */}}
+    recurseSubmodules = on-demand
+
+[submodule]
+    {{- /* 切换分支时，子模块自动同步到该分支应有的版本 */}}
+    recurse = true
 
 [merge]
     {{- if eq .chezmoi.os "linux" }}
@@ -72,3 +94,18 @@
 
 [url "git@github.com:"]
     insteadOf = https://github.com/
+{{- if eq .chezmoi.os "windows" }}
+[credential]
+    helper = manager
+{{- else if eq .chezmoi.os "linux" }}
+[credential]
+    {{- if (.chezmoi.kernel.osrelease | lower | contains "microsoft") }}
+    {{- /* WSL2 转发凭据请求到 Windows 的 Git Credential Manager */}}
+    helper = "/mnt/c/Program Files/Git/mingw64/bin/git-credential-manager.exe"
+    {{- else }}
+    helper = cache --timeout=3600
+    {{- end }}
+{{- end }}
+
+[credential "https://codeberg.org"]
+    provider = generic
