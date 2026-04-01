@@ -10,13 +10,13 @@ require("full-border"):setup {
   type = ui.Border.ROUNDED,
 }
 
--- require("duckdb"):setup({
---   mode = "summarized",            -- 默认模式："standard" 或 "summarized"
---   cache_size = 1000,              -- 缓存行数
---   row_id = "dynamic",             -- 是否显示行 ID: true/false/"dynamic"
---   minmax_column_width = 21,       -- 摘要视图中最小/最大列的宽度
---   column_fit_factor = 10.0        -- 列宽自适应因子
--- })
+require("duckdb"):setup({
+  mode = "summarized",            -- 默认模式："standard" 或 "summarized"
+  cache_size = 1000,              -- 缓存行数
+  row_id = "dynamic",             -- 是否显示行 ID: true/false/"dynamic"
+  minmax_column_width = 21,       -- 摘要视图中最小/最大列的宽度
+  column_fit_factor = 10.0        -- 列宽自适应因子
+})
 
 {{- if ne .chezmoi.os "windows" }}
 require("recycle-bin"):setup()
