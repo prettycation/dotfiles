@@ -6,11 +6,6 @@ export XDG_CONFIG_HOME=$HOME/.config
 export XDG_STATE_HOME=$HOME/.local/state
 export XDG_CACHE_HOME=$HOME/.cache
 
-# P10k 即时响应 (必须最靠前)
-# if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
-#   source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
-# fi
-
 {{ $paths := list }}
 # -----------------------------------------------------------------
 # 动态 PATH 设置
@@ -82,83 +77,6 @@ zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
 zstyle ':fzf-tab:*' fzf-flags --bind=tab:accept
 
 # -----------------------------------------------------------------
-# zsh-readline (历史预测 ListView)
-# -----------------------------------------------------------------
-# 路径检查：优先使用系统级路径，如果不存在，则检查 Oh My Zsh custom 路径
-if [ -f /usr/share/zsh/plugins/zsh-readline/zsh-readline.plugin.zsh ] || [ -f "$ZSH_CUSTOM/plugins/zsh-readline/zsh-readline.plugin.zsh" ]; then
-
-    # 1. 配置参数 (必须在 source 之前定义)
-    export ZSH_READLINE_MAX_PREDICTIONS=10
-    export ZSH_READLINE_MIN_INPUT=1
-    export ZSH_READLINE_REMOVE_DUPLICATE_HISTORY_ENTRIES=1
-
-    # 2. 确保 History 设置
-    setopt SHARE_HISTORY
-    HISTSIZE=10000
-    SAVEHIST=10000
-
-    # 3. 加载插件
-    if [ -f /usr/share/zsh/plugins/zsh-readline/zsh-readline.plugin.zsh ]; then
-        source /usr/share/zsh/plugins/zsh-readline/zsh-readline.plugin.zsh
-    else
-        source "$ZSH_CUSTOM/plugins/zsh-readline/zsh-readline.plugin.zsh"
-    fi
-
-    _zsh_readline_down_fixed() {
-        # 冻结 autosuggestions，防止其产生 _zsh... 乱码行
-        (( $+functions[_zsh_autosuggest_disable] )) && _zsh_autosuggest_disable
-        unset POSTDISPLAY # 物理清除灰色文字缓存
-
-        if [[ "$_zsh_readline_active" == "1" ]]; then
-            # 备份当前输入内容，解决 1 字符时 BUFFER 改变导致列表关闭的问题
-            local current_input="$_zsh_readline_last_input"
-
-            # 执行移动
-            zle _zsh_readline_down
-
-            # 状态补偿：使插件认为输入没变，维持列表显示
-            _zsh_readline_active=1
-            _zsh_readline_last_input="$current_input"
-        else
-            # 如果不在预测模式，执行标准的向下搜索
-            zle .down-line-or-history
-        fi
-
-        # 重新启用并立即刷新重绘
-        (( $+functions[_zsh_autosuggest_enable] )) && _zsh_autosuggest_enable
-
-        # 清空并重新渲染当前行，消除 "_zsheval" 幻影行
-        zle -R
-    }
-
-    _zsh_readline_up_fixed() {
-        (( $+functions[_zsh_autosuggest_disable] )) && _zsh_autosuggest_disable
-        unset POSTDISPLAY
-
-        if [[ "$_zsh_readline_active" == "1" ]]; then
-            local current_input="$_zsh_readline_last_input"
-            zle _zsh_readline_up
-            _zsh_readline_active=1
-            _zsh_readline_last_input="$current_input"
-        else
-            zle .up-line-or-history
-        fi
-
-        (( $+functions[_zsh_autosuggest_enable] )) && _zsh_autosuggest_enable
-        zle -R
-    }
-
-    zle -N _zsh_readline_down_fixed
-    zle -N _zsh_readline_up_fixed
-
-    # 重新绑定
-    bindkey '^[[A' _zsh_readline_up_fixed
-    bindkey '^[[B' _zsh_readline_down_fixed
-    bindkey '^[OA' _zsh_readline_up_fixed
-    bindkey '^[OB' _zsh_readline_down_fixed
-fi
-
-# -----------------------------------------------------------------
 # 加载系统级插件 (pacman 安装的插件)
 # -----------------------------------------------------------------
 
@@ -167,6 +85,10 @@ if [ -f /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh ]; th
     source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
     # 配置灰色提示的颜色：fg=8 表示浅灰色
     export ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=8"
+
+    # 启用原生 Vi 模式
+    bindkey -v
+
     # 快捷键：采纳建议
     bindkey '\ea' autosuggest-accept
     ZSH_AUTOSUGGEST_CLEAR_WIDGETS=(
@@ -181,7 +103,7 @@ fi
 # [zsh-syntax-highlighting]
 if [ -f /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]; then
     source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-    
+
     # --- 添加: 语法高亮配色 (Catppuccin Mocha) ---
     typeset -A ZSH_HIGHLIGHT_STYLES
     ZSH_HIGHLIGHT_STYLES[command]='fg=#89b4fa'          # Blue
@@ -298,6 +220,11 @@ export FZF_DEFAULT_OPTS=" \
 --color=selected-bg:#45475A \
 --color=border:#6C7086,label:#CDD6F4"
 {{- end }}
+
+{{ if lookPath "tv" }}
+# television 初始化
+eval "$(tv init zsh)"
+{{ end }}
 
 {{ if .personal -}}
 # -----------------------------------------------------------------
