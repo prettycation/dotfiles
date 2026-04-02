@@ -2,54 +2,49 @@
 
 yaml-language-server: $schema=https://raw.githubusercontent.com/espanso/espanso/dev/schemas/config.schema.json
 
-# For a complete introduction, visit the official docs at: https://espanso.org/docs/
+# 有关完整介绍，请访问官方文档： https://espanso.org/docs/
 
-# You can use this file to define the global configuration options for espanso.
-# These are the parameters that will be used by default on every application,
-# but you can also override them on a per-application basis.
+# 您可以使用此文件来定义 espanso 的全局配置选项。
+# 这些参数将在每个应用程序上默认使用，
+# 但您也可以在每个应用程序级别覆盖它们。
 
-# To make customization easier, this file contains some of the commonly used
-# parameters. Feel free to uncomment and tune them to fit your needs!
+# 为了便于定制，此文件包含一些常用参数。
+# 随意取消注释并调整它们以满足您的需求！
 
 # --- Toggle key
 
-# Customize the key used to disable and enable espanso (when double tapped)
-# Available options: CTRL, SHIFT, ALT, CMD, OFF
-# You can also specify the key variant, such as LEFT_CTRL, RIGHT_SHIFT, etc...
-# toggle_key: RIGHT_CTRL
-# You can also disable the toggle key completely with
-# toggle_key: OFF
+# 自定义用于（双击时）禁用和启用 espanso 的按键
+# 可用选项：CTRL、SHIFT、ALT、CMD、OFF
+# 你也可以指定按键变体，例如 LEFT_CTRL、RIGHT_SHIFT 等...
+# toggle_key：RIGHT_CTRL
+# 你也可以通过以下方式完全禁用切换按键
+# toggle_key：OFF
 
 # --- Injection Backend
 
-# Espanso supports multiple ways of injecting text into applications. Each of
-# them has its quirks, therefore you may want to change it if you are having problems.
-# By default, espanso uses the "Auto" backend which should work well in most cases,
-# but you may want to try the "Clipboard" or "Inject" backend in case of issues.
+# Espanso 支持多种将文本注入应用程序的方法。每种方法都有其特殊性，因此如果遇到问题，你可能需要更改它。
+# 默认情况下，espanso 使用“自动”后端，在大多数情况下应能正常工作，但如果出现问题，你可以尝试“剪贴板”或“注入”后端。
 # backend: Clipboard
 
 # --- Auto-restart
 
-# Enable/disable the config auto-reload after a file change is detected.
-# auto_restart: false
+# 在检测到文件更改后启用/禁用配置自动重新加载。
+auto_restart: true
 
 # --- Clipboard threshold
 
-# Because injecting long texts char-by-char is a slow operation, espanso automatically
-# uses the clipboard if the text is longer than 'clipboard_threshold' characters.
-clipboard_threshold: 100
+# 因为逐字符注入长文本是一个缓慢的操作，espanso 会在文本长度超过 ''clipboard_threshold'' 字符时自动使用剪贴板。
+clipboard_threshold: 30
 
 # --- Regex Buffer Size
 
-# The maximum number of characters to hold in memory for regex triggers.
-# This value determines the maximum length of a regex trigger that can be
-# matched by espanso and by default have 30 chars.
-# It's advisable to keep this value reasonably low.
-# You might want to increase this value if you have very long triggers,
-# at the cost of higher memory usage.
+# 用于正则触发器的最大内存字符数。
+# 此值决定了 espanso 可匹配的正则触发器的最大长度，默认值为 30 个字符。
+# 建议将此值保持在合理的较低水平。
+# 如果您有非常长的触发器，可以考虑增加此值，但会增加内存使用。
 # max_regex_buffer_size: 30
 
-# For a list of all the available options, visit the official docs at: https://espanso.org/docs/
+# 有关所有可用选项的列表，请访问官方文档： https://espanso.org/docs/
 
 backspace_limit: 5
 # 自定义搜索快捷键
