@@ -1,0 +1,25 @@
+# 基础环境
+zmodule environment
+zmodule input
+# 提供 ls/grep 等彩色别名
+zmodule utility
+
+# 补全定义 (在 completion 之前)
+# 提供比 Zsh 自带更丰富的命令补全
+zmodule zsh-users/zsh-completions --fpath src
+
+# 补全引擎初始化
+zmodule completion
+
+# FZF 补全接管 (必须在 completion 之后)
+zmodule Aloxaf/fzf-tab
+
+# 必须在最后加载的模块
+
+# 行内历史建议
+zmodule zsh-users/zsh-autosuggestions
+# 语法高亮 (必须最后加载)
+zmodule zsh-users/zsh-syntax-highlighting
+
+# Oh My Zsh 插件提取示例
+# zmodule ohmyzsh/ohmyzsh -f 'plugins/sudo' -s 'plugins/sudo/sudo.plugin.zsh'
