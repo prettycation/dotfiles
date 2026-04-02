@@ -31,7 +31,7 @@ return {
 
     -- 基础外观配置
     opts = {
-      open_for_directories = true, -- 内置的文件浏览器 netrw
+      open_for_directories = false, -- 禁用内置的文件浏览器 netrw
       -- 浮动窗口设置 (90%大小，圆角)
       floating_window_scaling_factor = 0.9,
       yazi_floating_window_winblend = 0,
