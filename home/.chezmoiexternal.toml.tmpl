@@ -22,59 +22,11 @@
 
 {{/* --- Zsh 环境与插件 (非 Windows 平台) --- */}}
 {{- if ne .chezmoi.os "windows" -}}
-
-# Oh My Zsh 核心框架
-[".oh-my-zsh"]
-    type = "archive"
-    url = "https://github.com/ohmyzsh/ohmyzsh/archive/master.tar.gz"
-    exact = true
-    stripComponents = 1
-    refreshPeriod = "168h"
-    exclude = [ "*/.*", "*/templates", "*/themes" ]
-
-# 插件：fzf-tab
-[".oh-my-zsh/custom/plugins/fzf-tab"]
-    type = "archive"
-    url = "https://github.com/Aloxaf/fzf-tab/archive/master.tar.gz"
-    exact = true
-    stripComponents = 1
-    refreshPeriod = "168h"
-
-{{/*
-# 插件：zsh-syntax-highlighting
-  [".oh-my-zsh/custom/plugins/zsh-syntax-highlighting"]
-    type = "archive"
-    url = "https://github.com/zsh-users/zsh-syntax-highlighting/archive/master.tar.gz"
-    exact = true
-    stripComponents = 1
-    refreshPeriod = "168h"
-
-# 插件：zsh-readline
-[".oh-my-zsh/custom/plugins/zsh-readline"]
-    type = "archive"
-    url = "https://github.com/michielvha/zsh-readline/archive/master.tar.gz"
-    exact = true
-    stripComponents = 1
-    refreshPeriod = "168h"
-
-# 插件：zsh-vi-mode
-[".oh-my-zsh/custom/plugins/zsh-vi-mode"]
-    type = "archive"
-    url = "https://github.com/jeffreytse/zsh-vi-mode/archive/master.tar.gz"
-    exact = true
-    stripComponents = 1
-    refreshPeriod = "168h"
-
-# 主题：Powerlevel10k
-[".oh-my-zsh/custom/themes/powerlevel10k"]
-    type = "archive"
-    # 使用 gitHubLatestRelease 获取 TagName，确保版本最新且带 API 认证
-    url = "https://github.com/romkatv/powerlevel10k/archive/{{ (gitHubLatestRelease "romkatv/powerlevel10k").TagName }}.tar.gz"
-    exact = true
-    stripComponents = 1
-    refreshPeriod = "168h"
-*/}}
-
+# zimfw
+[".zim/zimfw.zsh"]
+    type = "file"
+        url = "https://github.com/zimfw/zimfw/releases/latest/download/zimfw.zsh"
+        refreshPeriod = "168h"
 {{- end }}
 
 {{- end -}}

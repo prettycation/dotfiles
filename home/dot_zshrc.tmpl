@@ -29,42 +29,17 @@ export PATH={{ toStrings $paths | join ":" }}:$PATH
 {{ end }}
 
 # -----------------------------------------------------------------
-# 插件前置处理 (zsh-completions)
+# 行为细节控制
 # -----------------------------------------------------------------
-# 必须在 Oh My Zsh 启动（compinit）之前将路径加入 fpath
-if [ -d /usr/share/zsh/site-functions ]; then
-  fpath=(/usr/share/zsh/site-functions $fpath)
-fi
-
-# -----------------------------------------------------------------
-# Oh My Zsh 设置
-# -----------------------------------------------------------------
-export ZSH=$HOME/.oh-my-zsh
-# 主题
-# ZSH_THEME="powerlevel10k/powerlevel10k"
-ZSH_THEME=""
-# 区分大小写的补全
-CASE_SENSITIVE="true"
-# 禁用自动更新检查
-DISABLE_AUTO_UPDATE="true"
 # 历史记录时间戳格式
-HIST_STAMPS="yyyy-mm-dd"
-# 禁用安全检查
-ZSH_DISABLE_COMPFIX=true
-
-# 这里只写存在于 $ZSH/plugins 或 $ZSH_CUSTOM/plugins 里的插件
-# 注意：fzf-tab 必须在 git 之后，且在 autosuggestions 之前
-plugins=(git fzf-tab)
-
-source $ZSH/oh-my-zsh.sh
-
-{{- if lookPath "starship" }}
-eval "$(starship init zsh)"
-{{- end }}
+export HISTTIMEFORMAT="%F %T "
+# 禁用自动更新检查
+zstyle ':zim' disable-version-check yes
 
 # -----------------------------------------------------------------
-# fzf-tab 自定义设置 (在加载后立即配置)
+# 插件参数配置 (必须在 Zim 加载前定义)
 # -----------------------------------------------------------------
+# [fzf-tab]
 # 给补全加上分组标签
 zstyle ':completion:*:descriptions' format '[%d]'
 # 补全列表着色（使用系统的 LS_COLORS）
@@ -76,69 +51,80 @@ zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
 # 接受建议的快捷键设为 Tab
 zstyle ':fzf-tab:*' fzf-flags --bind=tab:accept
 
+# FZF-TAB 配色调整
 # -----------------------------------------------------------------
-# 加载系统级插件 (pacman 安装的插件)
+# 补全组标题颜色
+zstyle ':completion:*:*:descriptions' format $'[ %d ]'
+# 选中条目的色彩 (与 FZF 保持一致)
+# zstyle ':fzf-tab:*' fzf-flags --color=prompt:#CBA6F7,hl:#F38BA8,hl+:#F38BA8,pointer:#F5E0DC,info:#89DCEB --bind=tab:accept
+# --color: 设置 prompt, hl(匹配高亮), pointer(选中箭头), info(信息区)
+# --bind: 设置 Tab 键为选中，并添加反转视图 (fzf 风格)
+zstyle ':fzf-tab:*' fzf-flags \
+    --reverse \
+    --pointer="➜ " \
+    --bind=tab:accept \
+    --color=prompt:#CBA6F7,hl:#F38BA8,hl+:#F38BA8,pointer:#F5E0DC,info:#89DCEB \
+    # --color=bg+:#45475A,fg+:#CDD6F4
+# 不同的补全组显示不同的颜色
+zstyle ':fzf-tab:*' group-colors \
+    $'\e[38;2;243;139;168m' \
+    $'\e[38;2;166;227;161m' \
+    $'\e[38;2;249;226;175m' \
+    $'\e[38;2;137;180;250m' \
+    $'\e[38;2;203;166;247m' \
+    $'\e[38;2;148;226;213m'
+# 切换补全分组
+zstyle ':fzf-tab:*' switch-group '<' '>'
+
+# [zsh-autosuggestions]
+# 配置灰色提示的颜色：fg=8 表示浅灰色
+export ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=8"
+# 增加补全策略：历史记录与补全系统
+export ZSH_AUTOSUGGEST_STRATEGY=(history completion)
+
 # -----------------------------------------------------------------
-
-# [zsh-autosuggestions] - 命令提示
-if [ -f /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh ]; then
-    source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh
-    # 配置灰色提示的颜色：fg=8 表示浅灰色
-    export ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=8"
-
-    # 启用原生 Vi 模式
-    bindkey -v
-
-    # 快捷键：采纳建议
-    bindkey '\ea' autosuggest-accept
-    ZSH_AUTOSUGGEST_CLEAR_WIDGETS=(
-      ${ZSH_AUTOSUGGEST_CLEAR_WIDGETS}
-      up-history
-      down-history
-    )
-    # 增加补全策略：历史记录与补全系统
-    export ZSH_AUTOSUGGEST_STRATEGY=(history completion)
+# 3. 初始化 Zimfw 框架
+# -----------------------------------------------------------------
+export ZIM_HOME="$HOME/.zim"
+if [[ ! ${ZIM_HOME}/init.zsh -nt ${ZIM_CONFIG_FILE:-${ZDOTDIR:-${HOME}}/.zimrc} ]]; then
+  source ${ZIM_HOME}/zimfw.zsh init -q
 fi
+source ${ZIM_HOME}/init.zsh
 
-# [zsh-syntax-highlighting]
-if [ -f /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh ]; then
-    source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh
-
-    # --- 添加: 语法高亮配色 (Catppuccin Mocha) ---
-    typeset -A ZSH_HIGHLIGHT_STYLES
-    ZSH_HIGHLIGHT_STYLES[command]='fg=#89b4fa'          # Blue
-    ZSH_HIGHLIGHT_STYLES[alias]='fg=#89b4fa'            # Blue
-    ZSH_HIGHLIGHT_STYLES[function]='fg=#89b4fa'         # Blue
-    ZSH_HIGHLIGHT_STYLES[builtin]='fg=#f9e2af'          # Yellow
-    ZSH_HIGHLIGHT_STYLES[keyword]='fg=#cba6f7'          # Mauve
-    ZSH_HIGHLIGHT_STYLES[string]='fg=#a6e3a1'           # Green
-    ZSH_HIGHLIGHT_STYLES[variable]='fg=#f9e2af'         # Yellow
-    ZSH_HIGHLIGHT_STYLES[comment]='fg=#6c7086'          # Overlay0
-    ZSH_HIGHLIGHT_STYLES[operator]='fg=#89dceb'         # Sky
-    ZSH_HIGHLIGHT_STYLES[parameter]='fg=#b4befe'        # Lavender
-    ZSH_HIGHLIGHT_STYLES[path]='fg=#94e2d5'             # Teal
-    ZSH_HIGHLIGHT_STYLES[error]='fg=#f38ba8'            # Red
-fi
-
-# zsh-vi-mode
-# if [ -f "$ZSH_CUSTOM/plugins/zsh-vi-mode/zsh-vi-mode.plugin.zsh" ]; then
-#
-#     # --- 配置项 (必须在 source 之前) ---
-#
-#     # 启用系统剪贴板，会自动检测 Wayland (wl-copy)
-#     # export ZVM_SYSTEM_CLIPBOARD_ENABLED=true
-#
-#     # 总是以 Insert 模式启动新命令行
-#     export ZVM_LINE_INIT_MODE=$ZVM_MODE_INSERT
-#
-#     source "$ZSH_CUSTOM/plugins/zsh-vi-mode/zsh-vi-mode.plugin.zsh"
-# fi
-
-# 撤销快捷键 (Ctrl+z)
+# -----------------------------------------------------------------
+# 4. 后置配置 (必须在 Zim 加载后定义)
+# -----------------------------------------------------------------
+# [Vi 模式与按键绑定]
+# 开启 Vi 模式
+bindkey -v
+# 采纳建议的快捷键
+bindkey '\ea' autosuggest-accept
+# 撤销快捷键
 bindkey '^Z' undo
 
+# [zsh-syntax-highlighting 配色]
+typeset -A ZSH_HIGHLIGHT_STYLES
+ZSH_HIGHLIGHT_STYLES[command]='fg=#89b4fa'          # Blue
+ZSH_HIGHLIGHT_STYLES[alias]='fg=#89b4fa'            # Blue
+ZSH_HIGHLIGHT_STYLES[function]='fg=#89b4fa'         # Blue
+ZSH_HIGHLIGHT_STYLES[builtin]='fg=#f9e2af'          # Yellow
+ZSH_HIGHLIGHT_STYLES[keyword]='fg=#cba6f7'          # Mauve
+ZSH_HIGHLIGHT_STYLES[string]='fg=#a6e3a1'           # Green
+ZSH_HIGHLIGHT_STYLES[variable]='fg=#f9e2af'         # Yellow
+ZSH_HIGHLIGHT_STYLES[comment]='fg=#6c7086'          # Overlay0
+ZSH_HIGHLIGHT_STYLES[operator]='fg=#89dceb'         # Sky
+ZSH_HIGHLIGHT_STYLES[parameter]='fg=#b4befe'        # Lavender
+ZSH_HIGHLIGHT_STYLES[path]='fg=#94e2d5'             # Teal
+ZSH_HIGHLIGHT_STYLES[error]='fg=#f38ba8'            # Red
+
+
+# [Starship 提示符]
+{{- if lookPath "starship" }}
+eval "$(starship init zsh)"
+{{- end }}
+
 # -----------------------------------------------------------------
-# 用户自定义别名与函数
+# 别名、函数与工具
 # -----------------------------------------------------------------
 setopt autocd
 setopt histignorespace
@@ -211,8 +197,10 @@ zy() {
   {{- end }}
 {{ end -}}
 
+{{- if lookPath "fzf" }}
 # FZF 默认选项 (Catppuccin Mocha 配色)
-{{- if lookPath "fzf" }}[ -f /usr/share/fzf/key-bindings.zsh ] && source /usr/share/fzf/key-bindings.zsh[ -f /usr/share/fzf/completion.zsh ] && source /usr/share/fzf/completion.zsh
+[ -f /usr/share/fzf/key-bindings.zsh ] && source /usr/share/fzf/key-bindings.zsh
+[ -f /usr/share/fzf/completion.zsh ] && source /usr/share/fzf/completion.zsh
 export FZF_DEFAULT_OPTS=" \
 --color=bg+:#313244,bg:#1E1E2E,spinner:#F5E0DC,hl:#F38BA8 \
 --color=fg:#CDD6F4,header:#F38BA8,info:#CBA6F7,pointer:#F5E0DC \
@@ -243,42 +231,7 @@ export GITHUB_TOKEN={{ .github_token | quote }}
 export PATH="$HOME/.local/share/bob/nvim-bin:$PATH"
 {{ end -}}
 
-{{ if lookPath "nvim" -}}
-# -----------------------------------------------------------------
-# 编辑器配置
-# -----------------------------------------------------------------
-export EDITOR=nvim
-{{ else -}}
-export EDITOR=vim
-{{ end -}}
-
-# [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
-
-# FZF-TAB 配色调整
-# -----------------------------------------------------------------
-# 1. 补全组标题颜色
-zstyle ':completion:*:descriptions' format $'[ %d ]'
-# 2. 选中条目的色彩 (与 FZF 保持一致)
-# zstyle ':fzf-tab:*' fzf-flags --color=prompt:#CBA6F7,hl:#F38BA8,hl+:#F38BA8,pointer:#F5E0DC,info:#89DCEB --bind=tab:accept
-# --color: 设置 prompt, hl(匹配高亮), pointer(选中箭头), info(信息区)
-# --bind: 设置 Tab 键为选中，并添加反转视图 (fzf 风格)
-zstyle ':fzf-tab:*' fzf-flags \
-    --reverse \
-    --pointer="➜ " \
-    --bind=tab:accept \
-    --color=prompt:#CBA6F7,hl:#F38BA8,hl+:#F38BA8,pointer:#F5E0DC,info:#89DCEB \
-    # --color=bg+:#45475A,fg+:#CDD6F4
-# 3. 不同的补全组显示不同的颜色
-zstyle ':fzf-tab:*' group-colors \
-    $'\e[38;2;243;139;168m' \
-    $'\e[38;2;166;227;161m' \
-    $'\e[38;2;249;226;175m' \
-    $'\e[38;2;137;180;250m' \
-    $'\e[38;2;203;166;247m' \
-    $'\e[38;2;148;226;213m'
-# 4. 切换补全分组
-zstyle ':fzf-tab:*' switch-group '<' '>'
-
+# 启动时执行一次 fastfetch
 {{- if lookPath "fastfetch" }}
 # 启动终端时自动执行一次 fastfetch
 cls
