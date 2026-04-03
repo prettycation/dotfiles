@@ -213,6 +213,7 @@ preloaders = [
   # { url = "*.xlsx", run = "duckdb", multi = false },
   # --- DuckDB 数据预览预加载结束 ---
 
+  {{- if ne .chezmoi.os "linux" }}
   # --- Office 文档预览规则开始 ---
   # 规则1: 匹配所有 Office Open XML 格式的MIME类型。
   # 这包括了 .docx, .xlsx, .pptx 等现代Office文件。
@@ -234,6 +235,7 @@ preloaders = [
   { url = "*.ppt", run = "office" },  # 增加对旧版 .ppt 的支持
 
   # --- Office 文档预览规则结束 ---
+  {{- end }}
 
   # [mediainfo] 使用 mediainfo 替代原有的 magick, image, video 规则
   { mime = "{audio,video,image}/*", run = "mediainfo" },
@@ -258,6 +260,7 @@ previewers = [
   { url = "*.duckdb", run = "duckdb" },
   # --- DuckDB 数据预览规则结束 ---
 
+  {{- if ne .chezmoi.os "linux" }}
   # --- Office 文档预览规则开始 ---
 
   # 规则1: 匹配 Office Open XML 格式 (.docx, .xlsx, .pptx)
@@ -278,6 +281,7 @@ previewers = [
   { url = "*.xls", run = "office" },
   { url = "*.ppt", run = "office" },
   # --- Office 文档预览规则结束 ---
+  {{- end }}
 
   { url = "*/", run = "folder" },                                              # 文件夹使用 'folder' 预览器
   { mime = "text/*", run = "code" },                                           # 文本文件使用 'code' 预览器 (它会调用 bat)

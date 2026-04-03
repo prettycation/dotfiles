@@ -13,10 +13,12 @@ use = "Rolv-Apneseth/starship"
 [[plugin.deps]]
 use = "mikavilpas/easyjump.yazi:easyjump"
 
+{{- if ne .chezmoi.os "linux" }}
 [[plugin.deps]]
 use = "prettycation/office"
-{{- if eq .chezmoi.os "windows" }}
+{{-   if eq .chezmoi.os "windows" }}
 rev = "fix/windows-compatibility"
+{{-   end }}
 {{- end }}
 
 [[plugin.deps]]
