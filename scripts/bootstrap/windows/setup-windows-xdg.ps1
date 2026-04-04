@@ -17,7 +17,7 @@ $xdgVars = @{
 # 不遵守 XDG 规范的配置路径
 $toolVars = @{
   "YAZI_CONFIG_HOME" = "$userProfile\.config\yazi"
-} 
+}
 
 # 合并字典
 $allVars = $xdgVars + $toolVars
@@ -26,7 +26,7 @@ foreach ($key in $allVars.Keys) {
     $value = $allVars[$key]
     [Environment]::SetEnvironmentVariable($key, $value, "User")
     Write-Host "  -> Set $key = $value" -ForegroundColor Green
-    
+
     # 同步创建对应的物理文件夹
     if (-not (Test-Path $value)) {
         New-Item -ItemType Directory -Path $value -Force | Out-Null
