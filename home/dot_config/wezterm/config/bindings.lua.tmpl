@@ -64,7 +64,7 @@ local keys = {
    -- tabs: spawn+close
    { key = 't',          mods = mod.SUPER,     action = act.SpawnTab('DefaultDomain') },
    {{- if eq .chezmoi.os "windows" }}
-   { key = 't',          mods = mod.SUPER_REV, action = act.SpawnTab({ DomainName = 'wsl:arch-zsh' }) },
+   { key = 't',          mods = mod.SUPER_REV, action = act.SpawnTab({ DomainName = 'ssh:arch-zsh' }) },
    {{- end }}
    { key = 'q',          mods = mod.SUPER,     action = act.CloseCurrentTab({ confirm = false }) },
 
