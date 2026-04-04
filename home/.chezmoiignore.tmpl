@@ -30,6 +30,7 @@
 
 # non-windows / windows
 {{- if ne .chezmoi.os "windows" }}
+AppData/**
 .chezmoiscripts/windows/**
 Documents/**
 .config/nvim/lua/plugins/preview/smear-cursor.lua

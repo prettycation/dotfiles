@@ -55,6 +55,11 @@ scoop:
       target_base: "AppData/Roaming/Rime"
       ignore_path: ".local/share/fcitx5"
 
+    - name: "windows-terminal-portbale"
+      scoop_app: "windows-terminal"
+      source_base: ".chezmoitemplates/windows-apps/windows-terminal/settings.json"
+      target_base: "settings/settings.json"
+
     - name: "Starship"
       scoop_app: "Starship.Starship"
       source_base: "dot_config/starship.toml"
