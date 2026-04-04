@@ -1,0 +1,25 @@
+HashKnownHosts no
+
+{{- if eq .chezmoi.os "darwin" }}
+
+Host *
+  AddKeysToAgent yes
+  UseKeychain yes
+{{- end }}
+
+Host fedora
+  HostName fedora
+
+Host github.com
+  User git
+
+Host proxmox
+  HostName proxmox
+  User root
+
+Host ubuntu
+  HostName ubuntu
+
+Host windows
+  HostName windows
+  User Mashiro
