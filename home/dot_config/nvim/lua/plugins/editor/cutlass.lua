@@ -6,6 +6,7 @@ return {
     lazy = true,
     keys = {
       "d",
+      "D",
       "x",
       "s",
       "c",

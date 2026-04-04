@@ -29,7 +29,7 @@ vim.api.nvim_create_autocmd("FileType", {
   end,
 })
 
-{{- if eq .chezmoi.os "linux" }}
+{{-   if and (eq .chezmoi.os "linux") (not .isWsl) }}
 
 -- Fcitx5 输入法自动切换
 -- 离开插入模式关闭输入法，回到插入模式恢复之前的状态
@@ -62,7 +62,7 @@ vim.api.nvim_create_autocmd("InsertEnter", {
     end
   end,
 })
-{{- end }}
+{{-   end }}
 {{- end }}
 
 -- 退出 nvim 后恢复默认光标
