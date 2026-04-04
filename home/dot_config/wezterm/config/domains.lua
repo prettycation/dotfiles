@@ -20,6 +20,14 @@ if platform.is_win then
          default_prog = { 'fish', '-l' },
          assume_shell = 'Posix',
       },
+      {
+         name = 'ssh:arch-zsh',
+         remote_address = '127.0.0.1',
+         username = 'shiro',
+         multiplexing = 'None',
+         assume_shell = 'Posix',
+         default_prog = { 'zsh', '-l' },
+      },
    }
 
    options.wsl_domains = {
