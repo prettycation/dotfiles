@@ -1,82 +1,73 @@
+# oh-my-zsh
 .oh-my-zsh/**
-!.oh-my-zsh/plugins
-{{ range .zshPlugins }}
-!.oh-my-zsh/custom/plugins/{{ . }}
+!.oh-my-zsh/plugins/**
+{{- range .zshPlugins }}
 !.oh-my-zsh/custom/plugins/{{ . }}/**
-{{ end }}
+{{- end }}
 !.oh-my-zsh/custom/themes/powerlevel10k/**
 
-{{ if ne .chezmoi.os "darwin" }}
+# non-darwin / darwin
+{{- if ne .chezmoi.os "darwin" }}
 .chezmoiscripts/darwin/**
-.config/aerospace
-.config/homebrew
-.hammerspoon
+.config/aerospace/**
+.config/homebrew/**
+.hammerspoon/**
+{{- else }}
+.local/share/fcitx5/**
 {{ end }}
 
-{{ if ne .chezmoi.os "linux" }}
+# non-linux
+{{- if ne .chezmoi.os "linux" }}
 .config/niri/**
-.config/gtk-3.0
-.config/gtk-4.0
-.config/fcitx5
+.config/gtk-3.0/**
+.config/gtk-4.0/**
+.config/fcitx5/**
 .chezmoiscripts/linux/**
 .hushlogin
 .local/bin/nvim/**
-.local/share/fonts
-{{ end }}
+.local/share/fonts/**
+{{- end }}
 
-{{ if ne .chezmoi.os "windows" }}
+# non-windows / windows
+{{- if ne .chezmoi.os "windows" }}
 .chezmoiscripts/windows/**
-Documents
+Documents/**
 .config/nvim/lua/plugins/preview/smear-cursor.lua
-.config/tacky-borders
-.config/wezterm
+.config/tacky-borders/**
+.config/wezterm/**
 .glzr/**
 .local/share/fcitx5/rime/lua/simplehttp.dll
-{{ else }}
-.bash_aliases
-.config/ghostty
-.config/git/cookies
-.config/psql
-.config/readline
-.config/tmux
-.gnupg
-.gnupg/**
-.inputrc
-.oh-my-zsh
-.oh-my-zsh/**
-.p10k.zsh
-.ssh/id_rsa
-.ssh/id_rsa.pub
-.tmux.conf
-.zprofile
-.zshrc
-{{ end }}
-
-{{- if eq .chezmoi.os "windows" }}
+{{- else }}
 {{-   range .scoop.apps }}
 {{-     if hasKey . "ignore_path" }}
 {{ .ignore_path }}
 {{-     end }}
 {{-   end }}
-.local/state/zsh
-.config/nvim/lua/plugins/preview/mdmath.lua
-.config/kitty
-.zimrc
-{{- end }}
-
-{{- if eq .chezmoi.os "darwin" }}
-.local/share/fcitx5
-{{- end }}
-
-{{ if not .personal }}
-.config/ghostty
+.bash_aliases
 .config/ghostty/**
-.config/psql
+.config/kitty/**
+.config/nvim/lua/plugins/preview/mdmath.lua
+.config/git/cookies
 .config/psql/**
-.hammerspoon
+.config/readline/**
+.config/tmux/**
+.local/state/zsh/**
+.gnupg/**
+.inputrc
+.oh-my-zsh/**
+.p10k.zsh
+.tmux.conf
+.zprofile
+.zshrc
+.zimrc
+{{ end }}
+
+# non-personal
+{{- if not .personal }}
+.config/ghostty/**
+.config/psql/**
 .hammerspoon/**
 .pypirc
 .psqlrc
-.ssh
 .ssh/**
-{{ end }}
+{{- end }}
