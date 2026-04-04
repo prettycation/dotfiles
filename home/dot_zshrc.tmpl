@@ -1,15 +1,19 @@
 # -----------------------------------------------------------------
 # 基础环境与 XDG 规范
 # -----------------------------------------------------------------
-export XDG_DATA_HOME=$HOME/.local/share
-export XDG_CONFIG_HOME=$HOME/.config
-export XDG_STATE_HOME=$HOME/.local/state
-export XDG_CACHE_HOME=$HOME/.cache
+
+export XDG_DATA_HOME="$HOME/.local/share"
+export XDG_CONFIG_HOME="$HOME/.config"
+export XDG_STATE_HOME="$HOME/.local/state"
+export XDG_CACHE_HOME="$HOME/.cache"
 
 {{ $paths := list }}
+
+
 # -----------------------------------------------------------------
 # 动态 PATH 设置
 # -----------------------------------------------------------------
+
 # 优先加载 Bob 安装的 Neovim
 {{- if lookPath "bob" }}
 export PATH="$HOME/.local/share/bob/nvim-bin:$PATH"
@@ -24,67 +28,109 @@ export PATH="$HOME/.local/share/bob/nvim-bin:$PATH"
 {{-   end -}}
 {{- end -}}
 {{- if $paths -}}
+
 # 正常的家目录 bin 路径
 export PATH={{ toStrings $paths | join ":" }}:$PATH
 {{ end }}
 
+# 把 path 和 PATH 标记成“去重变量”
+typeset -U path PATH
+
 # -----------------------------------------------------------------
 # 行为细节控制
 # -----------------------------------------------------------------
-# 历史记录时间戳格式
-export HISTTIMEFORMAT="%F %T "
+
+# 历史记录
+
+# 文件目录
+export HISTFILE="$XDG_STATE_HOME/zsh/history"
+
+export HISTSIZE=10000
+export SAVEHIST=10000
+
+# 追加写入历史，而不是退出时覆盖
+setopt APPEND_HISTORY
+
+# 每条命令立刻写入历史文件
+setopt INC_APPEND_HISTORY
+
+# 不共享多个 zsh 会话的历史
+unsetopt SHARE_HISTORY
+
+# 忽略以空格开头的命令
+setopt HIST_IGNORE_SPACE
+
+# 去掉重复命令的老记录
+setopt HIST_IGNORE_ALL_DUPS
+
+# 添加历史前先删掉旧的重复项
+setopt HIST_SAVE_NO_DUPS
+
+# 展开历史时不立刻执行
+setopt HIST_VERIFY
+
+# 历史中记录执行时间（zsh 原生）
+setopt EXTENDED_HISTORY
+
 # 禁用自动更新检查
 zstyle ':zim' disable-version-check yes
 
 # -----------------------------------------------------------------
 # 插件参数配置 (必须在 Zim 加载前定义)
 # -----------------------------------------------------------------
-# [fzf-tab]
-# 给补全加上分组标签
-zstyle ':completion:*:descriptions' format '[%d]'
-# 补全列表着色（使用系统的 LS_COLORS）
-zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
-# 强制不显示原始补全菜单，交给 fzf-tab
-zstyle ':completion:*' menu no
-# 预览目录内容 (使用 eza)
-zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
-# 接受建议的快捷键设为 Tab
-zstyle ':fzf-tab:*' fzf-flags --bind=tab:accept
 
-# FZF-TAB 配色调整
-# -----------------------------------------------------------------
-# 补全组标题颜色
+# [fzf-tab]
+
+# 补全分组标题样式
 zstyle ':completion:*:*:descriptions' format $'[ %d ]'
-# 选中条目的色彩 (与 FZF 保持一致)
-# zstyle ':fzf-tab:*' fzf-flags --color=prompt:#CBA6F7,hl:#F38BA8,hl+:#F38BA8,pointer:#F5E0DC,info:#89DCEB --bind=tab:accept
-# --color: 设置 prompt, hl(匹配高亮), pointer(选中箭头), info(信息区)
-# --bind: 设置 Tab 键为选中，并添加反转视图 (fzf 风格)
+
+# 补全列表沿用系统 LS_COLORS
+(( ${+LS_COLORS} )) && zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
+
+# 不显示原始补全菜单，统一交给 fzf-tab
+zstyle ':completion:*' menu no
+
+{{- if lookPath "eza" }}
+# cd 补全时预览目录内容
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
+{{- end }}
+
+# fzf-tab 外观与按键
+# --reverse: 候选列表向上展开
+# --pointer: 当前选中项前缀
+# --bind=tab:accept: 用 Tab 接受当前候选
+# --color: 颜色配置，与 FZF 主题保持一致
 zstyle ':fzf-tab:*' fzf-flags \
-    --reverse \
-    --pointer="➜ " \
-    --bind=tab:accept \
-    --color=prompt:#CBA6F7,hl:#F38BA8,hl+:#F38BA8,pointer:#F5E0DC,info:#89DCEB \
-    # --color=bg+:#45475A,fg+:#CDD6F4
-# 不同的补全组显示不同的颜色
+  --reverse \
+  --pointer="➜ " \
+  --bind=tab:accept \
+  --color=prompt:#CBA6F7,hl:#F38BA8,hl+:#F38BA8,pointer:#F5E0DC,info:#89DCEB \
+  --color=bg+:#45475A,fg+:#CDD6F4
+
+# 不同补全分组使用不同颜色
 zstyle ':fzf-tab:*' group-colors \
-    $'\e[38;2;243;139;168m' \
-    $'\e[38;2;166;227;161m' \
-    $'\e[38;2;249;226;175m' \
-    $'\e[38;2;137;180;250m' \
-    $'\e[38;2;203;166;247m' \
-    $'\e[38;2;148;226;213m'
-# 切换补全分组
+  $'\e[38;2;243;139;168m' \
+  $'\e[38;2;166;227;161m' \
+  $'\e[38;2;249;226;175m' \
+  $'\e[38;2;137;180;250m' \
+  $'\e[38;2;203;166;247m' \
+  $'\e[38;2;148;226;213m'
+
+# 使用 < 和 > 在补全分组间切换
 zstyle ':fzf-tab:*' switch-group '<' '>'
 
 # [zsh-autosuggestions]
+
 # 配置灰色提示的颜色：fg=8 表示浅灰色
 export ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=8"
+
 # 增加补全策略：历史记录与补全系统
 export ZSH_AUTOSUGGEST_STRATEGY=(history completion)
 
 # -----------------------------------------------------------------
-# 3. 初始化 Zimfw 框架
+# 初始化 Zimfw 框架
 # -----------------------------------------------------------------
+
 export ZIM_HOME="$HOME/.zim"
 if [[ ! ${ZIM_HOME}/init.zsh -nt ${ZIM_CONFIG_FILE:-${ZDOTDIR:-${HOME}}/.zimrc} ]]; then
   source ${ZIM_HOME}/zimfw.zsh init -q
@@ -92,18 +138,29 @@ fi
 source ${ZIM_HOME}/init.zsh
 
 # -----------------------------------------------------------------
-# 4. 后置配置 (必须在 Zim 加载后定义)
+# 后置配置 (必须在 Zim 加载后定义)
 # -----------------------------------------------------------------
+
 # [Vi 模式与按键绑定]
+
 # 开启 Vi 模式
 bindkey -v
+
+# insert mode 基本恢复为默认/emacs 行为
+bindkey -A emacs viins
+bindkey -A emacs main
+
+# 保留 ESC 从 insert 切到 normal
+bindkey -M viins '^[' vi-cmd-mode
+
 # 采纳建议的快捷键
-bindkey '\ea' autosuggest-accept
-# 撤销快捷键
-bindkey '^Z' undo
+bindkey -M viins '\ea' autosuggest-accept
+bindkey -M main  '\ea' autosuggest-accept
+
 
 # [zsh-syntax-highlighting 配色]
-typeset -A ZSH_HIGHLIGHT_STYLES
+# 声明一个全局关联数组，供语法高亮配置使用。
+typeset -gA ZSH_HIGHLIGHT_STYLES
 ZSH_HIGHLIGHT_STYLES[command]='fg=#89b4fa'          # Blue
 ZSH_HIGHLIGHT_STYLES[alias]='fg=#89b4fa'            # Blue
 ZSH_HIGHLIGHT_STYLES[function]='fg=#89b4fa'         # Blue
@@ -117,17 +174,15 @@ ZSH_HIGHLIGHT_STYLES[parameter]='fg=#b4befe'        # Lavender
 ZSH_HIGHLIGHT_STYLES[path]='fg=#94e2d5'             # Teal
 ZSH_HIGHLIGHT_STYLES[error]='fg=#f38ba8'            # Red
 
-
 # [Starship 提示符]
 {{- if lookPath "starship" }}
 eval "$(starship init zsh)"
 {{- end }}
 
+
 # -----------------------------------------------------------------
 # 别名、函数与工具
 # -----------------------------------------------------------------
-setopt autocd
-setopt histignorespace
 
 # 自动重绘 fastfetch
 cls() {
@@ -140,11 +195,8 @@ cls() {
     {{- end }}
 }
 
-alias clear='cls'
-
 {{- if lookPath "eza" }}
 # eza 别名配置
-
 unalias ls 2> /dev/null
 unalias ll 2> /dev/null
 unalias la 2> /dev/null
@@ -169,26 +221,27 @@ alias la='ls -lAh --color=auto'
 {{ if lookPath "yazi" }}
 # Yazi 协同跳转
 yy() {
-  local tmpfile="$(mktemp -t "yazi-cwd.XXXXXX")"
+  local tmpfile
+  tmpfile="$(mktemp "${TMPDIR:-/tmp}/yazi-cwd.XXXXXX")"
   yazi "$@" --cwd-file="$tmpfile"
   if [ -s "$tmpfile" ]; then
-    local dir="$(cat "$tmpfile")"
-    if [ -d "$dir" ] &&[ "$dir" != "$PWD" ]; then
+    local dir
+    dir="$(<"$tmpfile")"
+    if [ -d "$dir" ] && [ "$dir" != "$PWD" ]; then
       cd -- "$dir"
     fi
   fi
-  rm -f "$tmpfile" > /dev/null 2>&1
+  rm -f -- "$tmpfile"
 }
 {{ end }}
 
 {{ if lookPath "zoxide" -}}
 # Zoxide
-eval "$(zoxide init zsh)"
-alias cd='z'
-  {{- if lookPath "yazi" }}
+  eval "$(zoxide init zsh --cmd cd)"
+  {{- if and (lookPath "yazi") (lookPath "fzf") }}
 zy() {
   local dest
-  dest=$(zoxide query -l | fzf --height 40% --reverse)
+  dest="$(zoxide query -l | fzf --height 40% --reverse)"
   if [[ -n "$dest" ]]; then
     zoxide add "$dest"
     yy "$dest"
@@ -227,14 +280,10 @@ export GITHUB_TOKEN={{ .github_token | quote }}
 {{ end -}}
 {{ end -}}
 
-{{ if lookPath "bob" -}}
-export PATH="$HOME/.local/share/bob/nvim-bin:$PATH"
-{{ end -}}
 
-# 启动时执行一次 fastfetch
 {{- if lookPath "fastfetch" }}
-# 启动终端时自动执行一次 fastfetch
-cls
+# 启动终端时 (如果当前 shell 是交互式的) 自动执行一次 fastfetch
+[[ -o interactive ]] && cls
 {{- end }}
 
 {{- /* vim: set filetype=zsh: */}}
