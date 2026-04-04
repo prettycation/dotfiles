@@ -16,7 +16,7 @@ matches:
   # nvim
   - trigger: "n.hs"
     {{- if ne .chezmoi.os "windows" }}
-    replace: "nvim ~/.zsh_history"
+    replace: "nvim $XDG_STATE_HOME/zsh/history"
     {{- else }}
     replace: "nvim (Get-PSReadLineOption).HistorySavePath"
     {{- end }}
