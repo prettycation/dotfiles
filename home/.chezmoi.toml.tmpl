@@ -65,6 +65,8 @@
 {{- $mihomo_secret := "" -}}
 {{- $airport_sub := "" -}}
 
+{{- $isWsl := and (eq .chezmoi.os "linux") (contains "microsoft" (lower .chezmoi.kernel.osrelease)) -}}
+
 {{/* --- location (for yasb) --- */}}
 {{- $location := "Beijing, China" -}}
 
@@ -138,6 +140,8 @@
     {{/* --- other --- */}}
     mihomo_secret = {{ $mihomo_secret | quote }}
     airport_sub = {{ $airport_sub | quote }}
+
+    isWsl = {{ $isWsl }}
 
     {{/* --- git 配置 --- */}}
     name = "prettycation"
