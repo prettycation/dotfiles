@@ -55,6 +55,9 @@
 {{- $cb_password := "" -}}
 {{- $tg_password := "" -}}
 
+{{/* --- apikeys --- */}}
+{{- $weather_apikey := "" -}}
+
 {{/* --- github token --- */}}
 {{- $github_token := (env "CHEZMOI_GITHUB_ACCESS_TOKEN") -}}
 {{- if and (not $github_token) (env "BW_SESSION") -}}
@@ -67,7 +70,7 @@
 
 {{- $isWsl := and (eq .chezmoi.os "linux") (contains "microsoft" (lower .chezmoi.kernel.osrelease)) -}}
 
-{{/* --- location (for yasb) --- */}}
+{{/* --- location --- */}}
 {{- $location := "Beijing, China" -}}
 
 {{- if and $personal (eq .chezmoi.os "windows") -}}
@@ -88,6 +91,8 @@
     {{- $cbItem := bitwarden "item" "codeberg" -}}
     {{- $tgItem := bitwarden "item" "tangled" -}}
 
+    {{- $weatherItem := bitwarden "item" "weather" -}}
+
     {{- $mhItem := bitwarden "item" "mihomo-secret" -}}
     {{- $asItem := bitwarden "item" "airport-sub" -}}
 
@@ -103,6 +108,8 @@
     {{- $et_password = $etItem.login.password -}}
     {{- $cb_password = $cbItem.login.password -}}
     {{- $tg_password = $tgItem.login.password -}}
+
+    {{- $weather_apikey = $weatherItem.login.password -}}
 
     {{- $mihomo_secret = $mhItem.login.password -}}
     {{- $airport_sub = $asItem.login.password -}}
@@ -134,7 +141,10 @@
     cb_password = {{ $cb_password | quote }}
     tg_password = {{ $tg_password | quote }}
 
-    {{/* --- location (for yasb) --- */}}
+    {{/* --- apikeys --- */}}
+    weather_apikey = {{ $weather_apikey | quote }}
+
+    {{/* --- location --- */}}
     location = {{ $location | quote }}
 
     {{/* --- other --- */}}
