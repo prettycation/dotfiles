@@ -43,11 +43,22 @@ scoop:
       target_base: "InputTip.ini"
       # 单目录 target_base 可留空，单文件需指定
 
+    - name: "mousemaster"
+      scoop_app: "mousemaster"
+      source_base: ".chezmoitemplates/windows-apps/mousemaster/mousemaster.properties"
+      target_base: "mousemaster.properties"
+
     - name: "SpaceKey"
       scoop_app: "abgox.SpaceKey"
       source_base: ".chezmoitemplates/windows-apps/SpaceKey"
       app_path: ""
       # 无 persist 目录，直接改 current/app
+
+    - name: "Starship"
+      scoop_app: "Starship.Starship"
+      source_base: "dot_config/starship.toml"
+      target_base: ".config/starship.toml"
+      ignore_path: ".config/starship.toml"
 
     - name: "Weasel"
       scoop_app: "Rime.Weasel"
@@ -59,12 +70,6 @@ scoop:
       scoop_app: "windows-terminal"
       source_base: ".chezmoitemplates/windows-apps/windows-terminal/settings.json"
       target_base: "settings/settings.json"
-
-    - name: "Starship"
-      scoop_app: "Starship.Starship"
-      source_base: "dot_config/starship.toml"
-      target_base: ".config/starship.toml"
-      ignore_path: ".config/starship.toml"
 
     - name: "wezterm"
       scoop_app: "wez.wezterm"
