@@ -99,6 +99,10 @@
       "bucket": "abyss"
     },
     {
+      "name": "agalwood.Motrix",
+      "bucket": "abyss"
+    },
+    {
       "name": "AlexanderPro.SmartContextMenu",
       "bucket": "abyss"
     },
@@ -133,6 +137,14 @@
     {
       "name": "bleachbit",
       "bucket": "extras"
+    },
+    {
+      "name": "cargo-binstall",
+      "bucket": "main"
+    },
+    {
+      "name": "Ch3nyang.MrRSS",
+      "bucket": "abyss"
     },
     {
       "name": "cherry-studio",
@@ -197,6 +209,10 @@
     {
       "name": "ente-auth",
       "bucket": "extras"
+    },
+    {
+      "name": "envx",
+      "bucket": "Ylemir_Scoop-Bucket"
     },
     {
       "name": "espanso",
@@ -303,6 +319,10 @@
       "bucket": "main"
     },
     {
+      "name": "intelli-shell",
+      "bucket": "Ylemir_Scoop-Bucket"
+    },
+    {
       "name": "itchyny.gojq",
       "bucket": "abyss"
     },
@@ -335,6 +355,10 @@
       "bucket": "extras"
     },
     {
+      "name": "latexsnipper",
+      "bucket": "lemon"
+    },
+    {
       "name": "lazygit",
       "bucket": "extras"
     },
@@ -349,6 +373,10 @@
     {
       "name": "libreoffice",
       "bucket": "extras"
+    },
+    {
+      "name": "LocalSend.LocalSend",
+      "bucket": "abyss"
     },
     {
       "name": "logi-options-plus-mini",
@@ -401,6 +429,10 @@
     {
       "name": "mingw",
       "bucket": "main"
+    },
+    {
+      "name": "mousemaster",
+      "bucket": "lemon"
     },
     {
       "name": "mpv-config",
@@ -477,10 +509,6 @@
     {
       "name": "sc-starter",
       "bucket": "lemon"
-    },
-    {
-      "name": "scoop-completion",
-      "bucket": "extras"
     },
     {
       "name": "scoop-search",
