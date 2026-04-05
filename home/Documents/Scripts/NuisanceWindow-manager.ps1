@@ -21,7 +21,7 @@ $nuisanceProcesses = @(
 )
 
 # 等待 explorer.exe 的最长超时时间（秒）
-$waitTimeoutSeconds = 120 
+$waitTimeoutSeconds = 120
 
 Write-Host "--- [NWM] Nuisance Window Manager starting ---" -ForegroundColor Cyan
 
@@ -35,7 +35,7 @@ while ($stopwatch.Elapsed.TotalSeconds -lt $waitTimeoutSeconds) {
     if (Get-Process -Name "explorer" -ErrorAction SilentlyContinue) {
         Write-Host "[NWM] Desktop is ready! (explorer.exe found)" -ForegroundColor Green
         # 桌面进程已找到，额外再等待一小段时间（3秒），让桌面上的其他应用有机会完成加载。
-        Start-Sleep -Seconds 3 
+        Start-Sleep -Seconds 3
         break # 退出等待循环
     }
     # 每隔半秒检查一次，避免CPU占用过高
