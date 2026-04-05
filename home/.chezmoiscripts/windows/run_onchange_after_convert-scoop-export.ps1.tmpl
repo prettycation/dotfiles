@@ -1,6 +1,7 @@
-# scripts/convert-scoop-export.ps1
-# 功能：读取 scoop export 结果，自动更新 windows.packages.json 中的 Scoop 配置。
-# 用法：.\scripts\convert-scoop-export.ps1
+{{- if and (eq .chezmoi.os "windows") (ne (lookPath "scoop") "") -}}
+# 3-day-trigger: {{ div (now | unixEpoch | int64) 259200 }}
+
+{{/* 读取 scoop export 结果，自动更新 windows.packages.json 中的 Scoop 配置。 */}}
 
 param(
     [string]$TargetFile = "manifests/windows.packages.json"
@@ -18,13 +19,9 @@ $OptionalApps = @(
 )
 # ─────────────────────────────────────────────────────────────────────────────
 
-# 1. 检查 Scoop 是否可用
-if (-not (Get-Command "scoop" -ErrorAction SilentlyContinue)) {
-    Write-Error "Scoop is not installed or not in PATH."
-    exit 1
-}
-
-$targetPath = Join-Path $PSScriptRoot "..\$TargetFile"
+$chezmoiSourceDir = "{{ .chezmoi.sourceDir }}"
+$chezmoiRepoRoot = Split-Path -Parent $chezmoiSourceDir
+$targetPath = Join-Path $chezmoiRepoRoot $TargetFile
 
 Write-Host "Running 'scoop export'..." -ForegroundColor Cyan
 try {
@@ -110,3 +107,6 @@ Write-Host "  Buckets          : $($newBuckets.Count)"
 Write-Host "  Core Apps        : $($newTools.Count)"
 Write-Host "  Optional Apps    : $($newOptionalTools.Count)"
 Write-Host "  Preserved fields : wingetPackages, powershellModules, etc." -ForegroundColor Gray
+{{- else -}}
+# Scoop not found; no-op.
+{{- end }}
