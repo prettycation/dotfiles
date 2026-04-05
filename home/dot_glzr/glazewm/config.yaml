@@ -104,7 +104,6 @@ window_rules:
       - window_process: { equals: "Lively" }
       - window_title: { regex: "[Pp]icture.in.[Pp]icture" }
         window_class: { regex: "Chrome_WidgetWin_1MozillaDialogClass" }
-      - window_process: { equals: "copyq" }
       - window_process: { equals: "msrdc" }
       - window_process: { equals: "ToDesk" }
       - window_process: { equals: "SNIBypassGUI" }
@@ -123,6 +122,12 @@ window_rules:
       - window_process: { equals: "STranslate" }
       - window_process: { equals: "EcoPaste" }
       - window_process: { equals: "mpv" }
+
+  - commands:
+      - "set-floating --width 600 --height 600 --shown-on-top"
+      - "position --x-pos 1315 --y-pos 280"
+    match:
+      - window_process: { equals: "copyq" }
 
 # ----------------------------------------------------------------------------------
 # [ BINDING MODES - 绑定模式 ]
