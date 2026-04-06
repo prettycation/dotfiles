@@ -1,3 +1,9 @@
+{{- $hasSoffice := lookPath "soffice" -}}
+{{- $hasExiftool := lookPath "exiftool" -}}
+{{- $hasMpv := lookPath "mpv" -}}
+{{- $hasMediainfo := lookPath "mediainfo" -}}
+{{- $hasDuckdb := lookPath "duckdb" -}}
+{{- $hasPlay := or $hasMpv $hasMediainfo -}}
 "$schema" = "https://yazi-rs.github.io/schemas/yazi.json"
 
 # --- [mgr] (Manager) ---
@@ -74,7 +80,9 @@ reveal = [
   { run = 'open -R %s1', desc = "Reveal", for = "macos" },
   { run = 'explorer /select,%s1', orphan = true, desc = "Reveal", for = "windows" },
   { run = 'termux-open %d1', desc = "Reveal", for = "android" },
+  {{- if $hasExiftool }}
   { run = '''clear; exiftool %s1; echo "Press enter to exit"; read _''', block = true, desc = "Show EXIF", for = "unix" },
+  {{- end }}
 ]
 # "extract" 动作：用于解压压缩包。
 extract = [
@@ -83,9 +91,13 @@ extract = [
 ]
 # "play" 动作：用于播放媒体文件。
 play = [
+  {{- if $hasMpv }}
   { run = 'mpv --force-window %s', orphan = true, for = "unix" },
   { run = 'mpv --force-window %s', orphan = true, for = "windows" },
+  {{- end }}
+  {{- if $hasMediainfo }}
   { run = '''mediainfo %s1; echo "Press enter to exit"; read _''', block = true, desc = "Show media info", for = "unix" },
+  {{- end }}
 ]
 # 自定义的 "edit_emeditor" 动作，用于调用 EmEditor。
 edit_emeditor = [
@@ -128,11 +140,19 @@ rules = [
     "open",
     "reveal",
   ] },
+  {{- if $hasPlay }}
   # 媒体：使用 'play' (mpv) 和 'reveal'。
   { mime = "{audio,video}/*", use = [
     "play",
     "reveal",
   ] },
+  {{- else }}
+  # 媒体：如果没有可用的播放/信息工具，则回退到系统默认打开方式。
+  { mime = "{audio,video}/*", use = [
+    "open",
+    "reveal",
+  ] },
+  {{- end }}
   # 压缩包：使用 'extract' 和 'reveal'。
   { mime = "application/{zip,rar,7z*,tar,gzip,xz,zstd,bzip*,lzma,compress,archive,cpio,arj,xar,ms-cab*}", use = [
     "extract",
@@ -195,10 +215,12 @@ spotters = [
   { url = "*/", run = "folder" },
   { mime = "text/*", run = "code" },
   { mime = "application/{mbox,javascript,wine-extension-ini}", run = "code" },
+  {{- if $hasMediainfo }}
   # [mediainfo] 使用 mediainfo 替代原有图片和视频的 spotters
   { mime = "{audio,video,image}/*", run = "mediainfo" },
   { mime = "application/subrip", run = "mediainfo" },
   { mime = "application/postscript", run = "mediainfo" },
+  {{- end }}
   { url = "*", run = "file" },
 ]
 
@@ -213,7 +235,7 @@ preloaders = [
   # { url = "*.xlsx", run = "duckdb", multi = false },
   # --- DuckDB 数据预览预加载结束 ---
 
-  {{- if ne .chezmoi.os "linux" }}
+  {{- if $hasSoffice }}
   # --- Office 文档预览规则开始 ---
   # 规则1: 匹配所有 Office Open XML 格式的MIME类型。
   # 这包括了 .docx, .xlsx, .pptx 等现代Office文件。
@@ -237,10 +259,12 @@ preloaders = [
   # --- Office 文档预览规则结束 ---
   {{- end }}
 
+  {{- if $hasMediainfo }}
   # [mediainfo] 使用 mediainfo 替代原有的 magick, image, video 规则
   { mime = "{audio,video,image}/*", run = "mediainfo" },
   { mime = "application/subrip", run = "mediainfo" },
   { mime = "application/postscript", run = "mediainfo" },
+  {{- end }}
 
   { mime = "application/pdf", run = "pdf" },
   { mime = "font/*", run = "font" },
@@ -249,6 +273,7 @@ preloaders = [
 
 # "previewers" 定义了针对不同文件类型，应该使用哪个内置的预览器插件。
 previewers = [
+  {{- if $hasDuckdb }}
   # --- DuckDB 数据预览规则开始 (由于其支持表格视图，建议放在 Office 和 Code 之前) ---
   { url = "*.csv", run = "duckdb" },
   { url = "*.tsv", run = "duckdb" },
@@ -259,8 +284,9 @@ previewers = [
   { url = "*.db", run = "duckdb" },
   { url = "*.duckdb", run = "duckdb" },
   # --- DuckDB 数据预览规则结束 ---
+  {{- end }}
 
-  {{- if ne .chezmoi.os "linux" }}
+  {{- if $hasSoffice }}
   # --- Office 文档预览规则开始 ---
 
   # 规则1: 匹配 Office Open XML 格式 (.docx, .xlsx, .pptx)
@@ -288,10 +314,12 @@ previewers = [
   { mime = "application/{mbox,javascript,wine-extension-ini}", run = "code" },
   { mime = "application/{json,ndjson}", run = "json" },                        # JSON 文件使用 'json' 预览器 (它也会调用 bat)
 
+  {{- if $hasMediainfo }}
   # [mediainfo] 使用 mediainfo 替代原有的 magick, image, video 规则
   { mime = "{audio,video,image}/*", run = "mediainfo" },
   { mime = "application/subrip", run = "mediainfo" },
   { mime = "application/postscript", run = "mediainfo" },
+  {{- end }}
 
   { mime = "application/pdf", run = "pdf" },                                                                                 # PDF 文件使用 'pdf' 预览器 (它会调用 pdftoppm)
   { mime = "application/{zip,rar,7z*,tar,gzip,xz,zstd,bzip*,lzma,compress,archive,cpio,arj,xar,ms-cab*}", run = "archive" }, # 压缩包使用 'archive' 预览器

@@ -1,3 +1,8 @@
+{{- $hasTv := lookPath "tv" -}}
+{{- $hasRecycleBinCli := lookPath "trash-list" -}}
+{{- $hasMediainfo := lookPath "mediainfo" -}}
+{{- $hasDuckdb := lookPath "duckdb" -}}
+
 # A TOML linter such as https://taplo.tamasfe.dev/ can use this schema to validate your config.
 # If you encounter any issues, please make an issue at https://github.com/yazi-rs/schemas.
 "$schema" = "https://yazi-rs.github.io/schemas/keymap.json"
@@ -14,10 +19,12 @@ keymap = [
   { on = "+", run = "plugin zoom 1", desc = "放大悬停文件" },
   { on = "_", run = "plugin zoom -1", desc = "缩小悬停文件" },
 
+  {{- if $hasTv }}
   # tv
   { on = "<C-f>", run = "plugin tv", desc = "通过 telivision 跳转到文件" },
   { on = "<C-t>", run = "plugin tv text", desc = "使用 neovim 打开文件并跳转到该字符串所在的位置" },
   { on = "<C-d>", run = "plugin tv dirs", desc = "通过 telivision 跳转到目录" },
+  {{- end }}
 
   # easyjump
   { on = "f", run = "plugin easyjump", desc = "easyjump" },
@@ -35,7 +42,7 @@ keymap = [
   { on = ["P", "M"], run = "plugin projects 'merge all'", desc = "merge 当前的项目到另一个项目" },
   { on = ["P", "u"], run = "plugin projects 'load chezmoi'", desc = "加载 chezmoi 项目" },
 
-  {{- if ne .chezmoi.os "windows" }}
+  {{- if $hasRecycleBinCli }}
   # recycle-bin
   { on = ["R","o"], run = "plugin recycle-bin -- open",        desc = "打开回收站" },
   { on = ["R","e"], run = "plugin recycle-bin -- empty",       desc = "清空回收站" },
@@ -44,14 +51,18 @@ keymap = [
   { on = ["R","r"], run = "plugin recycle-bin -- restore",     desc = "从回收站恢复" },
   {{- end }}
 
+  {{- if $hasMediainfo }}
   # mediainfo
   { on = "<F9>", run = "plugin mediainfo -- toggle-metadata", desc = "切换媒体预览元数据显示" },
+  {{- end }}
 
+  {{- if $hasDuckdb }}
   # duckdb
   { on = "H", run = "plugin duckdb -1", desc = "向左滚动一列表格" },
   { on = "L", run = "plugin duckdb +1", desc = "向右滚动一列表格" },
   { on = ["g", "o"], run = "plugin duckdb -open", desc = "使用 DuckDB 打开" },
   { on = ["g", "u"], run = "plugin duckdb -ui", desc = "在 DuckDB UI 中打开" },
+  {{- end }}
 
   {{- if eq .chezmoi.os "windows" }}
   # Windows
