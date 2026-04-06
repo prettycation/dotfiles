@@ -1,59 +1,69 @@
-return {
-  -- 1. 语法高亮 (Treesitter)
-  {
-    "nvim-treesitter/nvim-treesitter",
-    opts = function(_, opts)
-      if type(opts.ensure_installed) == "table" then
-        vim.list_extend(opts.ensure_installed, { "typst" })
-      end
-    end,
-  },
+{{- $hasTinymist := lookPath "tinymist" -}}
+{{- $hasTypstyle := lookPath "typstyle" -}}
 
-  -- 2. Tinymist LSP 配置
+return {
+  -- 1. Tinymist LSP
   {
     "neovim/nvim-lspconfig",
     opts = {
       servers = {
         tinymist = {
-        {{- if eq .chezmoi.os "windows" }}
+          {{- if $hasTinymist }}
+          -- 如果系统里已经能找到 tinymist，
+          -- 就不要再让 Mason 接管它，直接使用系统里的可执行文件。
           mason = false,
-        {{- end}}
-          -- 处理编码和设置
-          offset_encoding = "utf-8",
+          {{- end }}
+
           settings = {
-            exportPdf = "never", -- 禁用保存自动导出
+            -- 禁止保存时自动导出 PDF。
+            -- 避免每次保存都触发额外动作。
+            exportPdf = "never",
+
+            {{- if $hasTypstyle }}
+            -- 只有在系统里存在 typstyle 时，才显式启用 typstyle 作为格式化后端。
+            -- 如果 typstyle 不在 PATH 中，就不渲染这一项，
+            -- 让 tinymist / LazyVim extra 保持默认行为。
             formatterMode = "typstyle",
-            -- 指定编译入口可以在这里配置
-            semanticTokens = "enable", -- 增强语法高亮
+            {{- end }}
+
+            -- 启用语义高亮增强。
+            -- 对某些主题、LSP 高亮或符号语义区分会更有帮助。
+            semanticTokens = "enable",
           },
         },
       },
     },
   },
 
-  -- 3. Typst Preview 插件 (用于实时同步预览)
+  -- 2. Typst Preview：只在需要时显式指定 tinymist 可执行文件
   {
     "chomosuke/typst-preview.nvim",
-    ft = "typst",
-    version = "1.*",
+    optional = true,
+    {{- if $hasTinymist }}
     opts = {
       dependencies_bin = {
-        ["tinymist"] = "tinymist",
-        ["websocat"] = "websocat",
+        -- 显式告诉 typst-preview 使用系统里的 tinymist。
+        tinymist = "tinymist",
       },
     },
-    keys = {
-      { "<leader>tp", "<cmd>TypstPreviewToggle<cr>", desc = "Typst Preview" },
-    },
+    {{- end }}
   },
 
-  -- 4. 格式化配置 (Conform.nvim)
+  -- 3. Conform：只在 typstyle 存在时，显式指定 typst 的 formatter
   {
     "stevearc/conform.nvim",
-    opts = {
-      formatters_by_ft = {
-        typst = { "typstyle" },
-      },
-    },
+    optional = true,
+    opts = function(_, opts)
+      opts.formatters_by_ft = opts.formatters_by_ft or {}
+
+      {{- if $hasTypstyle }}
+      -- 只有在 typstyle 存在时，才把 typst 的格式化器显式收敛到 typstyle。
+
+      -- lsp_format = "prefer" 的含义：
+      -- - 优先使用这里声明的 formatter
+      -- - 必要时仍允许走 LSP 侧的格式化能力
+      opts.formatters_by_ft.typst = { "typstyle", lsp_format = "prefer" }
+      {{- end }}
+    end,
   },
 }
