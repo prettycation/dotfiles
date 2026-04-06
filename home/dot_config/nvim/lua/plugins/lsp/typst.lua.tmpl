@@ -1,5 +1,6 @@
 {{- $hasTinymist := lookPath "tinymist" -}}
 {{- $hasTypstyle := lookPath "typstyle" -}}
+{{- $hasWebsocat := lookPath "websocat" -}}
 
 return {
   -- 1. Tinymist LSP
@@ -35,15 +36,21 @@ return {
     },
   },
 
-  -- 2. Typst Preview：只在需要时显式指定 tinymist 可执行文件
+  -- 2. Typst Preview：只在需要时显式指定系统已有二进制
   {
     "chomosuke/typst-preview.nvim",
     optional = true,
-    {{- if $hasTinymist }}
+    {{- if or $hasTinymist $hasWebsocat }}
     opts = {
       dependencies_bin = {
+        {{- if $hasTinymist }}
         -- 显式告诉 typst-preview 使用系统里的 tinymist。
         tinymist = "tinymist",
+        {{- end }}
+        {{- if $hasWebsocat }}
+        -- 如果系统里已经有 websocat，也直接复用系统版本。
+        websocat = "websocat",
+        {{- end }}
       },
     },
     {{- end }}
