@@ -11,20 +11,28 @@ return {
       -- 安装必要的解析器
       ts.install({
         "markdown",
+        -- markdown_inline 不是常规 filetype，而是 Markdown 内联内容相关的 parser。
+        -- 这里保留它，是为了让依赖 Treesitter 的功能（比如 LuaSnip 在 LaTeX inline math 场景下）
+        -- 能正确识别和匹配 Markdown 内联节点。
         "markdown_inline",
         "lua",
         {{- if eq .chezmoi.os "windows" }}
         "vim",
         "vimdoc",
-        {{- end}}
+        {{- end }}
       })
+
+      -- 让自定义 filetype "llm" 复用 markdown parser
+      vim.treesitter.language.register("markdown", { "llm" })
 
       -- 只针对特定文件开启 Treesitter 高亮，避免报错
       vim.api.nvim_create_autocmd("FileType", {
         -- 暂时只针对 markdown 开启
-        pattern = { "markdown", "markdown_inline", "llm" },
-        callback = function()
-          pcall(vim.treesitter.start)
+        pattern = { "markdown", "llm" },
+        callback = function(args)
+          local ft = vim.bo[args.buf].filetype
+          local lang = ft == "llm" and "markdown" or ft
+          pcall(vim.treesitter.start, args.buf, lang)
         end,
       })
     end,
