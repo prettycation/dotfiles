@@ -1,3 +1,5 @@
+{{- $hasStylua := lookPath "stylua" -}}
+
 return {
   -- Lua 开发环境 (LazyDev)
   {
@@ -18,9 +20,24 @@ return {
       integrations = {
         lspconfig = true,
         cmp = false,
-        blink = true,
       },
     },
+  },
+
+  -- 如果使用 blink.cmp，把 lazydev source 接进来
+  {
+    "saghen/blink.cmp",
+    optional = true,
+    opts = function(_, opts)
+      opts.sources = opts.sources or {}
+      opts.sources.default = opts.sources.default or { "lazydev", "lsp", "path", "snippets", "buffer" }
+      opts.sources.providers = opts.sources.providers or {}
+      opts.sources.providers.lazydev = {
+        name = "LazyDev",
+        module = "lazydev.integrations.blink",
+        score_offset = 100,
+      }
+    end,
   },
 
   -- Lua 语言服务器的具体设置
@@ -56,22 +73,23 @@ return {
   -- 格式化配置 (Conform)
   {
     "stevearc/conform.nvim",
-    opts = {
-      formatters_by_ft = {
-        -- 指定 lua 使用 stylua，使用 scoop 安装的
-        lua = { "stylua" },
-      },
-    },
+    opts = function(_, opts)
+      opts.formatters_by_ft = opts.formatters_by_ft or {}
+      {{- if $hasStylua }}
+      -- 指定 lua 使用 stylua，优先使用系统里的 stylua
+      opts.formatters_by_ft.lua = { "stylua" }
+      {{- end }}
+    end,
   },
 
-{{- if eq .chezmoi.os "windows" }}
+{{- if $hasStylua }}
 
-  -- 仅在 Windows 环境下生效：确保 Mason 不会自动安装 stylua (因为交由 Scoop 管理)
+  -- 如果系统里已经有 stylua，就不要再让 Mason 的工具安装器装一份
   {
-    "mason-org/mason.nvim",
+    "WhoIsSethDaniel/mason-tool-installer.nvim",
+    optional = true,
     opts = function(_, opts)
       opts.ensure_installed = opts.ensure_installed or {}
-      -- 过滤掉 stylua，防止 Mason 自动安装导致与 Scoop 版本冲突
       opts.ensure_installed = vim.tbl_filter(function(name)
         return name ~= "stylua"
       end, opts.ensure_installed)
