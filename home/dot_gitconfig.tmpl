@@ -92,14 +92,17 @@
 [color]
     ui = auto
 
+{{- if .personal }}
 [url "git@github.com:"]
     insteadOf = https://github.com/
+{{- end }}
+
 {{- if eq .chezmoi.os "windows" }}
 [credential]
     helper = manager
 {{- else if eq .chezmoi.os "linux" }}
 [credential]
-    {{- if (.chezmoi.kernel.osrelease | lower | contains "microsoft") }}
+    {{- if .isWsl }}
     {{- /* WSL2 转发凭据请求到 Windows 的 Git Credential Manager */}}
     helper = "/mnt/c/Program Files/Git/mingw64/bin/git-credential-manager.exe"
     {{- else }}
