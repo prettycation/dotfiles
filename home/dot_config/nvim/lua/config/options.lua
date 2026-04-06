@@ -5,6 +5,11 @@
 vim.opt.linebreak = true -- 换行时不会从单词中间断开
 vim.opt.breakindent = true -- 换行后保持缩进
 
+-- Python LSP 使用 pyright 还是 basedpyright，
+vim.g.lazyvim_python_lsp = "basedpyright"
+-- Ruff 使用新版 ruff 还是旧版 ruff_lsp。
+vim.g.lazyvim_python_ruff = "ruff"
+
 if vim.fn.has("win32") == 1 then
   -- 使用 schedule 确保在 LazyVim 加载完默认配置后覆盖
   vim.schedule(function()

@@ -1,18 +1,12 @@
+{{- $hasFd := lookPath "fd" -}}
+{{- $hasPoetry := lookPath "poetry" -}}
+{{- $hasUv := lookPath "uv" -}}
+{{- $hasConda := lookPath "conda" -}}
+{{- $isWindows := eq .chezmoi.os "windows" -}}
+
 return {
   {
     "linux-cultist/venv-selector.nvim",
-    dependencies = {
-      "neovim/nvim-lspconfig",
-      { "nvim-telescope/telescope.nvim", branch = "0.1.x", dependencies = { "nvim-lua/plenary.nvim" } },
-      "mfussenegger/nvim-dap-python",
-    },
-    lazy = false,
-    ft = "python",
-
-    keys = {
-      { "<leader>cv", "<cmd>VenvSelect<cr>", desc = "Select VirtualEnv" },
-    },
-
     opts = function(_, opts)
       -- 基础配置
       opts.options = opts.options or {}
@@ -47,11 +41,14 @@ return {
         return parent_dir
       end
 
-      -- 平台特定搜索策略
-      {{- if eq .chezmoi.os "windows" }}
-        -- 清空 LazyVim 默认策略
-        opts.search = {}
+      -- 1. 只有 fd 在 PATH 中时，才生成基于 fd 的自定义搜索命令；
+      -- 2. 只有 poetry / uv / conda 在 PATH 中时，才生成对应生态的搜索项；
+      -- 3. 如果 fd 不存在，就不覆盖插件默认搜索策略，避免生成无效命令。
+      {{- if $hasFd }}
       opts.search = {
+        {{- if $isWindows }}
+
+        {{- if $hasConda }}
         anaconda_envs = {
           command = "fd -u -F python.exe E:\\anaconda\\envs --max-depth 2 --full-path --color never -E Lib",
           type = "anaconda",
@@ -60,33 +57,47 @@ return {
           command = "fd -u -F python.exe E:\\anaconda --max-depth 1 --full-path --color never -E Lib",
           type = "anaconda",
         },
+        {{- end }}
+
         -- Windows 默认的 .venv 搜索
         cwd = {
           command = "fd -u -F python.exe --max-depth 3 --color never",
-        }
-      }
-      {{- else }}
-      opts.search = {
+        },
+
+        {{- else }}
+
         -- 1. 搜索当前工作目录下的 .venv (通用)
         cwd = {
           command = "fd -H -F python --max-depth 3 --color never -E .git",
         },
+
+        {{- if $hasPoetry }}
         -- 2. 搜索 Poetry 虚拟环境
         poetry = {
           command = "fd -u -F python {{ if eq .chezmoi.os "darwin" }}~/Library/Caches/pypoetry/virtualenvs{{ else }}~/.cache/pypoetry/virtualenvs{{ end }} --max-depth 2 --color never",
         },
+        {{- end }}
+
+        {{- if $hasUv }}
         -- 3. 搜索 UV 环境
         uv = {
           command = "fd -u -F python ~/.local/share/uv/python --max-depth 2 --color never",
         },
+        {{- end }}
+
         -- 4. 搜索系统默认虚拟环境存放点
         vms = {
           command = "fd -u -F python ~/.virtualenvs --max-depth 2 --color never",
         },
+
+        {{- if $hasConda }}
         -- 5. 如果 Linux/Mac 也装了 Conda (可选)
         conda = {
           command = "fd -u -F python ~/anaconda3/envs --max-depth 2 --color never",
         },
+        {{- end }}
+
+        {{- end }}
       }
       {{- end }}
     end,
