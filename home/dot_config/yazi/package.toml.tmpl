@@ -1,3 +1,9 @@
+{{- $hasSoffice := lookPath "soffice" -}}
+{{- $hasStarship := lookPath "starship" -}}
+{{- $hasMediaInfo := lookPath "mediainfo" -}}
+{{- $hasDuckDB := lookPath "duckdb" -}}
+{{- $hasRecycleBinCli := lookPath "trash-list" -}}
+
 [[plugin.deps]]
 use = "yazi-rs/plugins:smart-filter"
 
@@ -7,13 +13,15 @@ use = "yazi-rs/plugins:zoom"
 [[plugin.deps]]
 use = "cap153/tv"
 
+{{- if $hasStarship }}
 [[plugin.deps]]
 use = "Rolv-Apneseth/starship"
+{{- end }}
 
 [[plugin.deps]]
 use = "mikavilpas/easyjump.yazi:easyjump"
 
-{{- if ne .chezmoi.os "linux" }}
+{{- if $hasSoffice }}
 [[plugin.deps]]
 use = "prettycation/office"
 {{-   if eq .chezmoi.os "windows" }}
@@ -30,13 +38,17 @@ use = "DreamMaoMao/searchjump"
 [[plugin.deps]]
 use = "yazi-rs/plugins:full-border"
 
+{{- if $hasMediaInfo }}
 [[plugin.deps]]
 use = "boydaihungst/mediainfo"
+{{- end }}
 
+{{- if $hasDuckDB }}
 [[plugin.deps]]
 use = "wylie102/duckdb"
+{{- end }}
 
-{{- if ne .chezmoi.os "windows" }}
+{{- if $hasRecycleBinCli }}
 [[plugin.deps]]
 use = "uhs-robert/recycle-bin"
 {{- end }}

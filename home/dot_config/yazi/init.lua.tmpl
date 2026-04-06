@@ -1,4 +1,11 @@
+{{- $hasStarship := lookPath "starship" -}}
+{{- $hasDuckDB := lookPath "duckdb" -}}
+{{- $hasRecycleBinCli := lookPath "trash-list" -}}
+{{- $isWindows := eq .chezmoi.os "windows" -}}
+
+{{- if $hasStarship }}
 require("starship"):setup()
+{{- end }}
 
 require("easyjump"):setup({
 	icon_fg = "#94e2d5", -- color for hint labels
@@ -10,6 +17,7 @@ require("full-border"):setup {
   type = ui.Border.ROUNDED,
 }
 
+{{- if $hasDuckDB }}
 require("duckdb"):setup({
   mode = "summarized",            -- 默认模式："standard" 或 "summarized"
   cache_size = 1000,              -- 缓存行数
@@ -17,8 +25,9 @@ require("duckdb"):setup({
   minmax_column_width = 21,       -- 摘要视图中最小/最大列的宽度
   column_fit_factor = 10.0        -- 列宽自适应因子
 })
+{{- end }}
 
-{{- if ne .chezmoi.os "windows" }}
+{{- if $hasRecycleBinCli }}
 require("recycle-bin"):setup()
 {{- end }}
 
@@ -48,7 +57,7 @@ require("projects"):setup({
 	save = {
 		method = "lua", -- yazi | lua
 		yazi_load_event = "@projects-load", -- event name when loading projects in `yazi` method
-    {{- if eq .chezmoi.os "windows" }}
+    {{- if $isWindows }}
 		lua_save_path = "{{ .chezmoi.homeDir }}/AppData/Roaming/yazi/state/projects.json", -- path of saved file in `lua` method, comment out or assign explicitly
     {{- else }}
     lua_save_path = "{{ .chezmoi.homeDir }}/.local/state/yazi/projects.json", -- path of saved file in `lua` method, comment out or assign explicitly
