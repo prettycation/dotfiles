@@ -1,12 +1,44 @@
 {{- /* 判断系统并定义变量 */ -}}
 {{- $isWindows := eq .chezmoi.os "windows" -}}
-{{- $pythonCmd := "python3" -}}
-{{- $shellCmd := "zsh" -}}
-{{- $clearCmd := "clear" -}}
 
+{{- /* Python: Windows 优先 python；Unix 优先 python3，找不到再退回 python */ -}}
+{{- $pythonCmd := "" -}}
 {{- if $isWindows -}}
-  {{- $pythonCmd = "python" -}}
-  {{- $shellCmd = "powershell" -}}
+  {{- if lookPath "python" -}}
+    {{- $pythonCmd = "python" -}}
+  {{- end -}}
+{{- else -}}
+  {{- if lookPath "python3" -}}
+    {{- $pythonCmd = "python3" -}}
+  {{- else if lookPath "python" -}}
+    {{- $pythonCmd = "python" -}}
+  {{- end -}}
+{{- end -}}
+
+{{- /* Shell: Windows 优先 pwsh，再退回 powershell；Unix 优先 zsh，再退回 sh */ -}}
+{{- $shellCmd := "" -}}
+{{- if $isWindows -}}
+  {{- if lookPath "pwsh" -}}
+    {{- $shellCmd = "pwsh" -}}
+  {{- else if lookPath "powershell" -}}
+    {{- $shellCmd = "powershell" -}}
+  {{- end -}}
+{{- else -}}
+  {{- if lookPath "zsh" -}}
+    {{- $shellCmd = "zsh" -}}
+  {{- else if lookPath "sh" -}}
+    {{- $shellCmd = "sh" -}}
+  {{- end -}}
+{{- end -}}
+
+{{- /* 其他运行时 */ -}}
+{{- $hasTypst := lookPath "typst" -}}
+{{- $hasRustc := lookPath "rustc" -}}
+{{- $hasLua := lookPath "lua" -}}
+
+{{- /* 清屏命令 */ -}}
+{{- $clearCmd := "clear" -}}
+{{- if $isWindows -}}
   {{- $clearCmd = "cls" -}}
 {{- end -}}
 
@@ -31,10 +63,18 @@ return {
         y = 0.5,
       },
       filetype = {
+        {{- if $pythonCmd }}
         python = "{{ $pythonCmd }} -u",
+        {{- end }}
+        {{- if $hasTypst }}
         typst = "typst compile",
+        {{- end }}
+        {{- if $hasRustc }}
         rust = "cd $dir && rustc $fileName && $dir/$fileNameWithoutExt",
+        {{- end }}
+        {{- if $hasLua }}
         lua = "lua",
+        {{- end }}
       },
     },
   },
@@ -54,17 +94,23 @@ return {
 
           -- 语言定义
           repl_definition = {
+            {{- if $pythonCmd }}
             python = {
               -- 使用 Table 格式，不能用空格拼接字符串
               command = { "{{ $pythonCmd }}", "-u" },
               format = common.bracketed_paste_python,
             },
+            {{- end }}
+            {{- if $hasLua }}
             lua = {
               command = { "lua" },
             },
+            {{- end }}
+            {{- if $shellCmd }}
             sh = {
               command = { "{{ $shellCmd }}" },
             },
+            {{- end }}
           },
         },
 
@@ -91,14 +137,16 @@ return {
       { "<leader>ri", desc = "Interrupt REPL" },
       { "<leader>rR", desc = "Restart REPL" },
 
+      {{- if $pythonCmd }}
       -- 【Windows 修复】自定义清屏：发送 Python 的 os.system('cls')
       {
         "<leader>rl",
         function()
-          require("iron.core").send(nil, "import os; os.system('{{ if eq .chezmoi.os "windows" }}cls{{ else }}clear{{ end }}')")
+          require("iron.core").send(nil, "import os; os.system('{{ $clearCmd }}')")
         end,
         desc = "Clear REPL",
       },
+      {{- end }}
 
       -- 【Windows 修复】自定义退出：发送 exit() 并关闭窗口
       {
