@@ -1,7 +1,6 @@
-{{- if and (eq .chezmoi.os "windows") (ne (lookPath "scoop") "") -}}
+{{ if and (eq .chezmoi.os "windows") (ne (lookPath "scoop") "") }}
 # 3-day-trigger: {{ div (now | unixEpoch | int64) 259200 }}
-
-{{/* 读取 scoop export 结果，自动更新 windows.packages.json 中的 Scoop 配置。 */}}
+{{/* 读取 scoop export 结果，结合 .chezmoidata/windows.scoop-classification.yaml，自动更新 windows.packages.json。 */}}
 
 param(
     [string]$TargetFile = "manifests/windows.packages.json"
@@ -9,23 +8,126 @@ param(
 
 $ErrorActionPreference = "Stop"
 
-# ─── 可选安装列表 ─────────────────────────────────────────────
-# 这里的 App 将会被移动到 optional.scoopTools 中，不会默认安装。
-$OptionalApps = @(
-    "texlive-full"
-    # "libreoffice",
-    # "qbittorrent-enhanced"
-    # 在此处添加更多...
-)
-# ─────────────────────────────────────────────────────────────────────────────
-
 $chezmoiSourceDir = "{{ .chezmoi.sourceDir }}"
 $chezmoiRepoRoot = Split-Path -Parent $chezmoiSourceDir
 $targetPath = Join-Path $chezmoiRepoRoot $TargetFile
 
+# ----------------------------
+# 0) 读取分类配置（由 chezmoi 模板注入）
+# ----------------------------
+$classificationJson = @'
+{{ if .scoopClassification }}
+{{ .scoopClassification | toJson }}
+{{ else }}
+{}
+{{ end }}
+'@
+
+try {
+    $classification = $classificationJson | ConvertFrom-Json
+} catch {
+    Write-Error "Failed to parse embedded scoop classification data: $_"
+    exit 1
+}
+
+function Get-PropValue {
+    param(
+        [object]$Object,
+        [string]$Name,
+        [object]$Fallback = $null
+    )
+
+    if ($null -ne $Object -and $Object.PSObject.Properties[$Name]) {
+        return $Object.$Name
+    }
+
+    return $Fallback
+}
+
+function New-OutputGroup {
+    param(
+        [string]$GroupId,
+        [object]$GroupDefinition,
+        [object]$Defaults
+    )
+
+    $group = [ordered]@{
+        title           = [string](Get-PropValue -Object $GroupDefinition -Name "title" -Fallback $GroupId)
+        description     = [string](Get-PropValue -Object $GroupDefinition -Name "description" -Fallback "")
+        selection       = [string](Get-PropValue -Object $GroupDefinition -Name "selection" -Fallback (Get-PropValue -Object $Defaults -Name "selection" -Fallback "optional"))
+        promptOrder     = [int](Get-PropValue -Object $GroupDefinition -Name "promptOrder" -Fallback 999)
+        installPriority = [int](Get-PropValue -Object $GroupDefinition -Name "installPriority" -Fallback (Get-PropValue -Object $Defaults -Name "installPriority" -Fallback 500))
+        buckets         = [ordered]@{}
+    }
+
+    $ui = Get-PropValue -Object $GroupDefinition -Name "ui" -Fallback $null
+    if ($null -ne $ui -and -not [string]::IsNullOrWhiteSpace([string]$ui)) {
+        $group["ui"] = [string]$ui
+    }
+
+    $domain = Get-PropValue -Object $GroupDefinition -Name "domain" -Fallback $null
+    if ($null -ne $domain -and -not [string]::IsNullOrWhiteSpace([string]$domain)) {
+        $group["domain"] = [string]$domain
+    }
+
+    return $group
+}
+
+function Get-PackageOverride {
+    param(
+        [object]$Classification,
+        [string]$BucketName,
+        [string]$PackageName
+    )
+
+    if ($null -eq $Classification) { return $null }
+    if (-not $Classification.PSObject.Properties["packageOverrides"]) { return $null }
+    if ($null -eq $Classification.packageOverrides) { return $null }
+    if (-not $Classification.packageOverrides.PSObject.Properties[$BucketName]) { return $null }
+
+    $bucketOverrides = $Classification.packageOverrides.$BucketName
+    if ($null -eq $bucketOverrides) { return $null }
+    if (-not $bucketOverrides.PSObject.Properties[$PackageName]) { return $null }
+
+    return $bucketOverrides.$PackageName
+}
+
+function Add-PackageOptionIfNeeded {
+    param(
+        [object]$GroupObject,
+        [string]$BucketName,
+        [string]$PackageName,
+        [object]$Override
+    )
+
+    if ($null -eq $Override) { return }
+
+    $option = [ordered]@{}
+
+    foreach ($propName in @("selection", "installPriority", "requiresAdmin", "installMode", "ui", "domain", "notes")) {
+        if ($Override.PSObject.Properties[$propName]) {
+            $option[$propName] = $Override.$propName
+        }
+    }
+
+    if ($option.Count -eq 0) { return }
+
+    if (-not $GroupObject.Contains("packageOptions")) {
+        $GroupObject["packageOptions"] = [ordered]@{}
+    }
+
+    if (-not $GroupObject["packageOptions"].Contains($BucketName)) {
+        $GroupObject["packageOptions"][$BucketName] = [ordered]@{}
+    }
+
+    $GroupObject["packageOptions"][$BucketName][$PackageName] = $option
+}
+
+# ----------------------------
+# 1) 导出 Scoop 当前状态
+# ----------------------------
 Write-Host "Running 'scoop export'..." -ForegroundColor Cyan
 try {
-    # 直接捕获 Scoop 输出流并转换为 JSON 对象
     $jsonRaw = scoop export | Out-String
     $scoopData = $jsonRaw | ConvertFrom-Json
 } catch {
@@ -33,80 +135,263 @@ try {
     exit 1
 }
 
-# 2. 准备新的 Scoop 数据结构
-$newBuckets = @()
-$newTools = @()
-$newOptionalTools = @()
+# ----------------------------
+# 2) 建立当前已安装包索引
+# ----------------------------
+$installedPackages = @{}
+foreach ($app in @($scoopData.apps)) {
+    $bucketName = if ($app.Source) { [string]$app.Source } else { "main" }
+    $packageName = [string]$app.Name
+    $packageKey = "$bucketName/$packageName"
 
-# 处理 Buckets
-foreach ($bucket in $scoopData.buckets) {
-    if ($bucket.Name -eq "main") { continue } # 跳过 main bucket
-    $b = [PSCustomObject]@{ name = $bucket.Name }
-    if ($bucket.Source) { $b | Add-Member -NotePropertyName "url" -NotePropertyValue $bucket.Source }
-    $newBuckets += $b
+    $installedPackages[$packageKey] = [ordered]@{
+        bucket = $bucketName
+        name   = $packageName
+    }
 }
 
-# 处理 Apps
-foreach ($app in $scoopData.apps) {
-    $item = [PSCustomObject]@{
-        name   = $app.Name
-        bucket = $app.Source
+# ----------------------------
+# 3) 导出所有 bucket（全部进入主 scoopBuckets）
+# ----------------------------
+$bucketByName = @{}
+foreach ($bucket in @($scoopData.buckets)) {
+    if ($bucket.Name -eq "main") { continue }
+
+    $bucketByName[[string]$bucket.Name] = [PSCustomObject]@{
+        name = [string]$bucket.Name
+        url  = [string]$bucket.Source
+    }
+}
+$newBuckets = @($bucketByName.Values | Sort-Object name)
+
+# ----------------------------
+# 4) 依据分类配置生成分组结构
+# ----------------------------
+$defaults = Get-PropValue -Object $classification -Name "defaults" -Fallback $null
+$fallbackGroupId = [string](Get-PropValue -Object $defaults -Name "fallbackGroup" -Fallback "misc-lab")
+
+$groupDefinitions = @{}
+if ($classification -and $classification.PSObject.Properties["groups"] -and $classification.groups) {
+    foreach ($groupProp in $classification.groups.PSObject.Properties) {
+        $groupDefinitions[[string]$groupProp.Name] = $groupProp.Value
+    }
+}
+
+if (-not $groupDefinitions.ContainsKey($fallbackGroupId)) {
+    $groupDefinitions[$fallbackGroupId] = [PSCustomObject]@{
+        title           = $fallbackGroupId
+        description     = "Unclassified installed packages"
+        selection       = (Get-PropValue -Object $defaults -Name "selection" -Fallback "optional")
+        promptOrder     = 999
+        installPriority = (Get-PropValue -Object $defaults -Name "installPriority" -Fallback 500)
+    }
+}
+
+$sortedGroupProps = @(
+    $groupDefinitions.GetEnumerator() |
+    Sort-Object `
+        @{ Expression = { [int](Get-PropValue -Object $_.Value -Name "promptOrder" -Fallback 999) } },
+        @{ Expression = { [int](Get-PropValue -Object $_.Value -Name "installPriority" -Fallback 500) } },
+        @{ Expression = { [string]$_.Key } }
+)
+
+$outputGroups = [ordered]@{}
+$assignedPackages = @{}
+
+foreach ($groupEntry in $sortedGroupProps) {
+    $groupId = [string]$groupEntry.Key
+    $groupDefinition = $groupEntry.Value
+    $outputGroup = New-OutputGroup -GroupId $groupId -GroupDefinition $groupDefinition -Defaults $defaults
+
+    $hasAnyPackage = $false
+
+    if ($groupDefinition.PSObject.Properties["buckets"] -and $groupDefinition.buckets) {
+        foreach ($bucketProp in $groupDefinition.buckets.PSObject.Properties) {
+            $bucketName = [string]$bucketProp.Name
+            $configuredPackages = @($bucketProp.Value)
+
+            foreach ($packageName in $configuredPackages) {
+                $packageName = [string]$packageName
+                $packageKey = "$bucketName/$packageName"
+
+                if (-not $installedPackages.ContainsKey($packageKey)) {
+                    continue
+                }
+
+                if ($assignedPackages.ContainsKey($packageKey)) {
+                    Write-Host "  Warning: package '$packageKey' appears in multiple groups; keeping first group '$($assignedPackages[$packageKey])'." -ForegroundColor Yellow
+                    continue
+                }
+
+                $override = Get-PackageOverride -Classification $classification -BucketName $bucketName -PackageName $packageName
+                $installMode = [string](Get-PropValue -Object $override -Name "installMode" -Fallback "auto")
+                if ($installMode -eq "skip") {
+                    continue
+                }
+
+                if (-not $outputGroup["buckets"].Contains($bucketName) -or $null -eq $outputGroup["buckets"][$bucketName]) {
+                    $outputGroup["buckets"][$bucketName] = @()
+                }
+
+                $outputGroup["buckets"][$bucketName] = @($outputGroup["buckets"][$bucketName]) + $packageName
+                Add-PackageOptionIfNeeded -GroupObject $outputGroup -BucketName $bucketName -PackageName $packageName -Override $override
+
+                $assignedPackages[$packageKey] = $groupId
+                $hasAnyPackage = $true
+            }
+        }
     }
 
-    if ($OptionalApps -contains $app.Name) {
-        $newOptionalTools += $item
+    if ($hasAnyPackage) {
+        $outputGroups[$groupId] = $outputGroup
+    }
+}
+
+# ----------------------------
+# 5) 未命中分类的已安装包进入 fallback group
+# ----------------------------
+$unassignedKeys = @(
+    $installedPackages.Keys |
+    Where-Object { -not $assignedPackages.ContainsKey($_) } |
+    Sort-Object
+)
+
+if ($unassignedKeys.Count -gt 0) {
+    if ($outputGroups.Contains($fallbackGroupId)) {
+        $fallbackOutputGroup = $outputGroups[$fallbackGroupId]
     } else {
-        $newTools += $item
+        $fallbackOutputGroup = New-OutputGroup -GroupId $fallbackGroupId -GroupDefinition $groupDefinitions[$fallbackGroupId] -Defaults $defaults
+        $outputGroups[$fallbackGroupId] = $fallbackOutputGroup
+    }
+
+    foreach ($packageKey in $unassignedKeys) {
+        $installed = $installedPackages[$packageKey]
+        $bucketName = [string]$installed.bucket
+        $packageName = [string]$installed.name
+
+        $override = Get-PackageOverride -Classification $classification -BucketName $bucketName -PackageName $packageName
+        $installMode = [string](Get-PropValue -Object $override -Name "installMode" -Fallback "auto")
+        if ($installMode -eq "skip") {
+            continue
+        }
+
+        if (-not $fallbackOutputGroup["buckets"].Contains($bucketName) -or $null -eq $fallbackOutputGroup["buckets"][$bucketName]) {
+            $fallbackOutputGroup["buckets"][$bucketName] = @()
+        }
+
+        $fallbackOutputGroup["buckets"][$bucketName] = @($fallbackOutputGroup["buckets"][$bucketName]) + $packageName
+        Add-PackageOptionIfNeeded -GroupObject $fallbackOutputGroup -BucketName $bucketName -PackageName $packageName -Override $override
     }
 }
 
-# 3. 读取目标 manifest (或创建新对象)
+# ----------------------------
+# 6) 将数组与字典归一化为 JSON 友好的结构
+# ----------------------------
+$normalizedGroups = [ordered]@{}
+
+foreach ($groupProp in $outputGroups.GetEnumerator()) {
+    $groupId = [string]$groupProp.Key
+    $group = $groupProp.Value
+
+    $normalizedBuckets = [ordered]@{}
+    foreach ($bucketProp in $group["buckets"].GetEnumerator() | Sort-Object Key) {
+        $bucketName = [string]$bucketProp.Key
+        $packages = @($bucketProp.Value)
+
+        if ($packages.Count -gt 0) {
+            $normalizedBuckets[$bucketName] = @($packages)
+        }
+    }
+
+    if ($normalizedBuckets.Count -eq 0) {
+        continue
+    }
+
+    $normalizedGroup = [ordered]@{
+        title           = [string]$group["title"]
+        description     = [string]$group["description"]
+        selection       = [string]$group["selection"]
+        promptOrder     = [int]$group["promptOrder"]
+        installPriority = [int]$group["installPriority"]
+        buckets         = $normalizedBuckets
+    }
+
+    if ($group.Contains("ui")) {
+        $normalizedGroup["ui"] = $group["ui"]
+    }
+    if ($group.Contains("domain")) {
+        $normalizedGroup["domain"] = $group["domain"]
+    }
+    if ($group.Contains("packageOptions")) {
+        $normalizedGroup["packageOptions"] = $group["packageOptions"]
+    }
+
+    $normalizedGroups[$groupId] = $normalizedGroup
+}
+
+# ----------------------------
+# 7) 读取旧 manifest，并重建为新结构
+# ----------------------------
+$existingManifest = $null
 if (Test-Path $targetPath) {
     Write-Host "Updating existing manifest: $targetPath" -ForegroundColor Cyan
-    $manifest = Get-Content $targetPath -Raw | ConvertFrom-Json
+    $existingManifest = Get-Content $targetPath -Raw | ConvertFrom-Json
 } else {
     Write-Host "Creating new manifest: $targetPath" -ForegroundColor Yellow
-    $manifest = [PSCustomObject]@{
-        scoopBuckets      = @()
-        scoopTools        = @()
-        optional          = [PSCustomObject]@{ scoopBuckets = @(); scoopTools = @() }
-        wingetPackages    = @()
-        powershellModules = @()
-        fonts             = @()
+}
+
+$newManifest = [ordered]@{
+    scoopBuckets = $newBuckets
+    scoopGroups  = $normalizedGroups
+}
+
+if ($null -ne $existingManifest) {
+    foreach ($prop in $existingManifest.PSObject.Properties) {
+        if ($prop.Name -in @("scoopBuckets", "scoopTools", "scoopGroups", "optional")) {
+            continue
+        }
+
+        $newManifest[$prop.Name] = $prop.Value
+    }
+} else {
+    $newManifest["fonts"] = @()
+    $newManifest["powershellModules"] = @()
+    $newManifest["wingetPackages"] = @()
+    $newManifest["doppler"] = [ordered]@{}
+}
+
+# ----------------------------
+# 8) 写回文件
+# ----------------------------
+$jsonOptions = @{
+    Depth = 30
+    Compress = $false
+}
+$jsonContent = $newManifest | ConvertTo-Json @jsonOptions
+
+$targetDir = Split-Path -Parent $targetPath
+if (-not (Test-Path $targetDir)) {
+    New-Item -ItemType Directory -Path $targetDir -Force | Out-Null
+}
+
+Set-Content -Path $targetPath -Value $jsonContent -Encoding UTF8
+
+# ----------------------------
+# 9) 总结
+# ----------------------------
+$totalGroupCount = @($normalizedGroups.Keys).Count
+$totalPackageCount = 0
+foreach ($groupProp in $normalizedGroups.GetEnumerator()) {
+    foreach ($bucketProp in $groupProp.Value.buckets.GetEnumerator()) {
+        $totalPackageCount += @($bucketProp.Value).Count
     }
 }
 
-# 4. 合并数据 (覆盖 Scoop 相关字段，保留其他)
-$manifest.scoopBuckets = $newBuckets
-$manifest.scoopTools   = $newTools
-
-# 确保 optional 对象存在
-if (-not $manifest.PSObject.Properties["optional"]) {
-    $manifest | Add-Member -NotePropertyName "optional" -NotePropertyValue ([PSCustomObject]@{ scoopBuckets = @(); scoopTools = @() })
-}
-# 确保 optional.scoopTools 存在
-if (-not $manifest.optional.PSObject.Properties["scoopTools"]) {
-    $manifest.optional | Add-Member -NotePropertyName "scoopTools" -NotePropertyValue @()
-}
-
-# 更新 Optional Tools
-$manifest.optional.scoopTools = $newOptionalTools
-
-# 5. 写回文件
-$jsonOptions = @{
-    Depth = 10
-    Compress = $false
-}
-# 确保文件使用 UTF8 编码
-$jsonContent = $manifest | ConvertTo-Json @jsonOptions
-Set-Content -Path $targetPath -Value $jsonContent -Encoding UTF8
-
-# 6. 总结
 Write-Host "`nSuccessfully updated $TargetFile" -ForegroundColor Green
 Write-Host "  Buckets          : $($newBuckets.Count)"
-Write-Host "  Core Apps        : $($newTools.Count)"
-Write-Host "  Optional Apps    : $($newOptionalTools.Count)"
-Write-Host "  Preserved fields : wingetPackages, powershellModules, etc." -ForegroundColor Gray
-{{- else -}}
+Write-Host "  Groups           : $totalGroupCount"
+Write-Host "  Scoop Packages   : $totalPackageCount"
+
+{{ else }}
 # Scoop not found; no-op.
-{{- end }}
+{{ end }}
