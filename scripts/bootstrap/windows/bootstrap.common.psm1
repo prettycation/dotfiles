@@ -289,12 +289,34 @@ function Initialize-XdgDirectories {
     }
 }
 
-function Install-ScoopApp {
+function Test-ScoopAppInstalled {
     <#
     .SYNOPSIS
-        安装单个 Scoop 包（幂等）。
+        判断 Scoop 包是否已安装。
     .DESCRIPTION
-        对已安装包直接跳过；对非 main bucket 自动使用 bucket/package 形式安装。
+        使用 `scoop prefix <app>` 作为安装状态判断依据，
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$App
+    )
+
+    try {
+        $prefix = (& scoop prefix $App 2>$null | Out-String).Trim()
+        return -not [string]::IsNullOrWhiteSpace($prefix)
+    } catch {
+        return $false
+    }
+}
+
+function Get-ScoopPackageInfo {
+    <#
+    .SYNOPSIS
+        获取并解析 Scoop 包信息。
+    .DESCRIPTION
+        调用 `scoop info <bucket/package>`，提取 Suggestions / Notes 等字段。
+        Installed 状态不从 info 文本解析，而是由 Test-ScoopAppInstalled 单独判断。
     #>
     [CmdletBinding()]
     param(
@@ -306,12 +328,188 @@ function Install-ScoopApp {
 
     $packageRef = if ($Bucket -and $Bucket -ne "main") { "$Bucket/$App" } else { $App }
 
-    if (-not (scoop info $packageRef 2>&1 | Select-String "Installed")) {
+    # 关键修复：
+    # 先拿完整文本，再统一解析，避免 PowerShell 格式化输出逐项枚举造成字段丢失。
+    $rawText = (& scoop info $packageRef 2>&1 | Out-String)
+
+    # 去掉 ANSI 控制符，避免字段匹配失败
+    $cleanText = $rawText -replace "`e\[[0-9;]*[A-Za-z]", ""
+
+    $lines = @($cleanText -split "`r?\n")
+
+    $result = [ordered]@{
+        PackageRef  = $packageRef
+        Name        = $App
+        Bucket      = $Bucket
+        Installed   = (Test-ScoopAppInstalled -App $App)
+        Suggestions = @()
+        Notes       = @()
+        RawOutput   = $lines
+    }
+
+    $currentField = $null
+
+    foreach ($line in $lines) {
+        $trimmed = $line.TrimEnd()
+
+        if ([string]::IsNullOrWhiteSpace($trimmed)) {
+            continue
+        }
+
+        # 匹配 "Key : Value"
+        if ($trimmed -match '^\s*([^:]+?)\s*:\s*(.*)$') {
+            $key = $matches[1].Trim()
+            $value = $matches[2].Trim()
+            $currentField = $key
+
+            switch -Regex ($key) {
+                '^Suggestions?$' {
+                    if (-not [string]::IsNullOrWhiteSpace($value)) {
+                        $items = @(
+                            $value -split ',' |
+                            ForEach-Object { $_.Trim() } |
+                            Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+                        )
+                        $result["Suggestions"] = @($result["Suggestions"] + $items)
+                    }
+                }
+                '^Notes?$' {
+                    if (-not [string]::IsNullOrWhiteSpace($value)) {
+                        $result["Notes"] = @($result["Notes"] + $value)
+                    }
+                }
+                default {
+                    $currentField = $null
+                }
+            }
+
+            continue
+        }
+
+        # 处理多行 continuation
+        if ($currentField -match '^Suggestions?$') {
+            $items = @(
+                $trimmed.Trim() -split ',' |
+                ForEach-Object { $_.Trim() } |
+                Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+            )
+            if ($items.Count -gt 0) {
+                $result["Suggestions"] = @($result["Suggestions"] + $items)
+            }
+            continue
+        }
+
+        if ($currentField -match '^Notes?$') {
+            $continued = $trimmed.Trim()
+            if (-not [string]::IsNullOrWhiteSpace($continued)) {
+                $result["Notes"] = @($result["Notes"] + $continued)
+            }
+            continue
+        }
+    }
+
+    $result["Suggestions"] = @($result["Suggestions"] | Select-Object -Unique)
+    $result["Notes"]       = @($result["Notes"] | Select-Object -Unique)
+
+    return [PSCustomObject]$result
+}
+
+function Install-ScoopApp {
+    <#
+    .SYNOPSIS
+        安装单个 Scoop 包（幂等），并返回结构化安装结果。
+    .DESCRIPTION
+        对已安装包直接跳过；对非 main bucket 自动使用 bucket/package 形式安装。
+        同时复用 `scoop info` 的结果，返回 Suggestions / Notes 供调用方汇总。
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$App,
+
+        [string]$Bucket = "main"
+    )
+
+    $info = Get-ScoopPackageInfo -App $App -Bucket $Bucket
+    $packageRef = $info.PackageRef
+
+    $installedNow = $false
+
+    if (-not $info.Installed) {
         Write-Host "  Installing $packageRef..." -ForegroundColor Gray
         scoop install $packageRef
         Write-OK "$App installed"
+        $installedNow = $true
+
+        # 安装后重新读取一次，确保拿到安装后的最终 Suggestions / Notes
+        $info = Get-ScoopPackageInfo -App $App -Bucket $Bucket
     } else {
         Write-OK "$App already installed"
+    }
+
+    return [PSCustomObject]@{
+        PackageRef       = $info.PackageRef
+        Name             = $info.Name
+        Bucket           = $info.Bucket
+        AlreadyInstalled = ($info.Installed -and (-not $installedNow))
+        InstalledNow     = $installedNow
+        Suggestions      = @($info.Suggestions)
+        Notes            = @($info.Notes)
+    }
+}
+
+function Write-ScoopPackageHints {
+    <#
+    .SYNOPSIS
+        将 Scoop 包的 Suggestions / Notes 分两类统一打印。
+    .DESCRIPTION
+        传入 Install-ScoopApp 的返回结果数组。
+        只打印实际存在 Suggestions 或 Notes 的包。
+    #>
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [object[]]$InstallResults
+    )
+
+    if ($null -eq $InstallResults -or $InstallResults.Count -eq 0) {
+        return
+    }
+
+    $resultsWithSuggestions = @(
+        $InstallResults |
+        Where-Object { $null -ne $_.Suggestions -and $_.Suggestions.Count -gt 0 }
+    )
+
+    $resultsWithNotes = @(
+        $InstallResults |
+        Where-Object { $null -ne $_.Notes -and $_.Notes.Count -gt 0 }
+    )
+
+    if ($resultsWithSuggestions.Count -eq 0 -and $resultsWithNotes.Count -eq 0) {
+        return
+    }
+
+    Write-Step "Scoop Package Hints"
+
+    if ($resultsWithSuggestions.Count -gt 0) {
+        Write-Host "  Suggestions:" -ForegroundColor Cyan
+        foreach ($item in $resultsWithSuggestions) {
+            Write-Host ("    {0}" -f $item.PackageRef) -ForegroundColor White
+            foreach ($suggestion in $item.Suggestions) {
+                Write-Host ("      - {0}" -f $suggestion) -ForegroundColor DarkGray
+            }
+        }
+    }
+
+    if ($resultsWithNotes.Count -gt 0) {
+        Write-Host "  Notes:" -ForegroundColor Cyan
+        foreach ($item in $resultsWithNotes) {
+            Write-Host ("    {0}" -f $item.PackageRef) -ForegroundColor White
+            foreach ($note in $item.Notes) {
+                Write-Host ("      - {0}" -f $note) -ForegroundColor DarkGray
+            }
+        }
     }
 }
 
@@ -480,7 +678,10 @@ Export-ModuleMember -Function @(
     "Set-UserEnvironmentVariable",
     "Get-XdgEnvironmentMap",
     "Initialize-XdgDirectories",
+    "Test-ScoopAppInstalled",
+    "Get-ScoopPackageInfo",
     "Install-ScoopApp",
+    "Write-ScoopPackageHints",
     "Get-MiseRuntimeCommand",
     "Test-MiseRuntimeCommands",
     "Get-ChezmoiSourcePath",

@@ -90,7 +90,7 @@ function Read-IndexSelection {
             return @(0..($Items.Count - 1))
         }
 
-        $set = [System.Collections.Generic.HashSet[int]]::new()
+        $selectedMap = @{}
 
         try {
             $tokens = @($raw -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ })
@@ -109,20 +109,20 @@ function Read-IndexSelection {
                         if ($i -lt 1 -or $i -gt $Items.Count) {
                             throw "Selection '$i' out of range."
                         }
-                        [void]$set.Add($i - 1)
+                        $selectedMap[$i - 1] = $true
                     }
                 } elseif ($token -match '^\d+$') {
                     $index = [int]$token
                     if ($index -lt 1 -or $index -gt $Items.Count) {
                         throw "Selection '$index' out of range."
                     }
-                    [void]$set.Add($index - 1)
+                    $selectedMap[$index - 1] = $true
                 } else {
                     throw "Invalid token '$token'."
                 }
             }
 
-            return @($set | Sort-Object)
+            return @($selectedMap.Keys | ForEach-Object { [int]$_ } | Sort-Object)
         } catch {
             Write-Warn $_
             Write-Host "  Use numbers like: 1,3,5-7 or A for all." -ForegroundColor DarkGray
@@ -262,7 +262,7 @@ function Resolve-SelectedScoopGroups {
     $defaultGroups  = @($groups | Where-Object { $_.Selection -eq "default" })
     $optionalGroups = @($groups | Where-Object { $_.Selection -eq "optional" })
 
-    $selected = New-Object System.Collections.Generic.List[object]
+    $selected = @()
 
     if ($defaultGroups.Count -gt 0) {
         Write-Host "  Default groups (installed unless you skip them):" -ForegroundColor Gray
@@ -277,7 +277,7 @@ function Resolve-SelectedScoopGroups {
         $skipIndices = Read-IndexSelection -Items $defaultGroups -Prompt "Skip any default groups? [Enter=none, numbers, A=all]" -AllowEmpty
         for ($i = 0; $i -lt $defaultGroups.Count; $i++) {
             if ($skipIndices -notcontains $i) {
-                [void]$selected.Add($defaultGroups[$i])
+                $selected += $defaultGroups[$i]
             }
         }
     }
@@ -295,11 +295,18 @@ function Resolve-SelectedScoopGroups {
 
         $includeIndices = Read-IndexSelection -Items $optionalGroups -Prompt "Select optional groups to install [Enter=none, numbers, A=all]" -AllowEmpty
         foreach ($index in $includeIndices) {
-            [void]$selected.Add($optionalGroups[$index])
+            $selected += $optionalGroups[$index]
         }
     }
 
-    return @($selected | Sort-Object InstallPriority, PromptOrder, Title -Unique)
+    $uniqueById = [ordered]@{}
+    foreach ($group in $selected) {
+        if (-not $uniqueById.Contains($group.Id)) {
+            $uniqueById[$group.Id] = $group
+        }
+    }
+
+    return @($uniqueById.Values | Sort-Object InstallPriority, PromptOrder, Title)
 }
 
 function Resolve-SelectedGroupPackages {
@@ -352,7 +359,8 @@ function Resolve-SelectedGroupPackages {
         $selectedOptional += $optionalSpecs[$index]
     }
 
-    return @($alwaysSpecs + $selectedOptional | Sort-Object InstallPriority, Bucket, Name)
+    $merged = @($alwaysSpecs) + @($selectedOptional)
+    return @($merged | Sort-Object InstallPriority, Bucket, Name)
 }
 
 $selectedGroups = @(Resolve-SelectedScoopGroups -Manifest $windowsPackages)
@@ -363,8 +371,9 @@ if ($selectedGroups.Count -eq 0) {
     return
 }
 
-$plannedPackages = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
-$manualPackages  = New-Object System.Collections.Generic.List[object]
+$plannedPackages = @{}
+$manualPackages  = @()
+$installResults  = @()
 
 foreach ($group in $selectedGroups) {
     Write-Host ""
@@ -378,19 +387,19 @@ foreach ($group in $selectedGroups) {
     }
 
     foreach ($pkg in $groupPackages) {
-        if ($plannedPackages.Contains($pkg.PackageRef)) {
+        if ($plannedPackages.ContainsKey($pkg.PackageRef)) {
             Write-Host ("    Skip duplicate package: {0}" -f $pkg.PackageRef) -ForegroundColor DarkGray
             continue
         }
 
-        [void]$plannedPackages.Add($pkg.PackageRef)
+        $plannedPackages[$pkg.PackageRef] = $true
 
         if ($pkg.InstallMode -eq "skip") {
             continue
         }
 
         if ($pkg.InstallMode -eq "manual") {
-            [void]$manualPackages.Add($pkg)
+            $manualPackages += $pkg
             Write-Warn "Manual package skipped: $($pkg.PackageRef)"
             if ($pkg.Notes) {
                 Write-Host ("      {0}" -f $pkg.Notes) -ForegroundColor DarkGray
@@ -398,7 +407,8 @@ foreach ($group in $selectedGroups) {
             continue
         }
 
-        Install-ScoopApp -App $pkg.Name -Bucket $pkg.Bucket
+        $installResult = Install-ScoopApp -App $pkg.Name -Bucket $pkg.Bucket
+        $installResults += $installResult
     }
 }
 
@@ -412,5 +422,7 @@ if ($manualPackages.Count -gt 0) {
         }
     }
 }
+
+Write-ScoopPackageHints -InstallResults @($installResults)
 
 Write-OK "Selected Scoop groups installed"
