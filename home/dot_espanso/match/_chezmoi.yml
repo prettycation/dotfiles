@@ -30,7 +30,7 @@ matches:
     replace: "chezmoi doctor"
 
   - trigger: "u.da"
-    replace: "{{ .$|$ | quote  }}"
+    replace: "chezmoi data --format yaml"
 
   - trigger: "u.if"
     replace: |
