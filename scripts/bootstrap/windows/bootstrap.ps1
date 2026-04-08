@@ -96,7 +96,13 @@ foreach ($relativeStep in $steps) {
         throw "Bootstrap step not found: $stepPath"
     }
 
-    & $stepPath -Context $context
+    try {
+        & $stepPath -Context $context
+    } catch {
+        $msg = $_.Exception.Message
+        $stack = $_.ScriptStackTrace
+        throw "Bootstrap step failed: $relativeStep`n$msg`n$stack"
+    }
 }
 
 # Final summary.
