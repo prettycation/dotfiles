@@ -61,9 +61,10 @@ Write-OK "Scoop is available"
 
 # 6) Scoop 基本连通性/可用性探测
 try {
-    $null = scoop --version
+    scoop --version *> $null
     Write-OK "Scoop command is functional"
 } catch {
+    Write-Warn "Scoop failed its version check."
     throw "Scoop exists on PATH but failed to run correctly: $_"
 }
 
