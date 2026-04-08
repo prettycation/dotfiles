@@ -1,7 +1,7 @@
 # chezmoi:template:left-delimiter="{{", right-delimiter="}}"
-$ErrorActionPreference = "Stop"
+{{ if and (eq .chezmoi.os "windows") (ne (lookPath "scoop") "") }}
 
-{{ if eq .chezmoi.os "windows" -}}
+$ErrorActionPreference = "Stop"
 
 $sw = [System.Diagnostics.Stopwatch]::StartNew()
 Write-Host "Fast deploying configurations to Scoop persist directories..." -ForegroundColor Cyan
@@ -370,4 +370,4 @@ if ($totalUpdated -gt 0 -or $forceRefresh) {
 $sw.Stop()
 Write-Host ("Done. scanned={0}, updated={1}, skipped={2}, elapsed={3:n2}s" -f $totalScanned, $totalUpdated, $totalSkipped, $sw.Elapsed.TotalSeconds) -ForegroundColor Magenta
 
-{{- end }}
+{{ end }}
