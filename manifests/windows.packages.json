@@ -1,26 +1,6 @@
 {
   "scoopBuckets": [
     {
-      "name": "extras",
-      "url": "https://github.com/ScoopInstaller/Extras"
-    },
-    {
-      "name": "versions",
-      "url": "https://github.com/ScoopInstaller/Versions"
-    },
-    {
-      "name": "nerd-fonts",
-      "url": "https://github.com/matthewjberger/scoop-nerd-fonts"
-    },
-    {
-      "name": "nonportable",
-      "url": "https://github.com/ScoopInstaller/Nonportable"
-    },
-    {
-      "name": "java",
-      "url": "https://github.com/ScoopInstaller/Java"
-    },
-    {
       "name": "abyss",
       "url": "https://github.com/abgox/abyss"
     },
@@ -33,8 +13,16 @@
       "url": "https://github.com/chawyehsu/dorado"
     },
     {
+      "name": "extras",
+      "url": "https://github.com/ScoopInstaller/Extras"
+    },
+    {
       "name": "jam",
       "url": "https://github.com/EFLKumo/jam"
+    },
+    {
+      "name": "java",
+      "url": "https://github.com/ScoopInstaller/Java"
     },
     {
       "name": "lemon",
@@ -45,12 +33,24 @@
       "url": "https://github.com/maqibg/MQBucket"
     },
     {
+      "name": "nerd-fonts",
+      "url": "https://github.com/matthewjberger/scoop-nerd-fonts"
+    },
+    {
+      "name": "nonportable",
+      "url": "https://github.com/ScoopInstaller/Nonportable"
+    },
+    {
       "name": "pamburus",
       "url": "https://github.com/pamburus/scoop-bucket.git"
     },
     {
       "name": "sdoog",
       "url": "https://github.com/xrgzs/sdoog.git"
+    },
+    {
+      "name": "versions",
+      "url": "https://github.com/ScoopInstaller/Versions"
     },
     {
       "name": "YewFence_YewNursery",
@@ -69,588 +69,730 @@
       "url": "https://github.com/ZhangTianrong/scoop-bucket"
     }
   ],
-  "scoopTools": [
-    {
-      "name": "1History.1History",
-      "bucket": "abyss"
-    },
-    {
-      "name": "5rahim.Seanime",
-      "bucket": "abyss"
-    },
-    {
-      "name": "7zip",
-      "bucket": "main"
-    },
-    {
-      "name": "abgox.InputTip-zip",
-      "bucket": "abyss"
-    },
-    {
-      "name": "abgox.PSCompletions",
-      "bucket": "abyss"
-    },
-    {
-      "name": "abgox.scoop-i18n",
-      "bucket": "abyss"
-    },
-    {
-      "name": "abgox.SpaceKey",
-      "bucket": "abyss"
-    },
-    {
-      "name": "agalwood.Motrix",
-      "bucket": "abyss"
-    },
-    {
-      "name": "AlexanderPro.SmartContextMenu",
-      "bucket": "abyss"
-    },
-    {
-      "name": "AmN.yasb",
-      "bucket": "abyss"
-    },
-    {
-      "name": "amzxyz.rime_wanxiang.model",
-      "bucket": "abyss"
-    },
-    {
-      "name": "amzxyz.rime_wanxiang.moqi",
-      "bucket": "abyss"
-    },
-    {
-      "name": "archwsl",
-      "bucket": "extras"
-    },
-    {
-      "name": "aria2",
-      "bucket": "main"
-    },
-    {
-      "name": "BaiduPCS-Go",
-      "bucket": "anderlli0053_DEV-tools"
-    },
-    {
-      "name": "bitwarden-cli",
-      "bucket": "main"
-    },
-    {
-      "name": "bleachbit",
-      "bucket": "extras"
-    },
-    {
-      "name": "cargo-binstall",
-      "bucket": "main"
-    },
-    {
-      "name": "Ch3nyang.MrRSS",
-      "bucket": "abyss"
-    },
-    {
-      "name": "cherry-studio",
-      "bucket": "jam"
-    },
-    {
-      "name": "chrisant996.Clink",
-      "bucket": "abyss"
-    },
-    {
-      "name": "Cishoon.md",
-      "bucket": "abyss"
-    },
-    {
-      "name": "ClashVergeRev.ClashVergeRev",
-      "bucket": "abyss"
-    },
-    {
-      "name": "Clement.bottom",
-      "bucket": "abyss"
-    },
-    {
-      "name": "CLIProxyAPI",
-      "bucket": "YewFence_YewNursery"
-    },
-    {
-      "name": "cmake",
-      "bucket": "main"
-    },
-    {
-      "name": "CopyQ",
-      "bucket": "extras"
-    },
-    {
-      "name": "curl",
-      "bucket": "main"
-    },
-    {
-      "name": "dark",
-      "bucket": "main"
-    },
-    {
-      "name": "dinoDanic.diny",
-      "bucket": "abyss"
-    },
-    {
-      "name": "direnv",
-      "bucket": "main"
-    },
-    {
-      "name": "duckdb",
-      "bucket": "main"
-    },
-    {
-      "name": "EcoPaste.EcoPaste",
-      "bucket": "abyss"
-    },
-    {
-      "name": "emeditor-pro",
-      "bucket": "ZhangTianrong_scoop-bucket"
-    },
-    {
-      "name": "ente-auth",
-      "bucket": "extras"
-    },
-    {
-      "name": "envx",
-      "bucket": "Ylemir_Scoop-Bucket"
-    },
-    {
-      "name": "espanso",
-      "bucket": "main"
-    },
-    {
-      "name": "eza-community.eza",
-      "bucket": "abyss"
-    },
-    {
-      "name": "fancontrol",
-      "bucket": "extras"
-    },
-    {
-      "name": "faster-whisper-xxl",
-      "bucket": "anderlli0053_DEV-tools"
-    },
-    {
-      "name": "fastfetch",
-      "bucket": "main"
-    },
-    {
-      "name": "fd",
-      "bucket": "main"
-    },
-    {
-      "name": "file-converter-np",
-      "bucket": "nonportable"
-    },
-    {
-      "name": "flow-launcher",
-      "bucket": "extras"
-    },
-    {
-      "name": "Foundry376.Mailspring",
-      "bucket": "abyss"
-    },
-    {
-      "name": "freetex",
-      "bucket": "anderlli0053_DEV-tools"
-    },
-    {
-      "name": "fzf",
-      "bucket": "main"
-    },
-    {
-      "name": "gcc",
-      "bucket": "main"
-    },
-    {
-      "name": "ghostscript",
-      "bucket": "main"
-    },
-    {
-      "name": "git",
-      "bucket": "main"
-    },
-    {
-      "name": "git-filter-repo",
-      "bucket": "main"
-    },
-    {
-      "name": "GitHub.cli",
-      "bucket": "abyss"
-    },
-    {
-      "name": "glazewm",
-      "bucket": "extras"
-    },
-    {
-      "name": "gsudo",
-      "bucket": "main"
-    },
-    {
-      "name": "hfd",
-      "bucket": "anderlli0053_DEV-tools"
-    },
-    {
-      "name": "hl",
-      "bucket": "pamburus"
-    },
-    {
-      "name": "HuLaSpark.HuLa",
-      "bucket": "abyss"
-    },
-    {
-      "name": "icaros-np",
-      "bucket": "nonportable"
-    },
-    {
-      "name": "iconv",
-      "bucket": "main"
-    },
-    {
-      "name": "imagemagick",
-      "bucket": "main"
-    },
-    {
-      "name": "ImputNet.Helium",
-      "bucket": "abyss"
-    },
-    {
-      "name": "innounp",
-      "bucket": "main"
-    },
-    {
-      "name": "intelli-shell",
-      "bucket": "Ylemir_Scoop-Bucket"
-    },
-    {
-      "name": "itchyny.gojq",
-      "bucket": "abyss"
-    },
-    {
-      "name": "jdx.mise",
-      "bucket": "abyss"
-    },
-    {
-      "name": "JetBrainsMono-NF",
-      "bucket": "nerd-fonts"
-    },
-    {
-      "name": "jid",
-      "bucket": "main"
-    },
-    {
-      "name": "jq",
-      "bucket": "main"
-    },
-    {
-      "name": "keepassxc",
-      "bucket": "extras"
-    },
-    {
-      "name": "keyStats",
-      "bucket": "maqibg_MQBucket"
-    },
-    {
-      "name": "kopiaui",
-      "bucket": "extras"
-    },
-    {
-      "name": "latexsnipper",
-      "bucket": "lemon"
-    },
-    {
-      "name": "lazygit",
-      "bucket": "extras"
-    },
-    {
-      "name": "legeling.PromptHub",
-      "bucket": "abyss"
-    },
-    {
-      "name": "less",
-      "bucket": "main"
-    },
-    {
-      "name": "libreoffice",
-      "bucket": "extras"
-    },
-    {
-      "name": "LocalSend.LocalSend",
-      "bucket": "abyss"
-    },
-    {
-      "name": "logi-options-plus-mini",
-      "bucket": "anderlli0053_DEV-tools"
-    },
-    {
-      "name": "lua",
-      "bucket": "main"
-    },
-    {
-      "name": "luarocks",
-      "bucket": "main"
-    },
-    {
-      "name": "lunatranslator",
-      "bucket": "extras"
-    },
-    {
-      "name": "LXGWWenKaiMonoGB",
-      "bucket": "nerd-fonts"
-    },
-    {
-      "name": "lyswhut.lx-music-desktop",
-      "bucket": "abyss"
-    },
-    {
-      "name": "make",
-      "bucket": "main"
-    },
-    {
-      "name": "mediainfo",
-      "bucket": "main"
-    },
-    {
-      "name": "Meld.Meld",
-      "bucket": "abyss"
-    },
-    {
-      "name": "Microsoft.VisualStudioCode",
-      "bucket": "abyss"
-    },
-    {
-      "name": "mihomo",
-      "bucket": "main"
-    },
-    {
-      "name": "MilkShift.GoofCord",
-      "bucket": "abyss"
-    },
-    {
-      "name": "mingw",
-      "bucket": "main"
-    },
-    {
-      "name": "mousemaster",
-      "bucket": "lemon"
-    },
-    {
-      "name": "mpv-config",
-      "bucket": "jam"
-    },
-    {
-      "name": "mpv-handler",
-      "bucket": "anderlli0053_DEV-tools"
-    },
-    {
-      "name": "neovim",
-      "bucket": "main"
-    },
-    {
-      "name": "nilesoft-shell",
-      "bucket": "extras"
-    },
-    {
-      "name": "nircmd",
-      "bucket": "main"
-    },
-    {
-      "name": "nodejs-lts",
-      "bucket": "main"
-    },
-    {
-      "name": "oldj.switchhosts",
-      "bucket": "abyss"
-    },
-    {
-      "name": "pandoc",
-      "bucket": "main"
-    },
-    {
-      "name": "poppler",
-      "bucket": "main"
-    },
-    {
-      "name": "pwsh",
-      "bucket": "main"
-    },
-    {
-      "name": "python312",
-      "bucket": "versions"
-    },
-    {
-      "name": "qbittorrent-enhanced",
-      "bucket": "extras"
-    },
-    {
-      "name": "regjump",
-      "bucket": "anderlli0053_DEV-tools"
-    },
-    {
-      "name": "revo-uninstaller",
-      "bucket": "sdoog"
-    },
-    {
-      "name": "Rime.Weasel",
-      "bucket": "abyss"
-    },
-    {
-      "name": "ripgrep",
-      "bucket": "main"
-    },
-    {
-      "name": "rustup",
-      "bucket": "main"
-    },
-    {
-      "name": "sandboxie-plus-np",
-      "bucket": "nonportable"
-    },
-    {
-      "name": "sc-starter",
-      "bucket": "lemon"
-    },
-    {
-      "name": "scoop-search",
-      "bucket": "main"
-    },
-    {
-      "name": "sfsu",
-      "bucket": "extras"
-    },
-    {
-      "name": "sharkdp.bat",
-      "bucket": "abyss"
-    },
-    {
-      "name": "snibypassgui",
-      "bucket": "Ylemir_Scoop-Bucket"
-    },
-    {
-      "name": "SST.opencode",
-      "bucket": "abyss"
-    },
-    {
-      "name": "Starship.Starship",
-      "bucket": "abyss"
-    },
-    {
-      "name": "stylua",
-      "bucket": "main"
-    },
-    {
-      "name": "tacky-borders",
-      "bucket": "extras"
-    },
-    {
-      "name": "television",
-      "bucket": "extras"
-    },
-    {
-      "name": "temurin17-jdk",
-      "bucket": "java"
-    },
-    {
-      "name": "temurin8-jdk",
-      "bucket": "java"
-    },
-    {
-      "name": "tinymist",
-      "bucket": "main"
-    },
-    {
-      "name": "total-uninstaller",
-      "bucket": "sdoog"
-    },
-    {
-      "name": "tree-sitter",
-      "bucket": "main"
-    },
-    {
-      "name": "twpayne.chezmoi",
-      "bucket": "abyss"
-    },
-    {
-      "name": "typst",
-      "bucket": "main"
-    },
-    {
-      "name": "typstyle",
-      "bucket": "main"
-    },
-    {
-      "name": "unzip",
-      "bucket": "main"
-    },
-    {
-      "name": "uv-portable-cn",
-      "bucket": "anderlli0053_DEV-tools"
-    },
-    {
-      "name": "viarotel.Escrcpy",
-      "bucket": "abyss"
-    },
-    {
-      "name": "voidtools.Everything",
-      "bucket": "abyss"
-    },
-    {
-      "name": "w4po.ExplorerTabUtility",
-      "bucket": "abyss"
-    },
-    {
-      "name": "websocat",
-      "bucket": "anderlli0053_DEV-tools"
-    },
-    {
-      "name": "wez.wezterm",
-      "bucket": "abyss"
-    },
-    {
-      "name": "windhawk",
-      "bucket": "extras"
-    },
-    {
-      "name": "windows-terminal",
-      "bucket": "extras"
-    },
-    {
-      "name": "wood3n.biu",
-      "bucket": "abyss"
-    },
-    {
-      "name": "wtq",
-      "bucket": "extras"
-    },
-    {
-      "name": "yazi",
-      "bucket": "main"
-    },
-    {
-      "name": "yt-dlp",
-      "bucket": "main"
-    },
-    {
-      "name": "Z-Library.Z-Library",
-      "bucket": "abyss"
-    },
-    {
-      "name": "zed-loc",
-      "bucket": "zed"
-    },
-    {
-      "name": "zerotier-np",
-      "bucket": "nonportable"
-    },
-    {
-      "name": "ZGGSONG.STranslate",
-      "bucket": "abyss"
-    },
-    {
-      "name": "zoxide",
-      "bucket": "main"
+  "scoopGroups": {
+    "bootstrap-core-cli": {
+      "title": "基础引导 CLI",
+      "description": "Scoop 后续安装链路必需的基础命令行工具",
+      "selection": "required",
+      "promptOrder": 10,
+      "installPriority": 10,
+      "buckets": {
+        "main": [
+          "7zip",
+          "aria2",
+          "git",
+          "pwsh"
+        ]
+      },
+      "packageOptions": {
+        "main": {
+          "7zip": {
+            "installPriority": 10
+          },
+          "aria2": {
+            "installPriority": 20
+          },
+          "git": {
+            "installPriority": 30
+          },
+          "pwsh": {
+            "installPriority": 40
+          }
+        }
+      }
+    },
+    "core-cli-utils": {
+      "title": "核心 CLI 工具",
+      "description": "日常必备的命令行基础工具",
+      "selection": "default",
+      "promptOrder": 20,
+      "installPriority": 20,
+      "buckets": {
+        "abyss": [
+          "eza-community.eza",
+          "itchyny.gojq",
+          "sharkdp.bat"
+        ],
+        "main": [
+          "curl",
+          "duckdb",
+          "fd",
+          "gsudo",
+          "iconv",
+          "innounp",
+          "jid",
+          "jq",
+          "less",
+          "nircmd",
+          "ripgrep",
+          "unzip",
+          "yazi",
+          "zoxide"
+        ],
+        "pamburus": [
+          "hl"
+        ]
+      }
+    },
+    "shell-workflow-cli": {
+      "title": "Shell 工作流 CLI",
+      "description": "Shell、Chezmoi、Scoop 等工作流增强工具",
+      "selection": "default",
+      "promptOrder": 30,
+      "installPriority": 30,
+      "buckets": {
+        "abyss": [
+          "abgox.PSCompletions",
+          "abgox.scoop-i18n",
+          "Cishoon.md",
+          "twpayne.chezmoi"
+        ],
+        "extras": [
+          "sfsu"
+        ],
+        "main": [
+          "direnv",
+          "scoop-search"
+        ]
+      }
+    },
+    "git-devtools-cli": {
+      "title": "Git 工作流 CLI",
+      "description": "Git 与代码托管相关命令行工具",
+      "selection": "default",
+      "promptOrder": 40,
+      "installPriority": 40,
+      "buckets": {
+        "abyss": [
+          "GitHub.cli",
+          "dinoDanic.diny"
+        ],
+        "extras": [
+          "lazygit"
+        ],
+        "main": [
+          "git-filter-repo"
+        ]
+      }
+    },
+    "build-runtime-cli": {
+      "title": "构建与运行时 CLI",
+      "description": "编译链、语言运行时与格式化工具",
+      "selection": "default",
+      "promptOrder": 50,
+      "installPriority": 50,
+      "buckets": {
+        "abyss": [
+          "jdx.mise"
+        ],
+        "anderlli0053_DEV-tools": [
+          "uv-portable-cn"
+        ],
+        "java": [
+          "temurin17-jdk",
+          "temurin8-jdk"
+        ],
+        "main": [
+          "cargo-binstall",
+          "cmake",
+          "dark",
+          "gcc",
+          "lua",
+          "luarocks",
+          "make",
+          "mingw",
+          "nodejs-lts",
+          "rustup",
+          "stylua",
+          "taplo",
+          "tree-sitter"
+        ],
+        "versions": [
+          "python312"
+        ],
+        "Ylemir_Scoop-Bucket": [
+          "envx"
+        ]
+      }
+    },
+    "file-pdf-image-cli": {
+      "title": "文件/PDF/图像 CLI",
+      "description": "文件处理、PDF 与图像命令行工具",
+      "selection": "default",
+      "promptOrder": 60,
+      "installPriority": 60,
+      "buckets": {
+        "main": [
+          "ghostscript",
+          "imagemagick",
+          "mediainfo",
+          "poppler",
+          "pandoc"
+        ]
+      }
+    },
+    "terminal-cli": {
+      "title": "终端增强 CLI",
+      "description": "终端体验增强与交互式命令行工具",
+      "selection": "default",
+      "promptOrder": 70,
+      "installPriority": 70,
+      "buckets": {
+        "abyss": [
+          "chrisant996.Clink",
+          "Clement.bottom",
+          "Starship.Starship"
+        ],
+        "extras": [
+          "television"
+        ],
+        "main": [
+          "fastfetch",
+          "fzf"
+        ]
+      }
+    },
+    "terminal-gui": {
+      "title": "终端 GUI",
+      "description": "图形终端应用",
+      "selection": "optional",
+      "promptOrder": 80,
+      "installPriority": 80,
+      "buckets": {
+        "abyss": [
+          "wez.wezterm"
+        ],
+        "extras": [
+          "windows-terminal",
+          "wtq"
+        ]
+      }
+    },
+    "input-method": {
+      "title": "输入法与输入增强",
+      "description": "输入法、文本扩展、键鼠输入增强",
+      "selection": "optional",
+      "promptOrder": 90,
+      "installPriority": 90,
+      "buckets": {
+        "abyss": [
+          "abgox.InputTip-zip",
+          "abgox.SpaceKey",
+          "amzxyz.rime_wanxiang.model",
+          "amzxyz.rime_wanxiang.moqi",
+          "Rime.Weasel"
+        ],
+        "lemon": [
+          "mousemaster"
+        ],
+        "main": [
+          "espanso"
+        ]
+      }
+    },
+    "browser-history-gui": {
+      "title": "浏览器历史工具",
+      "description": "浏览器历史查看、分析与管理工具",
+      "selection": "optional",
+      "promptOrder": 100,
+      "installPriority": 100,
+      "buckets": {
+        "abyss": [
+          "1History.1History"
+        ]
+      }
+    },
+    "browser-gui": {
+      "title": "浏览器",
+      "description": "图形浏览器应用",
+      "selection": "optional",
+      "promptOrder": 110,
+      "installPriority": 110,
+      "buckets": {
+        "abyss": [
+          "ImputNet.Helium"
+        ]
+      }
+    },
+    "window-management": {
+      "title": "窗口管理",
+      "description": "窗口管理器与窗口布局核心组件",
+      "selection": "optional",
+      "promptOrder": 120,
+      "installPriority": 120,
+      "buckets": {
+        "extras": [
+          "glazewm"
+        ]
+      }
+    },
+    "desktop-beautify-gui": {
+      "title": "桌面美化与外壳增强",
+      "description": "桌面外观、美化与系统壳层增强工具",
+      "selection": "optional",
+      "promptOrder": 130,
+      "installPriority": 130,
+      "buckets": {
+        "abyss": [
+          "AmN.yasb"
+        ],
+        "extras": [
+          "nilesoft-shell",
+          "tacky-borders",
+          "windhawk"
+        ]
+      }
+    },
+    "launcher-clipboard-gui": {
+      "title": "启动器与剪贴板",
+      "description": "启动器、剪贴板与文本效率 GUI 工具",
+      "selection": "optional",
+      "promptOrder": 140,
+      "installPriority": 140,
+      "buckets": {
+        "abyss": [
+          "EcoPaste.EcoPaste"
+        ],
+        "extras": [
+          "CopyQ",
+          "flow-launcher"
+        ]
+      }
+    },
+    "editor-cli-neovim": {
+      "title": "编辑器：Neovim",
+      "description": "Neovim CLI 路线",
+      "selection": "optional",
+      "promptOrder": 150,
+      "installPriority": 150,
+      "buckets": {
+        "main": [
+          "neovim"
+        ]
+      }
+    },
+    "editor-gui-vscode": {
+      "title": "编辑器：VS Code",
+      "description": "VS Code GUI 路线",
+      "selection": "optional",
+      "promptOrder": 160,
+      "installPriority": 160,
+      "buckets": {
+        "abyss": [
+          "Microsoft.VisualStudioCode"
+        ]
+      }
+    },
+    "editor-gui-zed": {
+      "title": "编辑器：Zed",
+      "description": "Zed GUI 路线",
+      "selection": "optional",
+      "promptOrder": 170,
+      "installPriority": 170,
+      "buckets": {
+        "zed": [
+          "zed-loc"
+        ]
+      }
+    },
+    "editor-gui-general": {
+      "title": "编辑器：其他 GUI",
+      "description": "其他图形编辑器",
+      "selection": "optional",
+      "promptOrder": 180,
+      "installPriority": 180,
+      "buckets": {
+        "ZhangTianrong_scoop-bucket": [
+          "emeditor-pro"
+        ]
+      },
+      "packageOptions": {
+        "ZhangTianrong_scoop-bucket": {
+          "emeditor-pro": {
+            "installMode": "manual",
+            "notes": "依赖 baidupcs-go / 百度网盘下载，建议手动处理"
+          }
+        }
+      }
+    },
+    "diff-merge-gui": {
+      "title": "Diff / Merge GUI",
+      "description": "图形化比较与合并工具",
+      "selection": "optional",
+      "promptOrder": 190,
+      "installPriority": 190,
+      "buckets": {
+        "abyss": [
+          "Meld.Meld"
+        ]
+      }
+    },
+    "document-typesetting": {
+      "title": "文档与排版",
+      "description": "Typst、LaTeX、Pandoc 等文档与排版工具",
+      "selection": "optional",
+      "promptOrder": 200,
+      "installPriority": 200,
+      "buckets": {
+        "anderlli0053_DEV-tools": [
+          "freetex",
+          "websocat"
+        ],
+        "dorado": [
+          "texlive-full"
+        ],
+        "lemon": [
+          "latexsnipper"
+        ],
+        "main": [
+          "tinymist",
+          "typst",
+          "typstyle"
+        ]
+      },
+      "packageOptions": {
+        "anderlli0053_DEV-tools": {
+          "freetex": {
+            "selection": "optional"
+          },
+          "websocat": {
+            "selection": "optional",
+            "notes": "typst preview / neovim 插件依赖，仅在启用预览链路时安装"
+          }
+        },
+        "dorado": {
+          "texlive-full": {
+            "selection": "optional",
+            "installMode": "manual"
+          }
+        },
+        "lemon": {
+          "latexsnipper": {
+            "selection": "optional",
+            "installMode": "manual"
+          }
+        }
+      }
+    },
+    "translation-ocr-gui": {
+      "title": "翻译与 OCR",
+      "description": "翻译器、OCR 与文本理解 GUI 工具",
+      "selection": "optional",
+      "promptOrder": 210,
+      "installPriority": 210,
+      "buckets": {
+        "abyss": [
+          "ZGGSONG.STranslate"
+        ],
+        "extras": [
+          "lunatranslator"
+        ]
+      }
+    },
+    "ai-tooling-cli": {
+      "title": "AI 工具链 CLI",
+      "description": "面向 AI / LLM 的命令行工具与代理",
+      "selection": "optional",
+      "promptOrder": 220,
+      "installPriority": 220,
+      "buckets": {
+        "abyss": [
+          "SST.opencode"
+        ],
+        "anderlli0053_DEV-tools": [
+          "faster-whisper-xxl",
+          "hfd"
+        ],
+        "YewFence_YewNursery": [
+          "CLIProxyAPI"
+        ],
+        "Ylemir_Scoop-Bucket": [
+          "intelli-shell"
+        ]
+      }
+    },
+    "ai-tooling-gui": {
+      "title": "AI 工具链 GUI",
+      "description": "面向 AI / LLM 的图形工具",
+      "selection": "optional",
+      "promptOrder": 230,
+      "installPriority": 230,
+      "buckets": {
+        "abyss": [
+          "legeling.PromptHub"
+        ],
+        "jam": [
+          "cherry-studio"
+        ]
+      }
+    },
+    "media-playback-gui": {
+      "title": "媒体播放 / 媒体库",
+      "description": "媒体播放、媒体库与内容消费 GUI 工具",
+      "selection": "optional",
+      "promptOrder": 240,
+      "installPriority": 240,
+      "buckets": {
+        "abyss": [
+          "5rahim.Seanime",
+          "lyswhut.lx-music-desktop",
+          "wood3n.biu"
+        ],
+        "anderlli0053_DEV-tools": [
+          "mpv-handler"
+        ],
+        "jam": [
+          "mpv-config"
+        ]
+      }
+    },
+    "download-transfer-cli": {
+      "title": "下载 / 传输 CLI",
+      "description": "下载与传输命令行工具",
+      "selection": "optional",
+      "promptOrder": 250,
+      "installPriority": 250,
+      "buckets": {
+        "anderlli0053_DEV-tools": [
+          "BaiduPCS-Go"
+        ],
+        "main": [
+          "yt-dlp"
+        ]
+      }
+    },
+    "download-transfer-gui": {
+      "title": "下载 / 传输 GUI",
+      "description": "下载器、BT 与图形传输工具",
+      "selection": "optional",
+      "promptOrder": 260,
+      "installPriority": 260,
+      "buckets": {
+        "abyss": [
+          "agalwood.Motrix"
+        ],
+        "extras": [
+          "qbittorrent-enhanced",
+          "kopiaui"
+        ]
+      }
+    },
+    "network-cli": {
+      "title": "网络 / 代理 CLI",
+      "description": "网络、代理与远程相关命令行工具",
+      "selection": "optional",
+      "promptOrder": 270,
+      "installPriority": 270,
+      "buckets": {
+        "main": [
+          "mihomo"
+        ]
+      }
+    },
+    "network-gui": {
+      "title": "网络 / 代理 GUI",
+      "description": "网络、代理与远程相关图形工具",
+      "selection": "optional",
+      "promptOrder": 280,
+      "installPriority": 280,
+      "buckets": {
+        "abyss": [
+          "ClashVergeRev.ClashVergeRev",
+          "oldj.switchhosts"
+        ],
+        "nonportable": [
+          "zerotier-np"
+        ],
+        "Ylemir_Scoop-Bucket": [
+          "snibypassgui"
+        ]
+      },
+      "packageOptions": {
+        "nonportable": {
+          "zerotier-np": {
+            "requiresAdmin": true
+          }
+        }
+      }
+    },
+    "office-gui": {
+      "title": "办公工具",
+      "description": "办公生产力 GUI 应用",
+      "selection": "optional",
+      "promptOrder": 290,
+      "installPriority": 290,
+      "buckets": {
+        "extras": [
+          "libreoffice"
+        ]
+      }
+    },
+    "reading-gui": {
+      "title": "阅读工具",
+      "description": "阅读器与文档消费 GUI 工具",
+      "selection": "optional",
+      "promptOrder": 300,
+      "installPriority": 300,
+      "buckets": {
+        "abyss": [
+          "Z-Library.Z-Library"
+        ]
+      }
+    },
+    "fonts": {
+      "title": "字体",
+      "description": "字体包",
+      "selection": "optional",
+      "promptOrder": 310,
+      "installPriority": 310,
+      "buckets": {
+        "nerd-fonts": [
+          "JetBrainsMono-NF",
+          "LXGWWenKaiMonoGB"
+        ]
+      }
+    },
+    "security-cli": {
+      "title": "安全 CLI",
+      "description": "安全与密码管理命令行工具",
+      "selection": "optional",
+      "promptOrder": 320,
+      "installPriority": 320,
+      "buckets": {
+        "main": [
+          "bitwarden-cli"
+        ]
+      }
+    },
+    "security-auth-gui": {
+      "title": "认证与密码 GUI",
+      "description": "密码管理、认证与 2FA GUI 工具",
+      "selection": "optional",
+      "promptOrder": 330,
+      "installPriority": 330,
+      "buckets": {
+        "extras": [
+          "ente-auth",
+          "keepassxc"
+        ]
+      }
+    },
+    "system-isolation-gui": {
+      "title": "系统隔离",
+      "description": "沙箱与系统隔离 GUI 工具",
+      "selection": "optional",
+      "promptOrder": 340,
+      "installPriority": 340,
+      "buckets": {
+        "nonportable": [
+          "sandboxie-plus-np"
+        ]
+      },
+      "packageOptions": {
+        "nonportable": {
+          "sandboxie-plus-np": {
+            "requiresAdmin": true
+          }
+        }
+      }
+    },
+    "system-utils-gui": {
+      "title": "系统工具 GUI",
+      "description": "系统维护、资源管理与系统辅助 GUI 工具",
+      "selection": "optional",
+      "promptOrder": 350,
+      "installPriority": 350,
+      "buckets": {
+        "abyss": [
+          "AlexanderPro.SmartContextMenu",
+          "voidtools.Everything",
+          "w4po.ExplorerTabUtility"
+        ],
+        "anderlli0053_DEV-tools": [
+          "logi-options-plus-mini",
+          "regjump"
+        ],
+        "extras": [
+          "archwsl",
+          "bleachbit",
+          "fancontrol"
+        ],
+        "lemon": [
+          "sc-starter"
+        ],
+        "maqibg_MQBucket": [
+          "keyStats"
+        ],
+        "nonportable": [
+          "file-converter-np",
+          "icaros-np"
+        ],
+        "sdoog": [
+          "revo-uninstaller",
+          "total-uninstaller"
+        ]
+      },
+      "packageOptions": {
+        "anderlli0053_DEV-tools": {
+          "logi-options-plus-mini": {
+            "requiresAdmin": true
+          }
+        },
+        "extras": {
+          "archwsl": {
+            "selection": "optional",
+            "requiresAdmin": true
+          },
+          "fancontrol": {
+            "requiresAdmin": true
+          }
+        },
+        "nonportable": {
+          "file-converter-np": {
+            "requiresAdmin": true
+          },
+          "icaros-np": {
+            "requiresAdmin": true
+          }
+        }
+      }
+    },
+    "messaging-rss-gui": {
+      "title": "通信 / RSS GUI",
+      "description": "邮件、RSS 与通信类 GUI 应用",
+      "selection": "optional",
+      "promptOrder": 360,
+      "installPriority": 360,
+      "buckets": {
+        "abyss": [
+          "Ch3nyang.MrRSS",
+          "Foundry376.Mailspring",
+          "MilkShift.GoofCord",
+          "HuLaSpark.HuLa"
+        ]
+      },
+      "packageOptions": {
+        "abyss": {
+          "HuLaSpark.HuLa": {
+            "selection": "optional"
+          }
+        }
+      }
+    },
+    "device-connectivity-gui": {
+      "title": "设备互联",
+      "description": "移动设备与局域网互联 GUI 工具",
+      "selection": "optional",
+      "promptOrder": 370,
+      "installPriority": 370,
+      "buckets": {
+        "abyss": [
+          "LocalSend.LocalSend",
+          "viarotel.Escrcpy"
+        ]
+      }
     }
-  ],
+  },
   "fonts": [],
   "powershellModules": [],
   "doppler": {},
@@ -659,14 +801,5 @@
       "id": "9PDH8M7HF2SQ",
       "source": "msstore"
     }
-  ],
-  "optional": {
-    "scoopBuckets": [],
-    "scoopTools": [
-      {
-        "name": "texlive-full",
-        "bucket": "dorado"
-      }
-    ]
-  }
+  ]
 }
