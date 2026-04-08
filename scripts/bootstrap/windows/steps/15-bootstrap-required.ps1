@@ -9,7 +9,7 @@ Write-Step "Installing Required Scoop Groups"
 
 # 说明：
 #   这一步只处理 scoopGroups 中 selection = required 的组。
-#   它的目标是尽早装好 bootstrap 后续真正依赖的工具链，例如：
+#   目标是尽早装好 bootstrap 后续真正依赖的工具链，例如：
 #     - git
 #     - pwsh
 #     - chezmoi
@@ -31,6 +31,10 @@ if ($null -eq $windowsPackages) {
 Assert-ManifestHasScoopGroups -WindowsPackages $windowsPackages
 
 function Get-ObjectPropValue {
+    <#
+    .SYNOPSIS
+        安全读取对象属性，属性不存在时返回 fallback。
+    #>
     param(
         [object]$Object,
         [string]$Name,
@@ -45,6 +49,10 @@ function Get-ObjectPropValue {
 }
 
 function Get-RequiredGroupObjects {
+    <#
+    .SYNOPSIS
+        从 manifest.scoopGroups 中筛出 selection = required 的组。
+    #>
     param(
         [Parameter(Mandatory = $true)]
         [object]$Manifest
@@ -81,6 +89,14 @@ function Get-RequiredGroupObjects {
 }
 
 function Get-RequiredGroupPackageSpecs {
+    <#
+    .SYNOPSIS
+        展开 required 组下的 bucket/package 列表，并合并 packageOptions。
+    .DESCRIPTION
+        对 required group 来说：
+          - 包级 selection=optional => 本阶段跳过，留给后续更细的交互逻辑
+          - 包级 selection 未写 / required / default => 本阶段安装
+    #>
     param(
         [Parameter(Mandatory = $true)]
         [object]$Group
@@ -129,17 +145,17 @@ function Get-RequiredGroupPackageSpecs {
             $packageRef = if ($bucketName -and $bucketName -ne "main") { "$bucketName/$packageName" } else { $packageName }
 
             $specs += [PSCustomObject]@{
-                GroupId            = $Group.Id
-                GroupTitle         = $Group.Title
+                GroupId              = $Group.Id
+                GroupTitle           = $Group.Title
                 GroupInstallPriority = [int]$Group.InstallPriority
-                Bucket             = $bucketName
-                Name               = $packageName
-                PackageRef         = $packageRef
-                Selection          = $packageSelection
-                InstallMode        = $installMode
-                InstallPriority    = $packagePriority
-                RequiresAdmin      = $requiresAdmin
-                Notes              = $notes
+                Bucket               = $bucketName
+                Name                 = $packageName
+                PackageRef           = $packageRef
+                Selection            = $packageSelection
+                InstallMode          = $installMode
+                InstallPriority      = $packagePriority
+                RequiresAdmin        = $requiresAdmin
+                Notes                = $notes
             }
         }
     }
@@ -163,11 +179,13 @@ foreach ($group in $requiredGroups) {
     }
 }
 
-$hadPwshBefore = Test-CommandExists "pwsh"
-$runningInsidePwsh = ($PSVersionTable.PSEdition -eq "Core")
+$hadPwshBefore   = Test-CommandExists "pwsh"
+$runningInPwsh7  = ($PSVersionTable.PSEdition -eq "Core")
 
-$plannedPackages = [System.Collections.Generic.HashSet[string]]::new([System.StringComparer]::OrdinalIgnoreCase)
-$manualPackages  = New-Object System.Collections.Generic.List[object]
+# 用普通 hashtable / array，避免强类型集合在 Windows PowerShell 5.1 下触发类型绑定问题
+$plannedPackages = @{}
+$manualPackages  = @()
+$installResults  = @()
 
 foreach ($group in $requiredGroups) {
     Write-Host ""
@@ -180,15 +198,15 @@ foreach ($group in $requiredGroups) {
     }
 
     foreach ($pkg in $packageSpecs) {
-        if ($plannedPackages.Contains($pkg.PackageRef)) {
+        if ($plannedPackages.ContainsKey($pkg.PackageRef)) {
             Write-Host ("    Skip duplicate package: {0}" -f $pkg.PackageRef) -ForegroundColor DarkGray
             continue
         }
 
-        [void]$plannedPackages.Add($pkg.PackageRef)
+        $plannedPackages[$pkg.PackageRef] = $true
 
         if ($pkg.InstallMode -eq "manual") {
-            [void]$manualPackages.Add($pkg)
+            $manualPackages += $pkg
             Write-Warn "Manual package skipped: $($pkg.PackageRef)"
             if ($pkg.Notes) {
                 Write-Host ("      {0}" -f $pkg.Notes) -ForegroundColor DarkGray
@@ -196,16 +214,17 @@ foreach ($group in $requiredGroups) {
             continue
         }
 
-        Install-ScoopApp -App $pkg.Name -Bucket $pkg.Bucket
+        $installResult = Install-ScoopApp -App $pkg.Name -Bucket $pkg.Bucket
+        $installResults += $installResult
     }
 }
 
-# 新装了 pwsh 后刷新 PATH，确保同一会话能探测到它。
+# 新装了 pwsh 后刷新 PATH，确保同一会话能探测到它
 Update-PathEnvironment
 
 $hasPwshAfter = Test-CommandExists "pwsh"
 
-if (-not $hadPwshBefore -and $hasPwshAfter -and -not $runningInsidePwsh) {
+if (-not $hadPwshBefore -and $hasPwshAfter -and -not $runningInPwsh7) {
     Write-Host "`n============================================================" -ForegroundColor Green
     Write-Host "  ✓  PowerShell 7 installed successfully!" -ForegroundColor Green
     Write-Host "============================================================" -ForegroundColor Green
@@ -225,5 +244,7 @@ if ($manualPackages.Count -gt 0) {
         }
     }
 }
+
+Write-ScoopPackageHints -InstallResults @($installResults)
 
 Write-OK "Required Scoop groups installed"
