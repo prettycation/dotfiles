@@ -34,6 +34,7 @@ input {
     touchpad {
         // off // 完全禁用触摸板
         tap // 启用轻触点击
+        disabled-on-external-mouse // 连接外部鼠标时禁用触摸板
         // dwt // 打字时禁用触摸板 (Disable While Typing)
         // dwtp // 打字时禁用触摸板并忽略指针移动
         // drag false // 禁用拖动
@@ -226,7 +227,7 @@ hotkey-overlay {
 // 如果客户端特别要求 CSD, 该请求将被尊重。
 // 此外, 客户端将被告知它们是平铺的, 这会移除一些客户端的圆角。
 // 启用或禁用此选项后, 您需要重启应用程序才能生效。
-// prefer-no-csd
+prefer-no-csd
 
 // 您可以更改截图保存的路径。
 // 开头的 ~ 会被扩展为家目录。
@@ -250,11 +251,11 @@ animations {
 // 在 Wiki 上查找更多信息:
 // https://yalter.github.io/niri/Configuration:-Window-Rules
 // -------------------------------------------------------------------
-window-rule {
-    // 这是一个为 WezTerm 绕过其初始配置错误的示例。
-    match app-id=r#"^org\.wezfurlong\.wezterm$"#
-    default-column-width {}
-}
+// window-rule {
+//     // 这是一个为 WezTerm 绕过其初始配置错误的示例。
+//     match app-id=r#"^org\.wezfurlong\.wezterm$"#
+//     default-column-width {}
+// }
 window-rule {
     // 默认将 Firefox 的画中画播放器设为浮动窗口。
     match app-id=r#"firefox$"# title="^Picture-in-Picture$"
