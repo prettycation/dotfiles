@@ -9,6 +9,7 @@
 # non-darwin / darwin
 {{- if ne .chezmoi.os "darwin" }}
 .chezmoiscripts/darwin/**
+.chezmoidata/darwin/**
 .config/aerospace/**
 .config/homebrew/**
 .hammerspoon/**
@@ -23,6 +24,7 @@
 .config/gtk-4.0/**
 .config/fcitx5/**
 .chezmoiscripts/linux/**
+.chezmoidata/linux/**
 .hushlogin
 .local/bin/nvim/**
 .local/share/fonts/**
@@ -32,6 +34,7 @@
 {{- if ne .chezmoi.os "windows" }}
 AppData/**
 .chezmoiscripts/windows/**
+.chezmoidata/windows/**
 Documents/**
 .config/nvim/lua/plugins/preview/smear-cursor.lua
 .config/tacky-borders/**
