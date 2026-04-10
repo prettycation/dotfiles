@@ -174,13 +174,10 @@ keybindings:
   # 1. 启动终端 (Alt+T)
   # - commands: ["shell-exec wt"]
   - commands:
-      ["shell-exec %SCOOP%/apps/wez.wezterm/current/app/wezterm-gui.exe"]
+      ["shell-exec %SCOOP%/apps/wezterm-nightly/current/wezterm-gui.exe"]
     bindings: ["alt+t"]
 
   # 2. 应用启动器: 使用 Flow Launcher 自身设置的 Alt+Space
-  # 打开文件资源管理器
-  - commands: ["shell-exec explorer"]
-    bindings: ["alt+shift+e"]
 
   # 3. 切换窗口焦点 (Alt + hjkl/左右方向键)
   - commands: ["focus --direction left"]
