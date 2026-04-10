@@ -252,6 +252,19 @@
         ]
       }
     },
+    "fonts": {
+      "title": "字体",
+      "description": "字体包",
+      "selection": "optional",
+      "promptOrder": 75,
+      "installPriority": 75,
+      "buckets": {
+        "nerd-fonts": [
+          "JetBrainsMono-NF",
+          "LXGWWenKaiMonoGB"
+        ]
+      }
+    },
     "terminal-gui": {
       "title": "终端 GUI",
       "description": "图形终端应用",
@@ -259,12 +272,12 @@
       "promptOrder": 80,
       "installPriority": 80,
       "buckets": {
-        "abyss": [
-          "wez.wezterm"
-        ],
         "extras": [
           "windows-terminal",
           "wtq"
+        ],
+        "versions": [
+          "wezterm-nightly"
         ]
       }
     },
@@ -287,18 +300,6 @@
         ],
         "main": [
           "espanso"
-        ]
-      }
-    },
-    "browser-history-gui": {
-      "title": "浏览器历史工具",
-      "description": "浏览器历史查看、分析与管理工具",
-      "selection": "optional",
-      "promptOrder": 100,
-      "installPriority": 100,
-      "buckets": {
-        "abyss": [
-          "1History.1History"
         ]
       }
     },
@@ -351,7 +352,8 @@
       "installPriority": 140,
       "buckets": {
         "abyss": [
-          "EcoPaste.EcoPaste"
+          "EcoPaste.EcoPaste",
+          "voidtools.Everything"
         ],
         "extras": [
           "CopyQ",
@@ -518,9 +520,6 @@
       "promptOrder": 230,
       "installPriority": 230,
       "buckets": {
-        "abyss": [
-          "legeling.PromptHub"
-        ],
         "jam": [
           "cherry-studio"
         ]
@@ -635,20 +634,8 @@
       "installPriority": 300,
       "buckets": {
         "abyss": [
-          "Z-Library.Z-Library"
-        ]
-      }
-    },
-    "fonts": {
-      "title": "字体",
-      "description": "字体包",
-      "selection": "optional",
-      "promptOrder": 310,
-      "installPriority": 310,
-      "buckets": {
-        "nerd-fonts": [
-          "JetBrainsMono-NF",
-          "LXGWWenKaiMonoGB"
+          "Z-Library.Z-Library",
+          "PDFgear.PDFgear"
         ]
       }
     },
@@ -705,7 +692,6 @@
       "buckets": {
         "abyss": [
           "AlexanderPro.SmartContextMenu",
-          "voidtools.Everything",
           "w4po.ExplorerTabUtility"
         ],
         "anderlli0053_DEV-tools": [
@@ -719,9 +705,6 @@
         ],
         "lemon": [
           "sc-starter"
-        ],
-        "maqibg_MQBucket": [
-          "keyStats"
         ],
         "nonportable": [
           "file-converter-np",
@@ -777,6 +760,22 @@
             "selection": "optional"
           }
         }
+      }
+    },
+    "work-time-gui": {
+      "title": "应用使用统计",
+      "description": "工作、日常时长/频率统计应用",
+      "selection": "optional",
+      "promptOrder": 365,
+      "installPriority": 365,
+      "buckets": {
+        "abyss": [
+          "1History.1History",
+          "WINBIGFOX.TimeScribe"
+        ],
+        "maqibg_MQBucket": [
+          "keyStats"
+        ]
       }
     },
     "device-connectivity-gui": {
