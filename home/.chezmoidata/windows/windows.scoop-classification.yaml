@@ -338,6 +338,17 @@ scoopClassification:
         extras:
           - television
 
+    fonts:
+      title: 字体
+      description: 字体包
+      selection: optional
+      promptOrder: 75
+      installPriority: 75
+      buckets:
+        nerd-fonts:
+          - JetBrainsMono-NF
+          - LXGWWenKaiMonoGB
+
     terminal-gui:
       title: 终端 GUI
       description: 图形终端应用
@@ -350,6 +361,8 @@ scoopClassification:
         extras:
           - windows-terminal
           - wtq
+        versions:
+          - wezterm-nightly
 
     input-method:
       title: 输入法与输入增强
@@ -368,16 +381,6 @@ scoopClassification:
           - Rime.Weasel
         lemon:
           - mousemaster
-
-    browser-history-gui:
-      title: 浏览器历史工具
-      description: 浏览器历史查看、分析与管理工具
-      selection: optional
-      promptOrder: 100
-      installPriority: 100
-      buckets:
-        abyss:
-          - 1History.1History
 
     browser-gui:
       title: 浏览器
@@ -422,6 +425,7 @@ scoopClassification:
       buckets:
         abyss:
           - EcoPaste.EcoPaste
+          - voidtools.Everything
         extras:
           - CopyQ
           - flow-launcher
@@ -621,17 +625,7 @@ scoopClassification:
       buckets:
         abyss:
           - Z-Library.Z-Library
-
-    fonts:
-      title: 字体
-      description: 字体包
-      selection: optional
-      promptOrder: 310
-      installPriority: 310
-      buckets:
-        nerd-fonts:
-          - JetBrainsMono-NF
-          - LXGWWenKaiMonoGB
+          - PDFgear.PDFgear
 
     security-cli:
       title: 安全 CLI
@@ -673,7 +667,6 @@ scoopClassification:
       buckets:
         abyss:
           - AlexanderPro.SmartContextMenu
-          - voidtools.Everything
           - w4po.ExplorerTabUtility
         extras:
           - archwsl
@@ -685,8 +678,6 @@ scoopClassification:
         anderlli0053_DEV-tools:
           - logi-options-plus-mini
           - regjump
-        maqibg_MQBucket:
-          - keyStats
         sdoog:
           - revo-uninstaller
           - total-uninstaller
@@ -705,6 +696,19 @@ scoopClassification:
           - Foundry376.Mailspring
           - MilkShift.GoofCord
           - HuLaSpark.HuLa
+
+    work-time-gui/cli:
+      title: 应用使用统计
+      description: 工作、日常时长/频率统计应用
+      selection: optional
+      promptOrder: 365
+      installPriority: 365
+      buckets:
+        abyss:
+          - 1History.1History
+          - WINBIGFOX.TimeScribe
+        maqibg_MQBucket:
+          - keyStats
 
     device-connectivity-gui:
       title: 设备互联
