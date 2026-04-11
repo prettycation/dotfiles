@@ -17,7 +17,7 @@ input {
             // 示例:
             // layout "us,ru" // 设置美式和俄语两种键盘布局
             // options "grp:win_space_toggle,compose:ralt,ctrl:nocaps" // Win+Space切换布局, 右Alt作Compose键, CapsLock作Ctrl
-            options "caps:swapescape"
+            // options "caps:swapescape"
 
             // 如果此部分为空, niri 将从 org.freedesktop.locale1 获取 xkb 设置。
             // 您可以使用 `localectl set-x11-keymap` 来控制这些设置。

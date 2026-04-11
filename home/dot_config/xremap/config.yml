@@ -1,0 +1,7 @@
+modmap:
+  - name: swap caps and esc
+    device:
+      only: ["AT Translated Set 2 keyboard"]
+    remap:
+      CapsLock: Esc
+      Esc: CapsLock
