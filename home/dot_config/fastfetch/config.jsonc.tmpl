@@ -1,32 +1,99 @@
+{{- $isWindows := eq .chezmoi.os "windows" -}}
+{{- $isLinux := eq .chezmoi.os "linux" -}}
+{{- $isDarwin := eq .chezmoi.os "darwin" -}}
+
+{{- /* Catppuccin Mocha 调色板：集中定义，后面统一引用 */ -}}
+{{- $rosewater := "#F5E0DC" -}}
+{{- $flamingo := "#F2CDCD" -}}
+{{- $pink := "#F5C2E7" -}}
+{{- $peach := "#FAB387" -}}
+{{- $yellow := "#F9E2AF" -}}
+{{- $green := "#A6E3A1" -}}
+{{- $teal := "#94E2D5" -}}
+{{- $sky := "#89DCEB" -}}
+{{- $blue := "#89B4FA" -}}
+{{- $lavender := "#B4BEFE" -}}
+{{- $mauve := "#CBA6F7" -}}
+{{- $text := "#CDD6F4" -}}
+
+{{- /* ANSI 颜色：给 {#...} 和 display.constants 用 */ -}}
+{{- $mauveAnsi := "38;2;203;166;247" -}}
+{{- $pinkAnsi := "38;2;245;194;231" -}}
+{{- $lavenderAnsi := "38;2;180;190;254" -}}
+{{- $blueAnsi := "38;2;137;180;250" -}}
+{{- $skyAnsi := "38;2;137;220;235" -}}
+{{- $tealAnsi := "38;2;148;226;213" -}}
+{{- $greenAnsi := "38;2;166;227;161" -}}
+
+{{- /* 右边大方框：纯色，不使用渐变 */ -}}
+{{- $borderAnsi := $lavenderAnsi -}}
+
+{{- /* 平台相关变量 */ -}}
+{{- $logoType := "kitty-direct" -}}
+{{- $osIcon := "" -}}
+{{- /* 右边内容区宽度：28 列 */ -}}
+{{- $valueWidth := 28 -}}
+{{- /* 双方框 */ -}}
+{{- $rightTop := printf "{#%s}╭────────────────────────────╮{#}" $borderAnsi -}}
+{{- $rightBottom := printf "{#%s}╰────────────────────────────╯{#}" $borderAnsi -}}
+{{- if $isWindows -}}
+  {{- $logoType = "file" -}}
+  {{- $osIcon = "" -}}
+  {{- $valueWidth = 36 -}}
+  {{- $rightTop = printf "{#%s}╭────────────────────────────────────╮{#}" $borderAnsi -}}
+  {{- $rightBottom = printf "{#%s}╰────────────────────────────────────╯{#}" $borderAnsi -}}
+{{- else if $isDarwin -}}
+  {{- $osIcon = "" -}}
+{{- end -}}
+
+{{- /* 双方框布局常量 */ -}}
+{{- $leftTop := printf "{#%s}╭───╮{#} " $mauveAnsi -}}
+{{- $leftBottom := printf "{#%s}╰───╯{#} " $tealAnsi -}}
+{{- $rightBars := printf "\\u001b[%sm│\\u001b[s\\u001b[%dC│\\u001b[u\\u001b[39m" $borderAnsi $valueWidth -}}
+
+{{- /* 左边小方框：边框和图标都按图片从上到下的颜色顺序来 */ -}}
+{{- $osKey := printf "{#%s}│ {#%s}%s{#%s} │{#} " $mauveAnsi $mauveAnsi $osIcon $mauveAnsi -}}
+{{- $kernelKey := printf "{#%s}│ {#%s}{#%s} │{#} " $pinkAnsi $pinkAnsi $pinkAnsi -}}
+{{- $updateKey := printf "{#%s}│ {#%s}󱎫{#%s} │{#} " $pinkAnsi $pinkAnsi $pinkAnsi -}}
+{{- $shellKey := printf "{#%s}│ {#%s}{#%s} │{#} " $lavenderAnsi $lavenderAnsi $lavenderAnsi -}}
+{{- $displayKey := printf "{#%s}│ {#%s}󰹑{#%s} │{#} " $blueAnsi $blueAnsi $blueAnsi -}}
+{{- $wmKey := printf "{#%s}│ {#%s}{#%s} │{#} " $blueAnsi $blueAnsi $blueAnsi -}}
+{{- $cpuKey := printf "{#%s}│ {#%s}{#%s} │{#} " $skyAnsi $skyAnsi $skyAnsi -}}
+{{- $gpuKey := printf "{#%s}│ {#%s}󰢮{#%s} │{#} " $skyAnsi $skyAnsi $skyAnsi -}}
+{{- $boardKey := printf "{#%s}│ {#%s}󰚗{#%s} │{#} " $blueAnsi $blueAnsi $blueAnsi -}}
+{{- $memoryKey := printf "{#%s}│ {#%s}{#%s} │{#} " $tealAnsi $tealAnsi $tealAnsi -}}
+{{- $diskKey := printf "{#%s}│ {#%s}{#%s} │{#} " $tealAnsi $tealAnsi $tealAnsi -}}
+
 {
   // 提供自动补全和语法验证。
   "$schema": "https://github.com/fastfetch-cli/fastfetch/raw/dev/doc/json_schema.json",
   // 定义左侧显示的 ASCII 艺术
   "logo": {
-    {{- if eq .chezmoi.os "windows" }}
-    // 从本地文件加载
-    "type": "file",
-    // ASCII 艺术文件的绝对路径。
+    // Windows 使用 ASCII 艺术，Linux 和 Darwin 使用图片 (Kitty 协议)
+    "type": "{{ $logoType }}",
+
+    {{- if $isWindows }}
+    // 图片文件的绝对路径。
     "source": "~/.config/fastfetch/ascii.txt",
     {{- else }}
-    // Linux 和 Darwin 使用图片 (Kitty 协议)
-    "type": "kitty",
     // 图片文件的绝对路径。
-    "source": "~/.config/fastfetch/mfy.png",
-    "width": 20,
-    "height": 12,
+    "source": "~/.config/fastfetch/catppuccin-gradient.png",
+    "width": 21,
+    "height": 15,
     {{- end }}
     // 这些颜色来自 Catppuccin Mocha 调色板。
+    // 对 kitty / kitty-direct 图片 logo 来说，这里不会重新给 PNG 染色；
+    // 但保留集中定义的引用没有问题。
     "color": {
-      "1": "#F5E0DC",
-      "2": "#F2CDCD",
-      "3": "#F5C2E7",
-      "4": "#FAB387",
-      "5": "#F9E2AF",
-      "6": "#A6E3A1",
-      "7": "#94E2D5",
-      "8": "#89DCEB",
-      "9": "#74C7EC"
+      "1": "{{ $rosewater }}",
+      "2": "{{ $flamingo }}",
+      "3": "{{ $pink }}",
+      "4": "{{ $peach }}",
+      "5": "{{ $yellow }}",
+      "6": "{{ $green }}",
+      "7": "{{ $teal }}",
+      "8": "{{ $sky }}",
+      "9": "{{ $blue }}"
     },
     // "padding" 在 Logo 周围添加额外的空白，用于调整布局。
     "padding": {
@@ -37,101 +104,131 @@
   // "display" 部分控制信息模块的通用显示格式。
   "display": {
     // "separator" 定义了模块的“键”（如图标）和“值”（如操作系统名称）之间的分隔符。
-    "separator": " "
+    "separator": "",
+    "disableLinewrap": true,
+    "key": {
+      "width": 0
+    },
+    // constants 是可复用字符串，在 format 里通过 {$1} 引用。
+    // 这里用保存/恢复光标位置的方式画右边大方框的竖线。
+    "constants": [
+      "{{ $rightBars }}"
+    ]
   },
   // "modules" 是一个数组，定义了要显示哪些信息模块，以及它们的顺序和样式。
   "modules": [
     // "break" 是一个特殊模块，只用于插入一个空行，以增加垂直间距。
     "break",
+    {{- if $isWindows }}
+    "break",
+    {{- end }}
     // "title" 模块，显示 "user@hostname" 格式的标题。
     {
       "type": "title",
       "color": {
-        "user": "#F5C2E7", // 用户名的颜色
-        "at": "#CDD6F4", // "@" 符号的颜色
-        "host": "#89DCEB" // 主机名的颜色
+        "user": "{{ $mauve }}", // 用户名的颜色
+        "at": "{{ $text }}", // "@" 符号的颜色
+        "host": "{{ $pink }}" // 主机名的颜色
       }
     },
+    // 让双方框整体下移一些
     "break",
+
+    // 双方框顶部
+    {
+      "type": "custom",
+      "key": "{{ $leftTop }}",
+      "format": "{{ $rightTop }}"
+    },
+
     // "os" 模块，显示操作系统信息。
     {
       "type": "os",
-      "key": "{{ if eq .chezmoi.os "windows" }}{{ else if eq .chezmoi.os "darwin" }}{{ else }}{{ end }}", // 使用 Nerd Font 图标作为键。
-      "keyColor": "#89DCEB" // 图标的颜色。
+      "key": "{{ $osKey }}", // 使用 Nerd Font 图标作为键。
+      "format": "{$1}{pretty-name} [{arch}]"
     },
+
     {{- if ne .chezmoi.os "windows" }}
     // Linux/Darwin 专有信息：内核版本
     {
       "type": "kernel",
-      "key": "",
-      "keyColor": "#FAB387"
+      "key": "{{ $kernelKey }}",
+      "format": "{$1}{sysname} {release}"
     },
-    {{- if eq .chezmoi.os "linux" }}
+    {{-   if $isLinux -}}
     // Linux 专有信息：内核更新时间
     {
       "type": "command",
-      "key": "󱎫",
-      "keyColor": "#F9E2AF",
+      "key": "{{ $updateKey }}",
       "shell": "zsh",
       // 获取内核文件修改时间与当前时间的差值（天）
-      "text": "last_mod=$(stat -c %Y /boot/vmlinuz-linux 2>/dev/null || stat -c %Y /boot/vmlinuz-linux-lts); now=$(date +%s); days=$(( (now - last_mod) / 86400 )); if [ $days -eq 0 ]; then echo \"Last updated today\"; elif [ $days -eq 1 ]; then echo \"Last updated 1 day ago\"; else echo \"Last updated $days days ago\"; fi"
+      "text": "last_mod=$(stat -c %Y /boot/vmlinuz-linux 2>/dev/null || stat -c %Y /boot/vmlinuz-linux-lts); now=$(date +%s); days=$(( (now - last_mod) / 86400 )); if [ $days -eq 0 ]; then echo \"Last updated today\"; elif [ $days -eq 1 ]; then echo \"Last updated 1 day ago\"; else echo \"Last updated $days days ago\"; fi",
+      "format": "{$1}{result}"
     },
-    {{- end }}
+    {{-   end }}
     // Linux/Darwin 专有信息：当前使用的 Shell
     {
       "type": "shell",
-      "key": "",
-      "keyColor": "#A6E3A1"
+      "key": "{{ $shellKey }}",
+      "format": "{$1}{exe-name} [v{version}]"
     },
     // Linux 专有信息：显示协议与分辨率 (Wayland/X11)
     {
       "type": "display",
-      "key": "󰹑",
-      "keyColor": "#94E2D5"
+      "key": "{{ $displayKey }}",
+      "format": "{$1}{width}x{height} @ {refresh-rate}"
     },
     // Linux 专有信息：桌面环境 (DE) 或 窗口管理器 (WM/合成器如 Niri)
     {
       "type": "wm",
-      "key": "",
-      "keyColor": "#89DCEB"
+      "key": "{{ $wmKey }}",
+      "format": "{$1}{pretty-name}"
     },
     {{- end }}
+
     // "cpu" 模块，显示 CPU 信息。
     {
       "type": "cpu",
-      "key": "", // CPU 的 Nerd Font 图标。
-      "keyColor": "#F5C2E7"
+      "key": "{{ $cpuKey }}", // CPU 的 Nerd Font 图标。
+      "format": "{$1}{name}"
     },
-    {{- if eq .chezmoi.os "linux" }}
-    // Linux 专有信息：显卡信息 (GPU)
+
+    // 显卡信息 (GPU)
     {
       "type": "gpu",
-      "key": "󰢮",
-      "keyColor": "#FAB387"
+      "key": "{{ $gpuKey }}",
+      "format": "{$1}{name}"
     },
-    {{- end }}
-    {{- if eq .chezmoi.os "windows" }}
+    {{- if $isWindows -}}
     // "board" 模块，显示主板信息。
     {
       "type": "board",
-      "key": "󰚗", // 主板的 Nerd Font 图标。
-      "keyColor": "#FAB387"
+      "key": "{{ $boardKey }}", // 主板的 Nerd Font 图标。
+      "format": "{$1}{name}"
     },
     {{- end }}
+
     // "memory" 模块，显示内存（RAM）使用情况。
     {
       "type": "memory",
-      "key": "", // 内存的 Nerd Font 图标。
-      "keyColor": "#A6E3A1",
+      "key": "{{ $memoryKey }}", // 内存的 Nerd Font 图标。
       // "format" 自定义了输出格式，使其显示 "已用 / 总量 (百分比)"。
-      "format": "{used} / {total} ({percentage})"
+      "format": "{$1}{used} / {total} ({percentage})"
     },
     // "disk" 模块，显示磁盘使用情况。
     {
       "type": "disk",
-      "key": "", // 磁盘的 Nerd Font 图标。
-      "keyColor": "#94E2D5"
+      "key": "{{ $diskKey }}", // 磁盘的 Nerd Font 图标。
+      "format": "{$1}{size-used} / {size-total} ({size-percentage})"
     },
+
+    // 双方框底部
+    {
+      "type": "custom",
+      "key": "{{ $leftBottom }}",
+      "format": "{{ $rightBottom }}"
+    },
+
     "break",
     // "colors" 模块，显示终端当前配置的颜色面板。
     {
