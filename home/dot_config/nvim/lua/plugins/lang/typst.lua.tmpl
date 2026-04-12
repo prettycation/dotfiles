@@ -3,40 +3,7 @@
 {{- $hasWebsocat := lookPath "websocat" -}}
 
 return {
-  -- 1. Tinymist LSP
-  {
-    "neovim/nvim-lspconfig",
-    opts = {
-      servers = {
-        tinymist = {
-          {{- if $hasTinymist }}
-          -- 如果系统里已经能找到 tinymist，
-          -- 就不要再让 Mason 接管它，直接使用系统里的可执行文件。
-          mason = false,
-          {{- end }}
-
-          settings = {
-            -- 禁止保存时自动导出 PDF。
-            -- 避免每次保存都触发额外动作。
-            exportPdf = "never",
-
-            {{- if $hasTypstyle }}
-            -- 只有在系统里存在 typstyle 时，才显式启用 typstyle 作为格式化后端。
-            -- 如果 typstyle 不在 PATH 中，就不渲染这一项，
-            -- 让 tinymist / LazyVim extra 保持默认行为。
-            formatterMode = "typstyle",
-            {{- end }}
-
-            -- 启用语义高亮增强。
-            -- 对某些主题、LSP 高亮或符号语义区分会更有帮助。
-            semanticTokens = "enable",
-          },
-        },
-      },
-    },
-  },
-
-  -- 2. Typst Preview：只在需要时显式指定系统已有二进制
+  -- Typst Preview：只在需要时显式指定系统已有二进制
   {
     "chomosuke/typst-preview.nvim",
     optional = true,
@@ -56,7 +23,7 @@ return {
     {{- end }}
   },
 
-  -- 3. Conform：只在 typstyle 存在时，显式指定 typst 的 formatter
+  -- Conform：只在 typstyle 存在时，显式指定 typst 的 formatter
   {
     "stevearc/conform.nvim",
     optional = true,

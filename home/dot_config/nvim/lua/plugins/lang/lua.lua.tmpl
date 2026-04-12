@@ -40,36 +40,6 @@ return {
     end,
   },
 
-  -- Lua 语言服务器的具体设置
-  {
-    "neovim/nvim-lspconfig",
-    opts = {
-      servers = {
-        lua_ls = {
-          settings = {
-            Lua = {
-              workspace = {
-                checkThirdParty = false, -- 推荐关闭
-                -- 清空 ignoreDir，否则插件内的 /lua 目录会被跳过
-                ignoreDir = {},
-                -- 禁止更深入的库搜索
-                pathStrict = true,
-              },
-              completion = {
-                callSnippet = "Replace",
-              },
-              -- 诊断设置
-              diagnostics = {
-                -- 忽略一些在模板文件中常见的、由于跨插件引用导致的注解警告
-                disable = { "undefined-doc-name", "undefined-field" },
-              },
-            },
-          },
-        },
-      },
-    },
-  },
-
   -- 格式化配置 (Conform)
   {
     "stevearc/conform.nvim",

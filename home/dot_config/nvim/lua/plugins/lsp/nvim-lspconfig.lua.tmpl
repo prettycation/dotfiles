@@ -1,0 +1,90 @@
+{{- $hasTinymist := lookPath "tinymist" -}}
+{{- $hasTypstyle := lookPath "typstyle" -}}
+
+return {
+  {
+    "neovim/nvim-lspconfig",
+    opts = function(_, opts)
+      opts.servers = opts.servers or {}
+
+      -- Lua LS
+      opts.servers.lua_ls = opts.servers.lua_ls or {}
+      opts.servers.lua_ls.settings = opts.servers.lua_ls.settings or {}
+      opts.servers.lua_ls.settings.Lua = vim.tbl_deep_extend(
+        "force",
+        opts.servers.lua_ls.settings.Lua or {},
+        {
+          workspace = {
+            checkThirdParty = false, -- 推荐关闭
+            -- 清空 ignoreDir，否则插件内的 /lua 目录会被跳过
+            ignoreDir = {},
+            -- 禁止更深入的库搜索
+            pathStrict = true,
+          },
+          completion = {
+            callSnippet = "Replace",
+          },
+          -- 诊断设置
+          diagnostics = {
+            -- 忽略一些在模板文件中常见的、由于跨插件引用导致的注解警告
+            disable = { "undefined-doc-name", "undefined-field" },
+          },
+        }
+      )
+
+      -- BasedPyright
+      opts.servers.basedpyright = opts.servers.basedpyright or {}
+      opts.servers.basedpyright.settings = opts.servers.basedpyright.settings or {}
+      opts.servers.basedpyright.settings.basedpyright =
+        opts.servers.basedpyright.settings.basedpyright or {}
+      opts.servers.basedpyright.settings.basedpyright.analysis = vim.tbl_deep_extend(
+        "force",
+        opts.servers.basedpyright.settings.basedpyright.analysis or {},
+        {
+          -- 类型检查级别
+          -- "off" / "basic" / "standard" / "strict" / "recommended" / "all"
+          -- 推荐将这个选项设置到 pyproject.toml / pyrightconfig.json 里，
+          -- 这样 CLI 和 LSP 行为会一致。
+          typeCheckingMode = "basic",
+          -- 自动搜索常见源码路径
+          -- 当项目里没有显式定义 execution environments 时，
+          -- basedpyright 会自动把像 "src" 这样的常见目录加入搜索路径。
+          autoSearchPaths = true,
+          -- 在没有类型 stub 时，允许读取第三方库源码推断类型
+          -- 开启后，basedpyright 会在缺少 .pyi stub 的情况下，
+          -- 直接读取库源码来补充类型信息。
+          useLibraryCodeForTypes = true,
+          -- 只分析当前打开的文件
+          -- CI 可以再改成 "workspace"。
+          diagnosticMode = "openFilesOnly",
+        }
+      )
+
+      -- Tinymist
+      opts.servers.tinymist = opts.servers.tinymist or {}
+      {{- if $hasTinymist }}
+      -- 如果系统里已经能找到 tinymist，
+      -- 就不要再让 Mason 接管它，直接使用系统里的可执行文件。
+      opts.servers.tinymist.mason = false
+      {{- end }}
+      opts.servers.tinymist.settings = vim.tbl_deep_extend(
+        "force",
+        opts.servers.tinymist.settings or {},
+        {
+          -- 禁止保存时自动导出 PDF。
+          -- 避免每次保存都触发额外动作。
+          exportPdf = "never",
+          {{- if $hasTypstyle }}
+          -- 只有在系统里存在 typstyle 时，才显式启用 typstyle 作为格式化后端。
+          -- 如果 typstyle 不在 PATH 中，就不渲染这一项，
+          -- 让 tinymist / LazyVim extra 保持默认行为。
+          formatterMode = "typstyle",
+          {{- end }}
+          -- 启用语义高亮增强。
+          -- 对某些主题、LSP 高亮或符号语义区分会更有帮助。
+          semanticTokens = "enable",
+        }
+      )
+    end,
+  },
+}
