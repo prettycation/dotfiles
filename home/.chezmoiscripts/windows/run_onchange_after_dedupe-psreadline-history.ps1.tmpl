@@ -1,0 +1,145 @@
+{{- if eq .chezmoi.os "windows" -}}
+#!/usr/bin/env pwsh
+# 7-day-trigger: {{ div (now | unixEpoch | int64) 604800 }}
+
+$ErrorActionPreference = 'Stop'
+Set-StrictMode -Version Latest
+
+$stopwatch = [System.Diagnostics.Stopwatch]::StartNew()
+
+function Write-ResultAndExit {
+    param(
+        [string]$Status,
+        [int]$OriginalCount = 0,
+        [int]$FinalCount = 0
+    )
+
+    $stopwatch.Stop()
+    $removedCount = $OriginalCount - $FinalCount
+
+    Write-Host ("PSReadLine history dedupe: {0}" -f $Status) -ForegroundColor Cyan
+    Write-Host (
+        "original={0}; final={1}; removed={2}; elapsed={3:F2} s" -f
+        $OriginalCount,
+        $FinalCount,
+        $removedCount,
+        $stopwatch.Elapsed.TotalSeconds
+    ) -ForegroundColor Magenta
+
+    exit 0
+}
+
+try {
+    Import-Module PSReadLine -ErrorAction Stop
+    $historyPath = (Get-PSReadLineOption).HistorySavePath
+} catch {
+    Write-ResultAndExit -Status 'skipped (PSReadLine unavailable)'
+}
+
+if ([string]::IsNullOrWhiteSpace($historyPath)) {
+    Write-ResultAndExit -Status 'skipped (empty HistorySavePath)'
+}
+
+if (-not [System.IO.File]::Exists($historyPath)) {
+    Write-ResultAndExit -Status 'skipped (history file not found)'
+}
+
+$latestLines = [System.Collections.Generic.LinkedList[string]]::new()
+$index = [System.Collections.Generic.Dictionary[string, System.Collections.Generic.LinkedListNode[string]]]::new(
+    [System.StringComparer]::Ordinal
+)
+
+$originalCount = 0
+$changed = $false
+
+$fileStream = $null
+$reader = $null
+
+try {
+    $fileStream = [System.IO.FileStream]::new(
+        $historyPath,
+        [System.IO.FileMode]::Open,
+        [System.IO.FileAccess]::Read,
+        [System.IO.FileShare]::ReadWrite,
+        65536,
+        [System.IO.FileOptions]::SequentialScan
+    )
+
+    $reader = [System.IO.StreamReader]::new($fileStream)
+
+    while (($line = $reader.ReadLine()) -ne $null) {
+        $originalCount++
+
+        if ([string]::IsNullOrWhiteSpace($line)) {
+            $changed = $true
+            continue
+        }
+
+        $existingNode = $null
+        if ($index.TryGetValue($line, [ref]$existingNode)) {
+            $latestLines.Remove($existingNode)
+            $changed = $true
+        }
+
+        $newNode = $latestLines.AddLast($line)
+        $index[$line] = $newNode
+    }
+}
+finally {
+    if ($null -ne $reader) {
+        $reader.Dispose()
+    } elseif ($null -ne $fileStream) {
+        $fileStream.Dispose()
+    }
+}
+
+if ($originalCount -eq 0) {
+    Write-ResultAndExit -Status 'noop (empty file)' -OriginalCount 0 -FinalCount 0
+}
+
+$finalCount = $latestLines.Count
+
+if (-not $changed) {
+    Write-ResultAndExit -Status 'noop (already deduped)' -OriginalCount $originalCount -FinalCount $finalCount
+}
+
+$deduped = [string[]]::new($finalCount)
+$node = $latestLines.First
+$writeIndex = 0
+
+while ($null -ne $node) {
+    $deduped[$writeIndex] = $node.Value
+    $node = $node.Next
+    $writeIndex++
+}
+
+$historyDir = [System.IO.Path]::GetDirectoryName($historyPath)
+if ([string]::IsNullOrWhiteSpace($historyDir)) {
+    Write-ResultAndExit -Status 'skipped (invalid history path)' -OriginalCount $originalCount -FinalCount $finalCount
+}
+
+$tempFileName = [System.IO.Path]::GetRandomFileName()
+$tempPath = [System.IO.Path]::Combine($historyDir, $tempFileName)
+$utf8NoBom = [System.Text.UTF8Encoding]::new($false)
+
+try {
+    [System.IO.File]::WriteAllLines($tempPath, $deduped, $utf8NoBom)
+    [System.IO.File]::Replace($tempPath, $historyPath, $null, $true)
+}
+catch {
+    try {
+        if ([System.IO.File]::Exists($tempPath)) {
+            [System.IO.File]::Copy($tempPath, $historyPath, $true)
+        } else {
+            throw
+        }
+    }
+    finally {
+        if ([System.IO.File]::Exists($tempPath)) {
+            [System.IO.File]::Delete($tempPath)
+        }
+    }
+}
+
+Write-ResultAndExit -Status 'updated' -OriginalCount $originalCount -FinalCount $finalCount
+{{- end -}}

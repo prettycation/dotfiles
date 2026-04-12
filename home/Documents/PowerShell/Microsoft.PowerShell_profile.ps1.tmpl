@@ -451,6 +451,7 @@ if ($EnableInteractiveProfile) {
 
     # ——— 配置 PSReadLine (补全、历史记录等)
     if (Get-Module -ListAvailable -Name PSReadLine) {
+        # vim 模式
         Set-PSReadLineOption -EditMode Vi
         Set-PSReadLineOption -ViModeIndicator Script -ViModeChangeHandler {
             param($Mode)
@@ -463,6 +464,9 @@ if ($EnableInteractiveProfile) {
                 Write-Host -NoNewline "`e[5 q"
             }
         }
+
+        # 历史搜索时不重复命令 (检索时去重)
+        Set-PSReadLineOption -HistoryNoDuplicates
         Set-PSReadLineOption -PredictionSource History
         Set-PSReadLineOption -PredictionViewStyle ListView
         Set-PSReadLineKeyHandler -Key UpArrow -Function HistorySearchBackward
