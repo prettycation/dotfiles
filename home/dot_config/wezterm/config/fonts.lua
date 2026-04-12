@@ -9,12 +9,13 @@ if platform.is_win then
    config_settings = {
       families = {
          'FiraCode Nerd Font Mono', -- 英文/代码主字体
-         'LXGW WenKai Mono GB', -- 中文/Fallback字体
+         'LXGW WenKai Mono GB', -- 中文/Fallback 字体
          'JetBrainsMono Nerd Font',
       },
       weight = {
-         450,
-         -- 'Light',
+         450, -- Retina
+         'Light',
+         'Medium',
       },
       size = 14.0,
    }
