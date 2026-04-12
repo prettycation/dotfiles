@@ -1,5 +1,6 @@
 return {
   "folke/snacks.nvim",
+  cond = not vim.g.vscode,
   opts = {
     explorer = {
       replace_netrw = false, -- 禁用自动打开 explorer

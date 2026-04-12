@@ -1,6 +1,8 @@
 return {
   {
     "monaqa/dial.nvim",
+    -- 在 vscode 中加载
+    cond = true,
     keys = {
       {
         "<C-a>",

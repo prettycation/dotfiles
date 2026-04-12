@@ -1,6 +1,7 @@
 return {
   {
     "mikavilpas/yazi.nvim",
+    cond = not vim.g.vscode,
     event = "VeryLazy",
     dependencies = { "nvim-lua/plenary.nvim" },
 
@@ -12,7 +13,7 @@ return {
     --     vim.o.shellxquote = ""
     --   end
     -- end,
-    --
+
     keys = {
       -- 打开 Yazi 并定位到当前文件
       {
