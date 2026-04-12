@@ -57,7 +57,7 @@ patch:
   #通过下面的设置可以让你自己的文件引入而与仓库custom_phrase.txt不同，防止更新时被仓库文件覆盖
   custom_phrase/user_dict: custom_phrase01 # 这里改成什么就需要手动创建同名的 custom_phrasexx.txt 文件在用户目录，这个文件主要用于置顶，编码为自定义编码的词汇
   translator/packs/+:
-    - moe #导入根目录下名称为xx.dict.yaml的自定义固定词典，编码要与固定词库一致，编码权重都不要少，形如姓名、专有名词公司名称等等
+    - moe #导入根目录下xx.dict.yaml作为自定义固定词典，名称为name字段的值，编码要与固定词库一致，编码权重都不要少，形如姓名、专有名词公司名称等等
 
   # 输入引擎
   # 使用 *文件名*对象名 的语法直接加载 Lua 插件
