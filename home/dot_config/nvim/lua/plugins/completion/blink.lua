@@ -1,0 +1,127 @@
+return {
+  {
+    "saghen/blink.cmp",
+    dependencies = {
+      -- AI 补全来源：Windsurf / Codeium
+      "windsurf.nvim",
+      -- 代码片段集合
+      "rafamadriz/friendly-snippets",
+    },
+    version = "*",
+    opts = function(_, opts)
+      opts = opts or {}
+
+      -- 小工具：向列表里追加 source，但避免重复插入
+      local function ensure_source(list, name)
+        if not vim.tbl_contains(list, name) then
+          table.insert(list, name)
+        end
+      end
+
+      -- 大文件或特定 filetype 禁用补全
+      opts.enabled = function()
+        -- 禁止在 Telescope 或 Grug-far 窗口启用（防止冲突）
+        local filetype_is_allowed = not vim.tbl_contains({ "grug-far", "TelescopePrompt" }, vim.bo.filetype)
+
+        -- 检测文件大小（1MB）
+        local ok, stats = pcall(vim.uv.fs_stat, vim.api.nvim_buf_get_name(0))
+        local filesize_is_allowed = true
+        if ok and stats then
+          filesize_is_allowed = stats.size < (1024 * 1024) -- 1MB
+        end
+
+        -- 命令行模式总是允许，避免影响 ":" / "/" 补全
+        if vim.api.nvim_get_mode().mode == "c" then
+          return true
+        end
+
+        return filetype_is_allowed and filesize_is_allowed
+      end
+
+      -- completion 行为
+      opts.completion = vim.tbl_deep_extend("force", opts.completion or {}, {
+        -- 关闭 Blink 自带的 ghost_text，
+        -- 因为已经保留了 Windsurf 的 virtual_text。
+        ghost_text = { enabled = false },
+
+        -- 接受函数/方法补全时自动补上括号
+        accept = { auto_brackets = { enabled = true } },
+
+        -- 自动显示文档悬浮窗，但稍微延迟 0.2 秒，避免闪烁感太强
+        documentation = {
+          auto_show = true,
+          auto_show_delay_ms = 200,
+        },
+
+        -- 列表行为
+        list = {
+          selection = {
+            -- 默认不预选第一项，减少误接受补全
+            preselect = false,
+            -- 当显式切换到某项时，允许它直接进入编辑区预览
+            auto_insert = true,
+          },
+        },
+      })
+
+      -- 命令行模式补全
+      opts.cmdline = vim.tbl_deep_extend("force", opts.cmdline or {}, {
+        completion = {
+          menu = { auto_show = true },
+        },
+        keymap = {
+          preset = "none", -- 自定义按键
+          ["<Tab>"] = { "show", "accept" }, -- Tab 键接受
+          ["<C-k>"] = { "select_prev", "fallback" }, -- 上一个
+          ["<C-j>"] = { "select_next", "fallback" }, -- 下一个
+        },
+      })
+
+      -- 插入模式下的 Blink 键位
+      opts.keymap = vim.tbl_deep_extend("force", opts.keymap or {}, {
+        preset = "default",
+
+        -- C-k / C-j
+        ["<C-k>"] = { "select_prev", "fallback" },
+        ["<C-j>"] = { "select_next", "fallback" },
+
+        -- 滚动文档
+        ["<C-u>"] = { "scroll_documentation_up", "fallback" },
+        ["<C-d>"] = { "scroll_documentation_down", "fallback" },
+      })
+
+      -- sources / providers
+      opts.sources = opts.sources or {}
+      opts.sources.default = opts.sources.default or { "lsp", "path", "snippets", "buffer" }
+      opts.sources.providers = opts.sources.providers or {}
+
+      -- 1. Windsurf / Codeium provider
+
+      -- 说明：
+      -- windsurf.nvim 插件本体负责登录、virtual_text、后台服务；
+      -- blink.cmp 这里只负责把它接成一个 completion provider。
+      ensure_source(opts.sources.default, "codeium")
+      opts.sources.providers.codeium = vim.tbl_deep_extend("force", opts.sources.providers.codeium or {}, {
+        name = "Codeium",
+        module = "codeium.blink",
+        async = true,
+      })
+
+      -- 2. LazyDev provider
+
+      -- lazydev.nvim 本体放在 lang/lua.lua.tmpl，
+      -- blink.cmp 这里只负责消费 lazydev 暴露出来的补全源。
+
+      -- lang/lua.lua.tmpl 负责声明 lazydev.nvim
+      -- completion/blink.lua 负责把 lazydev 接进 Blink 的 provider 图里
+
+      ensure_source(opts.sources.default, "lazydev")
+      opts.sources.providers.lazydev = vim.tbl_deep_extend("force", opts.sources.providers.lazydev or {}, {
+        name = "LazyDev",
+        module = "lazydev.integrations.blink",
+        -- 稍微提高优先级，让 Neovim / Lua 配置开发时更容易先看到 lazydev 的候选项
+        score_offset = 100,
+      })
+    end,
+  },
+}

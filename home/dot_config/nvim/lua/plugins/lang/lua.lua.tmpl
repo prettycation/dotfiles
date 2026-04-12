@@ -24,20 +24,4 @@ return {
     },
   },
 
-  -- 如果使用 blink.cmp，把 lazydev source 接进来
-  {
-    "saghen/blink.cmp",
-    optional = true,
-    opts = function(_, opts)
-      opts.sources = opts.sources or {}
-      opts.sources.default = opts.sources.default or { "lazydev", "lsp", "path", "snippets", "buffer" }
-      opts.sources.providers = opts.sources.providers or {}
-      opts.sources.providers.lazydev = {
-        name = "LazyDev",
-        module = "lazydev.integrations.blink",
-        score_offset = 100,
-      }
-    end,
-  },
-
 }
