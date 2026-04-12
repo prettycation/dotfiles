@@ -1,0 +1,29 @@
+{{- $hasStylua := lookPath "stylua" -}}
+{{- $hasPwsh := lookPath "pwsh" -}}
+{{- $hasWindowsPS := lookPath "powershell" -}}
+
+return {
+  {
+    "WhoIsSethDaniel/mason-tool-installer.nvim",
+    optional = true,
+    opts = function(_, opts)
+      opts.ensure_installed = opts.ensure_installed or {}
+
+      {{- if $hasStylua }}
+      -- 如果系统里已经有 stylua，就不要再让 Mason 的工具安装器装一份
+      opts.ensure_installed = vim.tbl_filter(function(name)
+        return name ~= "stylua"
+      end, opts.ensure_installed)
+      {{- end }}
+
+      {{- if or $hasPwsh $hasWindowsPS }}
+      -- 如果系统里存在 PowerShell，让 Mason 自动确保 PSES 已安装
+      -- powershell.nvim 本身不会自动下载 PowerShell Editor Services，
+      -- 所以这里交给 mason-tool-installer 负责自动补齐。
+      if not vim.tbl_contains(opts.ensure_installed, "powershell-editor-services") then
+        table.insert(opts.ensure_installed, "powershell-editor-services")
+      end
+      {{- end }}
+    end,
+  },
+}

@@ -81,19 +81,4 @@ return {
       {{- end }}
     end,
   },
-
-{{- if $hasStylua }}
-
-  -- 如果系统里已经有 stylua，就不要再让 Mason 的工具安装器装一份
-  {
-    "WhoIsSethDaniel/mason-tool-installer.nvim",
-    optional = true,
-    opts = function(_, opts)
-      opts.ensure_installed = opts.ensure_installed or {}
-      opts.ensure_installed = vim.tbl_filter(function(name)
-        return name ~= "stylua"
-      end, opts.ensure_installed)
-    end,
-  },
-{{- end }}
 }
