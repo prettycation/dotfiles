@@ -22,6 +22,7 @@ require("lazy").setup({
     -- import/override with your plugins
     { import = "plugins" },
     { import = "plugins.lsp", cond = not vim.g.vscode },
+    { import = "plugins.lang", cond = not vim.g.vscode },
     { import = "plugins.ai", cond = not vim.g.vscode },
     { import = "plugins.git", cond = not vim.g.vscode },
     { import = "plugins.coding", cond = not vim.g.vscode },
