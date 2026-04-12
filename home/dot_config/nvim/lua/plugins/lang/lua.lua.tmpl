@@ -40,15 +40,4 @@ return {
     end,
   },
 
-  -- 格式化配置 (Conform)
-  {
-    "stevearc/conform.nvim",
-    opts = function(_, opts)
-      opts.formatters_by_ft = opts.formatters_by_ft or {}
-      {{- if $hasStylua }}
-      -- 指定 lua 使用 stylua，优先使用系统里的 stylua
-      opts.formatters_by_ft.lua = { "stylua" }
-      {{- end }}
-    end,
-  },
 }

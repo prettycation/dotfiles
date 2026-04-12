@@ -1,5 +1,4 @@
 {{- $hasTinymist := lookPath "tinymist" -}}
-{{- $hasTypstyle := lookPath "typstyle" -}}
 {{- $hasWebsocat := lookPath "websocat" -}}
 
 return {
@@ -23,21 +22,4 @@ return {
     {{- end }}
   },
 
-  -- Conform：只在 typstyle 存在时，显式指定 typst 的 formatter
-  {
-    "stevearc/conform.nvim",
-    optional = true,
-    opts = function(_, opts)
-      opts.formatters_by_ft = opts.formatters_by_ft or {}
-
-      {{- if $hasTypstyle }}
-      -- 只有在 typstyle 存在时，才把 typst 的格式化器显式收敛到 typstyle。
-
-      -- lsp_format = "prefer" 的含义：
-      -- - 优先使用这里声明的 formatter
-      -- - 必要时仍允许走 LSP 侧的格式化能力
-      opts.formatters_by_ft.typst = { "typstyle", lsp_format = "prefer" }
-      {{- end }}
-    end,
-  },
 }
