@@ -28,102 +28,109 @@ vim.api.nvim_create_autocmd("FileType", {
     vim.opt_local.sidescroll = 1
   end,
 })
-
-{{-   if and (eq .chezmoi.os "linux") (not .isWsl) }}
-
--- Fcitx5 输入法自动切换
--- 离开插入模式关闭输入法，回到插入模式恢复之前的状态
-local fcitx5_group = vim.api.nvim_create_augroup("Fcitx5Shell", { clear = true })
-local fcitx_state = "1" -- 默认 1 为英文状态
-
-vim.api.nvim_create_autocmd("InsertLeave", {
-  group = fcitx5_group,
-  pattern = "*",
-  callback = function()
-    -- 获取当前状态: 1=Inactive, 2=Active
-    local handle = io.popen("fcitx5-remote")
-    if handle then
-      local result = handle:read("*a")
-      handle:close()
-      fcitx_state = result:sub(1, 1)
-      -- 离开时切换回英文 (Close)
-      os.execute("fcitx5-remote -c")
-    end
-  end,
-})
-
-vim.api.nvim_create_autocmd("InsertEnter", {
-  group = fcitx5_group,
-  pattern = "*",
-  callback = function()
-    -- 如果离开前是中文状态 (2)，进入时重新开启 (Open)
-    if fcitx_state == "2" then
-      os.execute("fcitx5-remote -o")
-    end
-  end,
-})
-{{-   end }}
 {{- end }}
 
--- 退出 nvim 后恢复默认光标
-vim.api.nvim_create_autocmd("VimLeave", {
-  group = vim.api.nvim_create_augroup("RestoreCursor", { clear = true }),
-  callback = function()
-    -- 重置 guicursor 选项
-    vim.opt.guicursor = ""
-    -- 使用 chansend 向 stderr 发送 "\27[ q" (重置为终端默认形状)
-    -- \27 是 Esc 键的转义码
-    vim.fn.chansend(vim.v.stderr, "\27[ q")
-  end,
-})
+if not vim.g.vscode then
+{{- if and (eq .chezmoi.os "linux") (not .isWsl) }}
+
+  -- Fcitx5 输入法自动切换
+  -- 离开插入模式关闭输入法，回到插入模式恢复之前的状态
+  local fcitx5_group = vim.api.nvim_create_augroup("Fcitx5Shell", { clear = true })
+  local fcitx_state = "1" -- 默认 1 为英文状态
+
+  vim.api.nvim_create_autocmd("InsertLeave", {
+    group = fcitx5_group,
+    pattern = "*",
+    callback = function()
+      -- 获取当前状态: 1=Inactive, 2=Active
+      local handle = io.popen("fcitx5-remote")
+      if handle then
+        local result = handle:read("*a")
+        handle:close()
+        fcitx_state = result:sub(1, 1)
+        -- 离开时切换回英文 (Close)
+        os.execute("fcitx5-remote -c")
+      end
+    end,
+  })
+
+  vim.api.nvim_create_autocmd("InsertEnter", {
+    group = fcitx5_group,
+    pattern = "*",
+    callback = function()
+      -- 如果离开前是中文状态 (2)，进入时重新开启 (Open)
+      if fcitx_state == "2" then
+        os.execute("fcitx5-remote -o")
+      end
+    end,
+  })
+{{- end }}
+
+  -- 退出 nvim 后恢复默认光标
+  vim.api.nvim_create_autocmd("VimLeave", {
+    group = vim.api.nvim_create_augroup("RestoreCursor", { clear = true }),
+    callback = function()
+      -- 重置 guicursor 选项
+      vim.opt.guicursor = ""
+      -- 使用 chansend 向 stderr 发送 "\27[ q" (重置为终端默认形状)
+      -- \27 是 Esc 键的转义码
+      vim.fn.chansend(vim.v.stderr, "\27[ q")
+    end,
+  })
 
 {{- /* 只有系统里能找到 PowerShell 时，才渲染这些终端 buffer 专用 autocmd */ -}}
 {{- $hasPwsh := lookPath "pwsh" -}}
 {{- $hasWindowsPS := lookPath "powershell" -}}
-{{- if or $hasPwsh $hasWindowsPS -}}
+{{- if or $hasPwsh $hasWindowsPS }}
 
-local augroup = vim.api.nvim_create_augroup("personal_powershell", { clear = true })
+  local augroup = vim.api.nvim_create_augroup("personal_powershell", { clear = true })
 
-local function add_powershell_terminal_keymaps(buf, lhs, rhs, desc)
-  local ok_wk, wk = pcall(require, "which-key")
+  local function add_powershell_terminal_keymaps(buf, lhs, rhs, desc)
+    local ok_wk, wk = pcall(require, "which-key")
 
-  if ok_wk then
-    wk.add({
-      {
-        "<leader>l",
-        group = "PowerShell",
-        icon = " ",
-        mode = "n",
-        buffer = buf,
-      },
-    })
+    if ok_wk then
+      wk.add({
+        {
+          "<leader>l",
+          group = "PowerShell",
+          icon = " ",
+          mode = "n",
+          buffer = buf,
+        },
+        {
+          "<leader>lw",
+          desc = "Lazy",
+          mode = "n",
+          buffer = buf,
+        },
+      })
+    end
+
+    vim.keymap.set("n", lhs, rhs, { buffer = buf, desc = desc })
   end
 
-  vim.keymap.set("n", lhs, rhs, { buffer = buf, desc = desc })
+  -- 在 powershell.nvim 打开的普通终端 buffer 中，补上 <leader>lt
+  vim.api.nvim_create_autocmd("User", {
+    group = augroup,
+    pattern = "powershell.nvim-term",
+    callback = function(opts)
+      local buf = opts.data and opts.data.buf or 0
+      add_powershell_terminal_keymaps(buf, "<leader>lt", function()
+        require("powershell").toggle_term()
+      end, "PowerShell Toggle Terminal")
+    end,
+  })
+
+  -- 在 powershell.nvim 打开的调试终端 buffer 中，补上 <leader>ld
+  vim.api.nvim_create_autocmd("User", {
+    group = augroup,
+    pattern = "powershell.nvim-debug_term",
+    callback = function(opts)
+      local buf = opts.data and opts.data.buf or 0
+      add_powershell_terminal_keymaps(buf, "<leader>ld", function()
+        require("powershell").toggle_debug_term()
+      end, "PowerShell Toggle Debug Terminal")
+    end,
+  })
+{{- end }}
 end
-
--- 在 powershell.nvim 打开的普通终端 buffer 中，补上 <leader>lt
-vim.api.nvim_create_autocmd("User", {
-  group = augroup,
-  pattern = "powershell.nvim-term",
-  callback = function(opts)
-    local buf = opts.data and opts.data.buf or 0
-    add_powershell_terminal_keymaps(buf, "<leader>lt", function()
-      require("powershell").toggle_term()
-    end, "PowerShell Toggle Terminal")
-  end,
-})
-
--- 在 powershell.nvim 打开的调试终端 buffer 中，补上 <leader>ld
-vim.api.nvim_create_autocmd("User", {
-  group = augroup,
-  pattern = "powershell.nvim-debug_term",
-  callback = function(opts)
-    local buf = opts.data and opts.data.buf or 0
-    add_powershell_terminal_keymaps(buf, "<leader>ld", function()
-      require("powershell").toggle_debug_term()
-    end, "PowerShell Toggle Debug Terminal")
-  end,
-})
-
-{{- end -}}
