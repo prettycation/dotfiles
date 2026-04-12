@@ -1,0 +1,54 @@
+{{- /* 只有系统里能找到 PowerShell 时，才渲染这些键位 */ -}}
+{{- $hasPwsh := lookPath "pwsh" -}}
+{{- $hasWindowsPS := lookPath "powershell" -}}
+{{- if or $hasPwsh $hasWindowsPS -}}
+-- PowerShell 文件专用键位
+
+-- 放在 ftplugin/ps1.lua 的原因：
+-- 1. 这是标准的 filetype-local 配置位置；
+-- 2. 只对 PowerShell buffer 生效；
+-- 3. 不污染其它文件类型的键位空间。
+
+local ok_wk, wk = pcall(require, "which-key")
+
+-- 注册 which-key 分组信息
+if ok_wk then
+  wk.add({
+    {
+      "<leader>l",
+      group = "PowerShell",
+      icon = " ",
+      mode = "n",
+      buffer = 0,
+    },
+    -- 确认占用 <leader>l 后，Lazy 会显示到 <leader>lw。
+    {
+      "<leader>lw",
+      desc = "Lazy",
+      mode = "n",
+      buffer = 0,
+    },
+  })
+end
+
+-- 打开 / 关闭 PowerShell Extension Terminal
+vim.keymap.set("n", "<leader>lt", function()
+  require("powershell").toggle_term()
+end, { buffer = true, desc = "PowerShell Toggle Terminal" })
+
+-- 在 PowerShell Extension Terminal 中执行内容
+-- normal 模式：执行当前行
+vim.keymap.set("n", "<leader>le", function()
+  require("powershell").eval()
+end, { buffer = true, desc = "PowerShell Eval Line" })
+
+-- visual 模式：执行选中内容
+vim.keymap.set("x", "<leader>le", function()
+  require("powershell").eval()
+end, { buffer = true, desc = "PowerShell Eval Selection" })
+
+-- 打开 / 关闭 PowerShell Debug Terminal
+vim.keymap.set("n", "<leader>ld", function()
+  require("powershell").toggle_debug_term()
+end, { buffer = true, desc = "PowerShell Toggle Debug Terminal" })
+{{- end -}}

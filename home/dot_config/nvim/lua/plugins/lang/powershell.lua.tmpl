@@ -1,0 +1,42 @@
+{{- /* 选择 PowerShell 可执行文件：优先 pwsh，再退回 powershell */ -}}
+{{- $psShell := "" -}}
+{{- if lookPath "pwsh" -}}
+  {{- $psShell = "pwsh" -}}
+{{- else if lookPath "powershell" -}}
+  {{- $psShell = "powershell" -}}
+{{- end -}}
+
+{{- /* 只有系统里能找到 PowerShell 时，才渲染这个插件配置 */ -}}
+{{- if $psShell -}}
+return {
+  {
+    "TheLeoP/powershell.nvim",
+
+    -- 只在 PowerShell 相关文件里加载
+    ft = { "ps1", "psm1", "psd1" },
+
+    -- 如果已经有 nvim-dap，这个插件会自动提供 ps1 的 dap 配置；
+    -- 没装也没关系，调试相关功能只是可选。
+    opts = {
+      -- README 说明：bundle_path 是唯一必填项。
+      -- 这里直接指向 Mason 默认安装位置下的 powershell-editor-services。
+      bundle_path = vim.fn.stdpath("data") .. "/mason/packages/powershell-editor-services",
+
+      -- 使用系统中找到的 PowerShell 可执行文件。
+      -- 优先 pwsh（PowerShell 7），找不到再退回 powershell。
+      shell = "{{ $psShell }}",
+
+      -- 其余配置保持插件默认值。
+
+      -- 默认配置大致包括：
+      -- feature_flags = {}
+      -- lsp_log_level = "Warning"
+      -- capabilities = vim.lsp.protocol.make_client_capabilities()
+      -- init_options = {}
+      -- settings = {}
+      -- handlers / commands 使用插件内置实现
+      -- root_dir 默认按 .git 向上查找
+    },
+  },
+}
+{{- end -}}
