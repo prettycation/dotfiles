@@ -16,6 +16,12 @@ scoop:
       #   - "cache/*"         # 排除 cache 目录下的所有文件
       #   - "temp_config.lua" # 排除特定文件名的文件
 
+    - name: "diny"
+      scoop_app: "dinoDanic.diny"
+      source_base: "dot_config/diny"
+      target_base: ".config/diny"
+      ignore_path: ".config/diny"
+
     - name: "espanso"
       scoop_app: "espanso"
       source_base: "dot_espanso"
