@@ -145,7 +145,8 @@
           "abgox.PSCompletions",
           "abgox.scoop-i18n",
           "Cishoon.md",
-          "twpayne.chezmoi"
+          "twpayne.chezmoi",
+          "Nushell.Nushell"
         ],
         "extras": [
           "sfsu"
@@ -154,6 +155,13 @@
           "direnv",
           "scoop-search"
         ]
+      },
+      "packageOptions": {
+        "abyss": {
+          "Nushell.Nushell": {
+            "selection": "optional"
+          }
+        }
       }
     },
     "git-devtools-cli": {
@@ -255,13 +263,14 @@
     "fonts": {
       "title": "字体",
       "description": "字体包",
-      "selection": "optional",
+      "selection": "default",
       "promptOrder": 75,
       "installPriority": 75,
       "buckets": {
         "nerd-fonts": [
           "JetBrainsMono-NF",
-          "LXGWWenKaiMonoGB"
+          "LXGWWenKaiMonoGB",
+          "FiraCode-NF-Mono"
         ]
       }
     },
@@ -293,6 +302,7 @@
           "abgox.SpaceKey",
           "amzxyz.rime_wanxiang.model",
           "amzxyz.rime_wanxiang.moqi",
+          "suiginko.moetype.moqi",
           "Rime.Weasel"
         ],
         "lemon": [
@@ -568,12 +578,23 @@
       "installPriority": 260,
       "buckets": {
         "abyss": [
-          "agalwood.Motrix"
+          "agalwood.Motrix",
+          "AnInsomniacy.MotrixNext"
         ],
         "extras": [
           "qbittorrent-enhanced",
           "kopiaui"
         ]
+      },
+      "packageOptions": {
+        "abyss": {
+          "agalwood.Motrix": {
+            "selection": "optional"
+          },
+          "AnInsomniacy.MotrixNext": {
+            "requiresAdmin": true
+          }
+        }
       }
     },
     "network-cli": {
@@ -762,7 +783,7 @@
         }
       }
     },
-    "work-time-gui": {
+    "work-time-gui/cli": {
       "title": "应用使用统计",
       "description": "工作、日常时长/频率统计应用",
       "selection": "optional",

@@ -258,6 +258,7 @@ scoopClassification:
           - abgox.scoop-i18n
           - Cishoon.md
           - twpayne.chezmoi
+          - Nushell.Nushell
 
     git-devtools-cli:
       title: Git 工作流 CLI
@@ -341,13 +342,14 @@ scoopClassification:
     fonts:
       title: 字体
       description: 字体包
-      selection: optional
+      selection: default
       promptOrder: 75
       installPriority: 75
       buckets:
         nerd-fonts:
           - JetBrainsMono-NF
           - LXGWWenKaiMonoGB
+          - FiraCode-NF-Mono
 
     terminal-gui:
       title: 终端 GUI
@@ -378,6 +380,7 @@ scoopClassification:
           - abgox.SpaceKey
           - amzxyz.rime_wanxiang.model
           - amzxyz.rime_wanxiang.moqi
+          - suiginko.moetype.moqi
           - Rime.Weasel
         lemon:
           - mousemaster
@@ -577,6 +580,7 @@ scoopClassification:
       buckets:
         abyss:
           - agalwood.Motrix
+          - AnInsomniacy.MotrixNext
         extras:
           - qbittorrent-enhanced
           - kopiaui
@@ -748,6 +752,14 @@ scoopClassification:
 
     abyss:
       HuLaSpark.HuLa:
+        selection: optional
+      Nushell.Nushell:
+        selection: optional
+      wez.wezterm:
+        selection: optional
+      AnInsomniacy.MotrixNext:
+        requiresAdmin: true
+      agalwood.Motrix:
         selection: optional
 
     nonportable:
