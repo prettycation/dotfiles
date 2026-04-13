@@ -1,0 +1,141 @@
+{{- $hasCode := lookPath "code" -}}
+-- bootstrap lazy.nvim, LazyVim and your plugins
+
+{{- if $hasCode }}
+-- VS Code Neovim 兼容层
+
+-- LazyVim 在 VS Code 环境下仍可能在核心 keymaps 加载阶段调用 Snacks 的部分 API，
+-- 例如：
+-- - Snacks.keymap.set / del
+-- - Snacks.toggle(...):map(...)
+-- - Snacks.terminal(...)
+
+-- 但 VS Code 模式下并不会真正加载 snacks.nvim，
+-- 因此这里提供一个最小的 no-op / compatibility shim，
+-- 只为了避免 LazyVim 在启动阶段因为全局 Snacks 不存在而报错。
+
+-- 注意：
+-- 1. 不是为了“让 Snacks 在 VS Code 里可用”；
+-- 2. 为了兼容 LazyVim 核心对 Snacks API 的直接调用；
+-- 3. 放在 require("config.lazy") 之前，否则加载时机太晚。
+if vim.g.vscode then
+  _G.Snacks = _G.Snacks or {}
+
+  local function normalize_modes(mode)
+    if mode == nil then
+      return "n"
+    end
+    return mode
+  end
+
+  local function copy_vim_keymap_opts(opts)
+    opts = opts or {}
+    local ret = {}
+
+    -- 只保留 vim.keymap.set / del 真正支持的字段。
+    -- 像 ft / has / icon / cond 这些是 Snacks / LazyVim 的扩展语义，
+    -- 不能原样传给原生 keymap API。
+    local allowed = {
+      "buffer",
+      "desc",
+      "expr",
+      "noremap",
+      "nowait",
+      "remap",
+      "replace_keycodes",
+      "script",
+      "silent",
+      "unique",
+    }
+
+    for _, key in ipairs(allowed) do
+      if opts[key] ~= nil then
+        ret[key] = opts[key]
+      end
+    end
+
+    return ret
+  end
+
+  _G.Snacks.keymap = _G.Snacks.keymap or {}
+
+  _G.Snacks.keymap.set = _G.Snacks.keymap.set or function(mode, lhs, rhs, opts)
+    opts = opts or {}
+
+    -- 支持 LazyVim / Snacks keymap 上常见的 cond 语义：
+    -- 如果条件不满足，直接跳过，不再继续注册 keymap。
+    if type(opts.cond) == "function" and not opts.cond() then
+      return
+    elseif opts.cond == false then
+      return
+    end
+
+    local ft = opts.ft
+    local vim_opts = copy_vim_keymap_opts(opts)
+    mode = normalize_modes(mode)
+
+    -- Snacks.keymap.set 支持 ft 这种“只在指定 filetype 生效”的扩展写法；
+    -- 原生 vim.keymap.set 不支持，所以这里改写成 FileType autocmd
+    -- 再注册 buffer-local keymap。
+    if ft then
+      local patterns = type(ft) == "table" and ft or { ft }
+      vim.api.nvim_create_autocmd("FileType", {
+        pattern = patterns,
+        callback = function(ev)
+          local buf_opts = vim.tbl_extend("force", vim_opts, { buffer = ev.buf })
+          vim.keymap.set(mode, lhs, rhs, buf_opts)
+        end,
+      })
+      return
+    end
+
+    return vim.keymap.set(mode, lhs, rhs, vim_opts)
+  end
+
+  _G.Snacks.keymap.del = _G.Snacks.keymap.del or function(mode, lhs, opts)
+    opts = opts or {}
+    local ft = opts.ft
+    local vim_opts = copy_vim_keymap_opts(opts)
+    mode = normalize_modes(mode)
+
+    -- 与 set 同理：如果带 ft，就在对应 FileType buffer 中删除映射。
+    if ft then
+      local patterns = type(ft) == "table" and ft or { ft }
+      vim.api.nvim_create_autocmd("FileType", {
+        pattern = patterns,
+        callback = function(ev)
+          pcall(vim.keymap.del, mode, lhs, { buffer = ev.buf })
+        end,
+      })
+      return
+    end
+
+    return pcall(vim.keymap.del, mode, lhs, vim_opts)
+  end
+
+  -- 兼容 LazyVim 中类似 Snacks.toggle(...):map(...) 的调用。
+  -- 这里只需要链式调用不报错即可，不需要真实功能。
+  local Dummy = {}
+  function Dummy:map()
+    return self
+  end
+  setmetatable(Dummy, {
+    __call = function(self, ...)
+      return self
+    end,
+    __index = function(self, key)
+      return self
+    end,
+  })
+
+  _G.Snacks.toggle = _G.Snacks.toggle or Dummy
+
+  -- 兼容少量直接调用 Snacks.terminal(...) 的场景。
+  -- 在 VS Code 下这里直接返回 nil 即可。
+  _G.Snacks.terminal = _G.Snacks.terminal or function(...)
+    return nil
+  end
+end
+{{- end }}
+
+require("config.lazy")
