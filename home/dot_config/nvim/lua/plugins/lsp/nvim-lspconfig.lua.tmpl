@@ -1,5 +1,6 @@
 {{- $hasTinymist := lookPath "tinymist" -}}
 {{- $hasTypstyle := lookPath "typstyle" -}}
+{{- $hasRimeLs := lookPath "rime-ls" -}}
 
 return {
   {
@@ -85,6 +86,58 @@ return {
           semanticTokens = "enable",
         }
       )
+
+    {{- if $hasRimeLs }}
+    -- rime-ls
+
+    -- 这是一个“输入法型 LSP”，用途和普通语言服务器不同：
+    -- 它主要把 Rime 的候选结果通过 LSP completion 提供给编辑器。
+    local rimedir = vim.fs.joinpath(vim.uv.os_homedir(), ".local", "share", "rime-ls")
+
+    opts.servers.rime_ls = {
+      mason = false,
+      cmd = { "rime-ls" },
+
+      -- 限定在“更像输入法场景”的 buffer 中启用。
+      filetypes = {
+        "text",
+        "markdown",
+        "typst",
+        "gitcommit",
+      },
+
+      -- 让它按单文件工作，而不是强依赖项目根目录。
+      -- 对 rime-ls 这种“输入法型 LSP”来说，通常比复杂的 root_dir 判定更稳定。
+      single_file_support = true,
+
+      init_options = {
+        -- 是否启用 rime-ls。
+        enabled = true,
+
+        -- 系统共享数据目录。
+        -- shared_data_dir = rimedir,
+        user_data_dir = rimedir,
+        log_dir = rimedir,
+
+        -- 对 blink.cmp 很重要。
+        -- 让 rime-ls 返回更长的 filter_text，尽量减少候选被 blink 过滤掉的概率。
+        long_filter_text = true,
+
+        -- 是否默认选中第一项候选。
+        preselect_first = true,
+
+        -- 是否每次都强制重新生成完整候选，而不是依赖客户端过滤。
+        always_incomplete = false,
+
+        -- 在候选 label 中显示序号，方便把编辑器补全菜单当作输入法候选列表来用。
+        show_order_in_label = true,
+
+        -- 暂时不启用翻页字符。
+        -- blink 在这块历史上有兼容性问题，先保持保守配置。
+        -- paging_characters = { ",", ".", "-", "=" },
+      },
+    }
+    {{- end }}
     end,
   },
 }

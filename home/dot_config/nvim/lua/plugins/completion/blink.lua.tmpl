@@ -1,3 +1,5 @@
+{{- $hasRimeLs := lookPath "rime-ls" -}}
+
 return {
   {
     "saghen/blink.cmp",
@@ -95,7 +97,7 @@ return {
       opts.sources.default = opts.sources.default or { "lsp", "path", "snippets", "buffer" }
       opts.sources.providers = opts.sources.providers or {}
 
-      -- 1. Windsurf / Codeium provider
+      -- Windsurf / Codeium provider
 
       -- 说明：
       -- windsurf.nvim 插件本体负责登录、virtual_text、后台服务；
@@ -107,7 +109,7 @@ return {
         async = true,
       })
 
-      -- 2. LazyDev provider
+      -- LazyDev provider
 
       -- lazydev.nvim 本体放在 lang/lua.lua.tmpl，
       -- blink.cmp 这里只负责消费 lazydev 暴露出来的补全源。
@@ -122,6 +124,31 @@ return {
         -- 稍微提高优先级，让 Neovim / Lua 配置开发时更容易先看到 lazydev 的候选项
         score_offset = 100,
       })
+
+    {{- if $hasRimeLs }}
+    -- rime-ls 与 Blink 的兼容层。
+
+    -- rime-ls 不是单独注册一个 blink provider，而是复用通用的 LSP provider。
+    -- 因此，凡是“为了让 rime-ls 候选在 blink 中正常显示”的兼容逻辑，
+    -- 一般都要写在 `providers.lsp` 上。
+
+    -- 这里保留一个最小兼容层：
+    -- 1. 继续对 Snippet 做轻微降权，避免它们在输入法候选前面过于靠前。
+    -- 2. 不额外对 rime-ls 返回的项做过滤，让它们尽量原样进入 blink 的菜单逻辑。
+    opts.sources.providers.lsp = vim.tbl_deep_extend("force", opts.sources.providers.lsp or {}, {
+      transform_items = function(_, items)
+        local CompletionItemKind = require("blink.cmp.types").CompletionItemKind
+
+        for _, item in ipairs(items) do
+          if item.kind == CompletionItemKind.Snippet then
+            item.score_offset = (item.score_offset or 0) - 3
+          end
+        end
+
+        return items
+      end,
+    })
+    {{- end }}
     end,
   },
 }
