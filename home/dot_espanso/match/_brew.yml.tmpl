@@ -1,0 +1,53 @@
+{{- if lookPath "brew" }}
+matches:
+  - trigger: "br.sc"
+    replace: "brew search --desc $|$"
+
+  - trigger: "br.is"
+    replace: "brew install --formula $|$"
+
+  - trigger: "br.ic"
+    replace: "brew install --cask $|$"
+
+  - trigger: "br.if"
+    replace: "brew info $|$"
+
+  - trigger: "br.ui"
+    replace: "brew uninstall $|$"
+
+  - trigger: "br.cl"
+    replace: "brew cleanup"
+
+  - trigger: "br.ck"
+    replace: "brew doctor"
+
+  - trigger: "br.ls"
+    replace: "brew list"
+
+  - trigger: "br.up"
+    replace: "brew update && brew upgrade"
+
+  - trigger: "br.st"
+    replace: "brew outdated"
+
+  - trigger: "br.hd"
+    replace: "brew pin $|$"
+
+  - trigger: "br.uh"
+    replace: "brew unpin $|$"
+
+  - trigger: "br.ccs"
+    replace: "brew --cache"
+
+  - trigger: "br.ccr"
+    replace: "brew cleanup --prune=all"
+
+  - trigger: "br.tp"
+    replace: "brew tap $|$"
+
+  - trigger: "br.tl"
+    replace: "brew tap"
+
+  - trigger: "br.tr"
+    replace: "brew untap $|$"
+{{- end }}
