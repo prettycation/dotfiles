@@ -1,4 +1,4 @@
-{{- if eq .chezmoi.os "windows" }}
+{{- if lookPath "scoop" }}
 matches:
   - trigger: "s.sc"
     replace: "scoop search $|$"

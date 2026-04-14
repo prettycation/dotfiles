@@ -9,11 +9,15 @@ filter_exec: ".*(Kitty|WezTerm|iTerm2|Terminal)$"
 paste_shortcut: CTRL+SHIFT+V
 
 extra_includes:
-{{- if eq .chezmoi.os "windows" }}
+  {{- if lookPath "scoop" }}
   - "../match/_scoop.yml"
-{{- else if eq .chezmoi.os "linux" }}
+  {{- end }}
+  {{- if lookPath "paru" }}
   - "../match/_paru.yml"
-{{- end }}
+  {{- end }}
+  {{- if lookPath "brew" }}
+  - "../match/_brew.yml"
+  {{- end }}
   - "../match/_cargo.yml"
   - "../match/_bitwarden.yml"
   - "../match/_chezmoi.yml"
