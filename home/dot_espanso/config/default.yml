@@ -48,4 +48,4 @@ clipboard_threshold: 30
 
 backspace_limit: 5
 # 自定义搜索快捷键
-search_shortcut: ALT+SHIFT+SPACE
+search_shortcut: ALT+SHIFT+CTRL+SPACE

@@ -6,6 +6,7 @@ filter_exec: ".*(kitty|wezterm-gui|alacritty|gnome-terminal|konsole)$"
 {{- else if eq .chezmoi.os "darwin" }}
 filter_exec: ".*(Kitty|WezTerm|iTerm2|Terminal)$"
 {{- end }}
+paste_shortcut: CTRL+SHIFT+V
 
 extra_includes:
 {{- if eq .chezmoi.os "windows" }}
