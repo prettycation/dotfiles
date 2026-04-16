@@ -15,6 +15,7 @@ scoop:
       #   - "*.log"           # 排除所有以 .log 结尾的文件
       #   - "cache/*"         # 排除 cache 目录下的所有文件
       #   - "temp_config.lua" # 排除特定文件名的文件
+      # target_encoding: utf-8/utf8(默认)/ansi/gbk/cp936
 
     - name: "diny"
       scoop_app: "dinoDanic.diny"
@@ -50,6 +51,7 @@ scoop:
       source_base: ".chezmoitemplates/windows-apps/InputTip-zip/InputTip.ini.tmpl"
       target_base: "InputTip.ini"
       # 单目录 target_base 可留空，单文件需指定
+      target_encoding: ansi
 
     - name: "mousemaster"
       scoop_app: "mousemaster"
