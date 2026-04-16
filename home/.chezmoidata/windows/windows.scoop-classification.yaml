@@ -238,8 +238,7 @@ scoopClassification:
           - eza-community.eza
           - itchyny.gojq
           - sharkdp.bat
-        pamburus:
-          - hl
+          - pamburus.hl
 
     shell-workflow-cli:
       title: Shell 工作流 CLI
@@ -303,7 +302,7 @@ scoopClassification:
           - temurin8-jdk
         abyss:
           - jdx.mise
-        anderlli0053_DEV-tools:
+        margin:
           - uv-portable-cn
         Ylemir_Scoop-Bucket:
           - envx
@@ -432,6 +431,8 @@ scoopClassification:
         extras:
           - CopyQ
           - flow-launcher
+        margin:
+          - regjump
 
     editor-cli-neovim:
       title: 编辑器：Neovim
@@ -498,7 +499,7 @@ scoopClassification:
           - texlive-full
         lemon:
           - latexsnipper
-        anderlli0053_DEV-tools:
+        margin:
           - freetex
           - websocat
 
@@ -523,10 +524,8 @@ scoopClassification:
       buckets:
         abyss:
           - SST.opencode
-        anderlli0053_DEV-tools:
-          - faster-whisper-xxl
+        margin:
           - hfd
-        YewFence_YewNursery:
           - CLIProxyAPI
         Ylemir_Scoop-Bucket:
           - intelli-shell
@@ -556,8 +555,9 @@ scoopClassification:
           - wood3n.biu
         jam:
           - mpv-config
-        anderlli0053_DEV-tools:
+        margin:
           - mpv-handler
+          - faster-whisper-xxl
 
     download-transfer-cli:
       title: 下载 / 传输 CLI
@@ -568,7 +568,7 @@ scoopClassification:
       buckets:
         main:
           - yt-dlp
-        anderlli0053_DEV-tools:
+        margin:
           - BaiduPCS-Go
 
     download-transfer-gui:
@@ -679,9 +679,8 @@ scoopClassification:
         nonportable:
           - file-converter-np
           - icaros-np
-        anderlli0053_DEV-tools:
+        margin:
           - logi-options-plus-mini
-          - regjump
         sdoog:
           - revo-uninstaller
           - total-uninstaller
@@ -711,8 +710,7 @@ scoopClassification:
         abyss:
           - 1History.1History
           - WINBIGFOX.TimeScribe
-        maqibg_MQBucket:
-          - keyStats
+          - debugtheworldbot.keyStats
 
     device-connectivity-gui:
       title: 设备互联
@@ -772,7 +770,7 @@ scoopClassification:
       zerotier-np:
         requiresAdmin: true
 
-    anderlli0053_DEV-tools:
+    margin:
       logi-options-plus-mini:
         requiresAdmin: true
       freetex:
@@ -780,6 +778,15 @@ scoopClassification:
       websocat:
         selection: optional
         notes: typst preview / neovim 插件依赖，仅在启用预览链路时安装
+      regjump:
+        selection: optional
+        notes: flow-launcher 插件依赖，用于跳转到注册表项
+      faster-whisper-xxl:
+        selection: optional
+        notes: mpv-config 插件依赖，用于音频转字幕
+      mpv-handler:
+        selection: optional
+        notes: Seanime 依赖，用于在外部使用 mpv 播放媒体
 
     dorado:
       texlive-full:

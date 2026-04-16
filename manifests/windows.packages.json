@@ -5,10 +5,6 @@
       "url": "https://github.com/abgox/abyss"
     },
     {
-      "name": "anderlli0053_DEV-tools",
-      "url": "https://github.com/anderlli0053/DEV-tools.git"
-    },
-    {
       "name": "dorado",
       "url": "https://github.com/chawyehsu/dorado"
     },
@@ -33,16 +29,16 @@
       "url": "https://github.com/maqibg/MQBucket"
     },
     {
+      "name": "margin",
+      "url": "https://github.com/prettycation/margin"
+    },
+    {
       "name": "nerd-fonts",
       "url": "https://github.com/matthewjberger/scoop-nerd-fonts"
     },
     {
       "name": "nonportable",
       "url": "https://github.com/ScoopInstaller/Nonportable"
-    },
-    {
-      "name": "pamburus",
-      "url": "https://github.com/pamburus/scoop-bucket.git"
     },
     {
       "name": "sdoog",
@@ -111,7 +107,8 @@
         "abyss": [
           "eza-community.eza",
           "itchyny.gojq",
-          "sharkdp.bat"
+          "sharkdp.bat",
+          "pamburus.hl"
         ],
         "main": [
           "curl",
@@ -128,9 +125,6 @@
           "unzip",
           "yazi",
           "zoxide"
-        ],
-        "pamburus": [
-          "hl"
         ]
       }
     },
@@ -193,9 +187,6 @@
         "abyss": [
           "jdx.mise"
         ],
-        "anderlli0053_DEV-tools": [
-          "uv-portable-cn"
-        ],
         "java": [
           "temurin17-jdk",
           "temurin8-jdk"
@@ -214,6 +205,9 @@
           "stylua",
           "taplo",
           "tree-sitter"
+        ],
+        "margin": [
+          "uv-portable-cn"
         ],
         "versions": [
           "python312"
@@ -368,7 +362,18 @@
         "extras": [
           "CopyQ",
           "flow-launcher"
+        ],
+        "margin": [
+          "regjump"
         ]
+      },
+      "packageOptions": {
+        "margin": {
+          "regjump": {
+            "selection": "optional",
+            "notes": "flow-launcher 插件依赖，用于跳转到注册表项"
+          }
+        }
       }
     },
     "editor-cli-neovim": {
@@ -446,10 +451,6 @@
       "promptOrder": 200,
       "installPriority": 200,
       "buckets": {
-        "anderlli0053_DEV-tools": [
-          "freetex",
-          "websocat"
-        ],
         "dorado": [
           "texlive-full"
         ],
@@ -460,18 +461,12 @@
           "tinymist",
           "typst",
           "typstyle"
+        ],
+        "margin": [
+          "websocat"
         ]
       },
       "packageOptions": {
-        "anderlli0053_DEV-tools": {
-          "freetex": {
-            "selection": "optional"
-          },
-          "websocat": {
-            "selection": "optional",
-            "notes": "typst preview / neovim 插件依赖，仅在启用预览链路时安装"
-          }
-        },
         "dorado": {
           "texlive-full": {
             "selection": "optional",
@@ -482,6 +477,12 @@
           "latexsnipper": {
             "selection": "optional",
             "installMode": "manual"
+          }
+        },
+        "margin": {
+          "websocat": {
+            "selection": "optional",
+            "notes": "typst preview / neovim 插件依赖，仅在启用预览链路时安装"
           }
         }
       }
@@ -511,11 +512,8 @@
         "abyss": [
           "SST.opencode"
         ],
-        "anderlli0053_DEV-tools": [
-          "faster-whisper-xxl",
-          "hfd"
-        ],
-        "YewFence_YewNursery": [
+        "margin": [
+          "hfd",
           "CLIProxyAPI"
         ],
         "Ylemir_Scoop-Bucket": [
@@ -547,12 +545,25 @@
           "lyswhut.lx-music-desktop",
           "wood3n.biu"
         ],
-        "anderlli0053_DEV-tools": [
-          "mpv-handler"
-        ],
         "jam": [
           "mpv-config"
+        ],
+        "margin": [
+          "mpv-handler",
+          "faster-whisper-xxl"
         ]
+      },
+      "packageOptions": {
+        "margin": {
+          "mpv-handler": {
+            "selection": "optional",
+            "notes": "Seanime 依赖，用于在外部使用 mpv 播放媒体"
+          },
+          "faster-whisper-xxl": {
+            "selection": "optional",
+            "notes": "mpv-config 插件依赖，用于音频转字幕"
+          }
+        }
       }
     },
     "download-transfer-cli": {
@@ -562,11 +573,11 @@
       "promptOrder": 250,
       "installPriority": 250,
       "buckets": {
-        "anderlli0053_DEV-tools": [
-          "BaiduPCS-Go"
-        ],
         "main": [
           "yt-dlp"
+        ],
+        "margin": [
+          "BaiduPCS-Go"
         ]
       }
     },
@@ -715,10 +726,6 @@
           "AlexanderPro.SmartContextMenu",
           "w4po.ExplorerTabUtility"
         ],
-        "anderlli0053_DEV-tools": [
-          "logi-options-plus-mini",
-          "regjump"
-        ],
         "extras": [
           "archwsl",
           "bleachbit",
@@ -726,6 +733,9 @@
         ],
         "lemon": [
           "sc-starter"
+        ],
+        "margin": [
+          "logi-options-plus-mini"
         ],
         "nonportable": [
           "file-converter-np",
@@ -737,17 +747,17 @@
         ]
       },
       "packageOptions": {
-        "anderlli0053_DEV-tools": {
-          "logi-options-plus-mini": {
-            "requiresAdmin": true
-          }
-        },
         "extras": {
           "archwsl": {
             "selection": "optional",
             "requiresAdmin": true
           },
           "fancontrol": {
+            "requiresAdmin": true
+          }
+        },
+        "margin": {
+          "logi-options-plus-mini": {
             "requiresAdmin": true
           }
         },
@@ -792,10 +802,8 @@
       "buckets": {
         "abyss": [
           "1History.1History",
-          "WINBIGFOX.TimeScribe"
-        ],
-        "maqibg_MQBucket": [
-          "keyStats"
+          "WINBIGFOX.TimeScribe",
+          "debugtheworldbot.keyStats"
         ]
       }
     },
@@ -809,6 +817,19 @@
         "abyss": [
           "LocalSend.LocalSend",
           "viarotel.Escrcpy"
+        ]
+      }
+    },
+    "misc-lab": {
+      "title": "未分类 / 实验",
+      "description": "暂未定类或实验性工具",
+      "selection": "optional",
+      "promptOrder": 999,
+      "installPriority": 999,
+      "buckets": {
+        "margin": [
+          "librime-msvc",
+          "rime-ls"
         ]
       }
     }
