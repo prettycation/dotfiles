@@ -115,13 +115,13 @@ window_rules:
       - window_process: { equals: "rustdesk" }
       - window_process: { equals: "WindowsTerminal" }
       - window_process: { equals: "wezterm-gui" }
-      - window_process: { equals: "wandacloud" }
       - window_process: { equals: "clash-verge" }
       - window_process: { equals: "pot" }
       - window_process: { equals: "explorer" }
       - window_process: { equals: "STranslate" }
       - window_process: { equals: "EcoPaste" }
       - window_process: { equals: "mpv" }
+      - window_process: { equals: "qbittorrent" }
 
   - commands:
       - "set-floating --width 600 --height 600 --shown-on-top"
@@ -133,6 +133,9 @@ window_rules:
   - commands: ["set-tiling"]
     match:
       - window_process: { equals: "Obsidian" }
+      - window_process: { equals: "Code" }
+      # windhawk
+      - window_process: { equals: "VSCodium" }
 
 # ----------------------------------------------------------------------------------
 # [ BINDING MODES - 绑定模式 ]
