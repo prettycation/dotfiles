@@ -33,6 +33,3 @@ setopt HIST_VERIFY
 
 # 历史中记录执行时间（zsh 原生）
 setopt EXTENDED_HISTORY
-
-# 禁用自动更新检查
-zstyle ':zim' disable-version-check yes

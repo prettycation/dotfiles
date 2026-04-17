@@ -1,0 +1,22 @@
+{{ if and .personal .github_token -}}
+# -----------------------------------------------------------------
+# GitHub Token (私有本地文件)
+# -----------------------------------------------------------------
+
+# Token 仅保存在当前 shell 变量中，不默认 export 给所有子进程
+typeset -g GITHUB_TOKEN_VALUE={{ .github_token | quote }}
+
+# chezmoi 需要访问 GitHub 时按需注入
+chezmoi() {
+  CHEZMOI_GITHUB_ACCESS_TOKEN="$GITHUB_TOKEN_VALUE" command chezmoi "$@"
+}
+
+# 其他需要 GitHub token 的命令，显式通过这个辅助函数注入
+with-github-token() {
+  GITHUB_ACCESS_TOKEN="$GITHUB_TOKEN_VALUE" \
+  CHEZMOI_GITHUB_ACCESS_TOKEN="$GITHUB_TOKEN_VALUE" \
+  GITHUB_TOKEN="$GITHUB_TOKEN_VALUE" \
+  "$@"
+}
+{{ end -}}
+{{- /* vim: set filetype=zsh: */}}

@@ -1,3 +1,7 @@
+{{- $macFzfShell := "/opt/homebrew/opt/fzf/shell" -}}
+{{- $userFzfShell := joinPath .chezmoi.homeDir ".linuxbrew/opt/fzf/shell" -}}
+{{- $systemFzfShell := "/home/linuxbrew/.linuxbrew/opt/fzf/shell" -}}
+
 # -----------------------------------------------------------------
 # 别名、函数与工具
 # -----------------------------------------------------------------
@@ -70,8 +74,20 @@ zy() {
 
 {{- if lookPath "fzf" }}
 # FZF 默认选项 (Catppuccin Mocha 配色)
+{{- if stat $macFzfShell }}
+[ -f "{{ $macFzfShell }}/key-bindings.zsh" ] && source "{{ $macFzfShell }}/key-bindings.zsh"
+[ -f "{{ $macFzfShell }}/completion.zsh" ] && source "{{ $macFzfShell }}/completion.zsh"
+{{- else if stat $userFzfShell }}
+[ -f "{{ $userFzfShell }}/key-bindings.zsh" ] && source "{{ $userFzfShell }}/key-bindings.zsh"
+[ -f "{{ $userFzfShell }}/completion.zsh" ] && source "{{ $userFzfShell }}/completion.zsh"
+{{- else if stat $systemFzfShell }}
+[ -f "{{ $systemFzfShell }}/key-bindings.zsh" ] && source "{{ $systemFzfShell }}/key-bindings.zsh"
+[ -f "{{ $systemFzfShell }}/completion.zsh" ] && source "{{ $systemFzfShell }}/completion.zsh"
+{{- else }}
 [ -f /usr/share/fzf/key-bindings.zsh ] && source /usr/share/fzf/key-bindings.zsh
 [ -f /usr/share/fzf/completion.zsh ] && source /usr/share/fzf/completion.zsh
+{{- end }}
+
 export FZF_DEFAULT_OPTS=" \
 --color=bg+:#313244,bg:#1E1E2E,spinner:#F5E0DC,hl:#F38BA8 \
 --color=fg:#CDD6F4,header:#F38BA8,info:#CBA6F7,pointer:#F5E0DC \

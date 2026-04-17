@@ -1,7 +1,4 @@
 {{ $paths := list }}
-{{- $userBrew := joinPath .chezmoi.homeDir ".linuxbrew/bin/brew" -}}
-{{- $systemBrew := "/home/linuxbrew/.linuxbrew/bin/brew" -}}
-
 
 # -----------------------------------------------------------------
 # 动态 PATH 设置
@@ -25,13 +22,6 @@ export PATH="$HOME/.local/share/bob/nvim-bin:$PATH"
 # 正常的家目录 bin 路径
 export PATH={{ toStrings $paths | join ":" }}:$PATH
 {{ end }}
-
-# Homebrew
-{{- if stat $userBrew }}
-eval "$("$HOME/.linuxbrew/bin/brew" shellenv)"
-{{- else if stat $systemBrew }}
-eval "$("/home/linuxbrew/.linuxbrew/bin/brew" shellenv)"
-{{- end }}
 
 # 把 path 和 PATH 标记成“去重变量”
 typeset -U path PATH

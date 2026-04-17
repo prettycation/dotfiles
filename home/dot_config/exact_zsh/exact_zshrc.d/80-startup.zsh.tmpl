@@ -1,5 +1,8 @@
 {{- if lookPath "fastfetch" }}
 # 启动终端时 (如果当前 shell 是交互式的) 自动执行一次 fastfetch
-[[ -o interactive ]] && cls
+if [[ -o interactive && -z "$TMUX" && -z "$SSH_CONNECTION" && -z "$NVIM" && -t 1 ]]; then
+  cls
+fi
 {{- end }}
+
 {{- /* vim: set filetype=zsh: */}}

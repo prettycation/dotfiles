@@ -2,10 +2,14 @@
 # 插件参数配置 (必须在 Zim 加载前定义)
 # -----------------------------------------------------------------
 
+# 禁用自动更新检查
+zstyle ':zim' disable-version-check yes
+
 # [completion cache]
 
 zstyle ':zim:completion' dumpfile "$XDG_CACHE_HOME/zsh/.zcompdump"
-zstyle ':completion::complete:*' cache-path "$XDG_CACHE_HOME/zsh/zcompcache"
+zstyle ':completion:*' use-cache yes
+zstyle ':completion:*' cache-path "$XDG_CACHE_HOME/zsh/zcompcache"
 
 # [fzf-tab]
 
@@ -20,7 +24,7 @@ zstyle ':completion:*' menu no
 
 {{- if lookPath "eza" }}
 # cd 补全时预览目录内容
-zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always -- "$realpath"'
 {{- end }}
 
 # fzf-tab 外观与按键
@@ -54,4 +58,3 @@ export ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=8"
 
 # 增加补全策略：历史记录与补全系统
 export ZSH_AUTOSUGGEST_STRATEGY=(history completion)
-{{- /* vim: set filetype=zsh: */}}

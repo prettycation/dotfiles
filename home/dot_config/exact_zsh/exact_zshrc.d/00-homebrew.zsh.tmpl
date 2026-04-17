@@ -1,0 +1,22 @@
+{{- $macBrew := "/opt/homebrew/bin/brew" -}}
+{{- $userBrew := joinPath .chezmoi.homeDir ".linuxbrew/bin/brew" -}}
+{{- $systemBrew := "/home/linuxbrew/.linuxbrew/bin/brew" -}}
+
+# -----------------------------------------------------------------
+# Homebrew
+# -----------------------------------------------------------------
+
+{{- if stat $macBrew }}
+fpath+=("{{ output $macBrew "--prefix" | trim }}/share/zsh/site-functions")
+eval "$({{ $macBrew }} shellenv)"
+{{- else if stat $userBrew }}
+fpath+=("{{ output $userBrew "--prefix" | trim }}/share/zsh/site-functions")
+eval "$("$HOME/.linuxbrew/bin/brew" shellenv)"
+{{- else if stat $systemBrew }}
+fpath+=("{{ output $systemBrew "--prefix" | trim }}/share/zsh/site-functions")
+eval "$("/home/linuxbrew/.linuxbrew/bin/brew" shellenv)"
+{{- end }}
+
+# 把 fpath 标记成“去重变量”
+typeset -U fpath
+{{- /* vim: set filetype=zsh: */}}
