@@ -2,6 +2,11 @@
 # 插件参数配置 (必须在 Zim 加载前定义)
 # -----------------------------------------------------------------
 
+# [completion cache]
+
+zstyle ':zim:completion' dumpfile "$XDG_CACHE_HOME/zsh/.zcompdump"
+zstyle ':completion::complete:*' cache-path "$XDG_CACHE_HOME/zsh/zcompcache"
+
 # [fzf-tab]
 
 # 补全分组标题样式
