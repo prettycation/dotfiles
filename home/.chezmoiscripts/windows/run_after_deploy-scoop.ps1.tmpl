@@ -79,6 +79,7 @@ $dirCache = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::
 $trimChars = [char[]]('\', '/')
 [System.Text.Encoding]::RegisterProvider([System.Text.CodePagesEncodingProvider]::Instance)
 $utf8Encoding = [System.Text.Encoding]::UTF8
+$utf16LeEncoding = [System.Text.Encoding]::Unicode
 $ansiEncoding = [System.Text.Encoding]::GetEncoding([System.Globalization.CultureInfo]::CurrentCulture.TextInfo.ANSICodePage)
 $gbkEncoding = [System.Text.Encoding]::GetEncoding(936)
 
@@ -129,12 +130,17 @@ foreach ($app in $apps) {
         $targetEncodingKey = "utf-8"
     }
     $targetEncoding = switch ($targetEncodingKey) {
-        "ansi"   { $ansiEncoding }
-        "gbk"    { $gbkEncoding }
-        "cp936"  { $gbkEncoding }
-        "utf8"   { $utf8Encoding }
-        "utf-8"  { $utf8Encoding }
-        default  { $utf8Encoding }
+        "ansi"      { $ansiEncoding }
+        "gbk"       { $gbkEncoding }
+        "cp936"     { $gbkEncoding }
+        "utf8"      { $utf8Encoding }
+        "utf-8"     { $utf8Encoding }
+        "utf16"     { $utf16LeEncoding }
+        "utf-16"    { $utf16LeEncoding }
+        "utf16le"   { $utf16LeEncoding }
+        "utf-16le"  { $utf16LeEncoding }
+        "unicode"   { $utf16LeEncoding }
+        default     { $utf8Encoding }
     }
 
     # 先确定该应用是否安装在 Global 目录 (弃用 Join-Path，换用底层 Combine)
