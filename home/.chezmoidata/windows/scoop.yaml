@@ -15,7 +15,7 @@ scoop:
       #   - "*.log"           # 排除所有以 .log 结尾的文件
       #   - "cache/*"         # 排除 cache 目录下的所有文件
       #   - "temp_config.lua" # 排除特定文件名的文件
-      # target_encoding: utf-8/utf8(默认)/ansi/gbk/cp936
+      # target_encoding: utf-8/utf8(默认)/utf16/utf-16/utf16le/utf-16le/ansi/gbk/cp936 # 目标文件的字符编码, 源文件必须为 tmpl 才能生效
 
     - name: "diny"
       scoop_app: "dinoDanic.diny"
@@ -51,7 +51,7 @@ scoop:
       source_base: ".chezmoitemplates/windows-apps/InputTip-zip/InputTip.ini.tmpl"
       target_base: "InputTip.ini"
       # 单目录 target_base 可留空，单文件需指定
-      target_encoding: ansi
+      target_encoding: "ansi"
 
     - name: "mousemaster"
       scoop_app: "mousemaster"
@@ -79,6 +79,12 @@ scoop:
       scoop_app: "windows-terminal"
       source_base: ".chezmoitemplates/windows-apps/windows-terminal/settings.json"
       target_base: "settings/settings.json"
+
+    - name: "windhawk" # 每次配置变更需要修改 SettingsChangeTime 的值与之前相异
+      scoop_app: "windhawk"
+      source_base: ".chezmoitemplates/windows-apps/windhawk/Engine/Mods"
+      target_base: "AppData/Engine/Mods"
+      target_encoding: "utf-16le"
 
     # - name: "wezterm"
     #   scoop_app: "wez.wezterm"
