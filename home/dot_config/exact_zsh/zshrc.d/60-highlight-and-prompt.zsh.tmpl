@@ -1,0 +1,21 @@
+# [zsh-syntax-highlighting 配色]
+# 声明一个全局关联数组，供语法高亮配置使用。
+typeset -gA ZSH_HIGHLIGHT_STYLES
+ZSH_HIGHLIGHT_STYLES[command]='fg=#89b4fa'          # Blue
+ZSH_HIGHLIGHT_STYLES[alias]='fg=#89b4fa'            # Blue
+ZSH_HIGHLIGHT_STYLES[function]='fg=#89b4fa'         # Blue
+ZSH_HIGHLIGHT_STYLES[builtin]='fg=#f9e2af'          # Yellow
+ZSH_HIGHLIGHT_STYLES[keyword]='fg=#cba6f7'          # Mauve
+ZSH_HIGHLIGHT_STYLES[string]='fg=#a6e3a1'           # Green
+ZSH_HIGHLIGHT_STYLES[variable]='fg=#f9e2af'         # Yellow
+ZSH_HIGHLIGHT_STYLES[comment]='fg=#6c7086'          # Overlay0
+ZSH_HIGHLIGHT_STYLES[operator]='fg=#89dceb'         # Sky
+ZSH_HIGHLIGHT_STYLES[parameter]='fg=#b4befe'        # Lavender
+ZSH_HIGHLIGHT_STYLES[path]='fg=#94e2d5'             # Teal
+ZSH_HIGHLIGHT_STYLES[error]='fg=#f38ba8'            # Red
+
+# [Starship 提示符]
+{{- if lookPath "starship" }}
+eval "$(starship init zsh)"
+{{- end }}
+{{- /* vim: set filetype=zsh: */}}

@@ -1,0 +1,52 @@
+# -----------------------------------------------------------------
+# 插件参数配置 (必须在 Zim 加载前定义)
+# -----------------------------------------------------------------
+
+# [fzf-tab]
+
+# 补全分组标题样式
+zstyle ':completion:*:*:descriptions' format $'[ %d ]'
+
+# 补全列表沿用系统 LS_COLORS
+(( ${+LS_COLORS} )) && zstyle ':completion:*' list-colors ${(s.:.)LS_COLORS}
+
+# 不显示原始补全菜单，统一交给 fzf-tab
+zstyle ':completion:*' menu no
+
+{{- if lookPath "eza" }}
+# cd 补全时预览目录内容
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
+{{- end }}
+
+# fzf-tab 外观与按键
+# --reverse: 候选列表向上展开
+# --pointer: 当前选中项前缀
+# --bind=tab:accept: 用 Tab 接受当前候选
+# --color: 颜色配置，与 FZF 主题保持一致
+zstyle ':fzf-tab:*' fzf-flags \
+  --reverse \
+  --pointer="➜ " \
+  --bind=tab:accept \
+  --color=prompt:#CBA6F7,hl:#F38BA8,hl+:#F38BA8,pointer:#F5E0DC,info:#89DCEB \
+  --color=bg+:#45475A,fg+:#CDD6F4
+
+# 不同补全分组使用不同颜色
+zstyle ':fzf-tab:*' group-colors \
+  $'\e[38;2;243;139;168m' \
+  $'\e[38;2;166;227;161m' \
+  $'\e[38;2;249;226;175m' \
+  $'\e[38;2;137;180;250m' \
+  $'\e[38;2;203;166;247m' \
+  $'\e[38;2;148;226;213m'
+
+# 使用 < 和 > 在补全分组间切换
+zstyle ':fzf-tab:*' switch-group '<' '>'
+
+# [zsh-autosuggestions]
+
+# 配置灰色提示的颜色：fg=8 表示浅灰色
+export ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE="fg=8"
+
+# 增加补全策略：历史记录与补全系统
+export ZSH_AUTOSUGGEST_STRATEGY=(history completion)
+{{- /* vim: set filetype=zsh: */}}

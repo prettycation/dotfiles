@@ -1,0 +1,87 @@
+# -----------------------------------------------------------------
+# 别名、函数与工具
+# -----------------------------------------------------------------
+
+# 自动重绘 fastfetch
+cls() {
+    command clear
+    {{- if lookPath "fastfetch" }}
+    # 检查 $NVIM 是否为空（不处于 Neovim 内部）且终端是交互式的
+    if [[ -z "$NVIM" && -t 1 ]]; then
+        fastfetch -c "$HOME/.config/fastfetch/config.jsonc"
+    fi
+    {{- end }}
+}
+
+{{- if lookPath "eza" }}
+# eza 别名配置
+unalias ls 2> /dev/null
+unalias ll 2> /dev/null
+unalias la 2> /dev/null
+
+# 基础 ls：只带图标
+alias ls='eza --icons'
+# ll: 长格式，包含大小(h)和精确时间格式
+alias ll='eza -l -h --icons --time-style "+%Y-%m-%d %H:%M:%S"'
+# la: 显示隐藏文件(a)
+alias la='eza -l -h -a --icons --time-style "+%Y-%m-%d %H:%M:%S"'
+# lg: 显示 Git 状态
+alias lg='eza -l -h -a --git --icons --time-style "+%Y-%m-%d %H:%M:%S"'
+# tree: 树状图
+alias tree='eza -T --icons'
+{{- else }}
+# 如果没装 eza，退回到原生 ls
+alias ls='ls --color=auto'
+alias ll='ls -lh --color=auto'
+alias la='ls -lAh --color=auto'
+{{- end }}
+
+{{ if lookPath "yazi" }}
+# Yazi 协同跳转
+yy() {
+  local tmpfile
+  tmpfile="$(mktemp "${TMPDIR:-/tmp}/yazi-cwd.XXXXXX")"
+  yazi "$@" --cwd-file="$tmpfile"
+  if [ -s "$tmpfile" ]; then
+    local dir
+    dir="$(<"$tmpfile")"
+    if [ -d "$dir" ] && [ "$dir" != "$PWD" ]; then
+      cd -- "$dir"
+    fi
+  fi
+  rm -f -- "$tmpfile"
+}
+{{ end }}
+
+{{ if lookPath "zoxide" -}}
+# Zoxide
+  eval "$(zoxide init zsh --cmd cd)"
+  {{- if and (lookPath "yazi") (lookPath "fzf") }}
+zy() {
+  local dest
+  dest="$(zoxide query -l | fzf --height 40% --reverse)"
+  if [[ -n "$dest" ]]; then
+    zoxide add "$dest"
+    yy "$dest"
+  fi
+}
+  {{- end }}
+{{ end -}}
+
+{{- if lookPath "fzf" }}
+# FZF 默认选项 (Catppuccin Mocha 配色)
+[ -f /usr/share/fzf/key-bindings.zsh ] && source /usr/share/fzf/key-bindings.zsh
+[ -f /usr/share/fzf/completion.zsh ] && source /usr/share/fzf/completion.zsh
+export FZF_DEFAULT_OPTS=" \
+--color=bg+:#313244,bg:#1E1E2E,spinner:#F5E0DC,hl:#F38BA8 \
+--color=fg:#CDD6F4,header:#F38BA8,info:#CBA6F7,pointer:#F5E0DC \
+--color=marker:#B4BEFE,fg+:#CDD6F4,prompt:#CBA6F7,hl+:#F38BA8 \
+--color=selected-bg:#45475A \
+--color=border:#6C7086,label:#CDD6F4"
+{{- end }}
+
+{{ if lookPath "tv" }}
+# television 初始化
+eval "$(tv init zsh)"
+{{ end }}
+{{- /* vim: set filetype=zsh: */}}
