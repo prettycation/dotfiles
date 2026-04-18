@@ -1,0 +1,23 @@
+{{- $nvim := lookPath "nvim" }}
+{{- $hx := lookPath "hx" }}
+{{- $code := lookPath "code" }}
+# -----------------------------------------------------------------
+# 基础 UI / 编辑器
+# -----------------------------------------------------------------
+
+# 默认编辑器
+{{- if $nvim }}
+$env.config.buffer_editor = "nvim"
+{{- else if $code }}
+$env.config.buffer_editor = "code"
+{{- else if $hx }}
+$env.config.buffer_editor = "hx"
+{{- else }}
+$env.config.buffer_editor = "vi"
+{{- end }}
+
+# 关闭 `ls` 输出中的可点击链接，保持终端输出更干净
+$env.config.ls.clickable_links = false
+# 启动 Nushell 时不显示欢迎横幅
+$env.config.show_banner = false
+{{- /* vim: set filetype=nu.chezmoitemplate: */}}

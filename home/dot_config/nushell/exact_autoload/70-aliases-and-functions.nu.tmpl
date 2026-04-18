@@ -1,0 +1,87 @@
+# -----------------------------------------------------------------
+# 别名、函数与工具
+# -----------------------------------------------------------------
+
+def cls [] {
+  clear
+
+  {{- if lookPath "fastfetch" }}
+  if (($env.NVIM? | default "") == "") {
+    ^fastfetch -c ($nu.home-dir | path join ".config" "fastfetch" "config.jsonc")
+  }
+  {{- end }}
+}
+
+{{- if lookPath "eza" }}
+def --wrapped ls [...args] {
+  ^eza --icons ...$args
+}
+
+def --wrapped ll [...args] {
+  ^eza -l -h --icons --time-style "+%Y-%m-%d %H:%M:%S" ...$args
+}
+
+def --wrapped la [...args] {
+  ^eza -l -h -a --icons --time-style "+%Y-%m-%d %H:%M:%S" ...$args
+}
+
+def --wrapped lg [...args] {
+  ^eza -l -h -a --git --icons --time-style "+%Y-%m-%d %H:%M:%S" ...$args
+}
+
+def --wrapped tree [...args] {
+  ^eza -T --icons ...$args
+}
+{{- else }}
+def --wrapped ll [...args] {
+  ls -l ...$args
+}
+
+def --wrapped la [...args] {
+  ls -a ...$args
+}
+{{- end }}
+
+{{- if lookPath "yazi" }}
+def --env yy [...args] {
+  let tmpfile = (^mktemp $"(($env.TMPDIR? | default '/tmp'))/yazi-cwd.XXXXXX" | str trim)
+
+  ^yazi ...$args --cwd-file $tmpfile
+
+  let dir = (try { open $tmpfile | str trim } catch { "" })
+  if ($dir != "") and ($dir | path exists) and ($dir != $env.PWD) {
+    cd $dir
+  }
+
+  if ($tmpfile | path exists) {
+    rm -f $tmpfile
+  }
+}
+{{- end }}
+
+{{- if and (lookPath "zoxide") (lookPath "yazi") (lookPath "fzf") }}
+def --env zy [] {
+  let dest = (
+    ^zoxide query -l
+    | lines
+    | ^fzf --height 40% --reverse
+    | str trim
+  )
+
+  if $dest != "" {
+    ^zoxide add $dest
+    yy $dest
+  }
+}
+{{- end }}
+
+{{- if lookPath "fzf" }}
+$env.FZF_DEFAULT_OPTS = ([
+  '--color=bg+:#313244,bg:#1E1E2E,spinner:#F5E0DC,hl:#F38BA8'
+  '--color=fg:#CDD6F4,header:#F38BA8,info:#CBA6F7,pointer:#F5E0DC'
+  '--color=marker:#B4BEFE,fg+:#CDD6F4,prompt:#CBA6F7,hl+:#F38BA8'
+  '--color=selected-bg:#45475A'
+  '--color=border:#6C7086,label:#CDD6F4'
+] | str join ' ')
+{{- end }}
+{{- /* vim: set filetype=nu.chezmoitemplate: */}}

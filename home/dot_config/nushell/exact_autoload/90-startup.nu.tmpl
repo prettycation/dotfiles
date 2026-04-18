@@ -1,0 +1,6 @@
+{{- if lookPath "fastfetch" -}}
+if $nu.is-interactive and (($env.SHLVL? | default 1) == 1) and (($env.TMUX? | default "") == "") and (($env.SSH_CONNECTION? | default "") == "") and (($env.NVIM? | default "") == "") {
+  cls
+}
+{{- end -}}
+{{- /* vim: set filetype=nu.chezmoitemplate: */}}

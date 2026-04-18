@@ -1,0 +1,16 @@
+# -----------------------------------------------------------------
+# 动态 PATH 设置
+# -----------------------------------------------------------------
+
+let extra_paths = [
+{{- if lookPath "bob" }}
+  ($nu.home-dir | path join '.local' 'share' 'bob' 'nvim-bin')
+{{- end }}
+  ($nu.home-dir | path join 'bin')
+  ($nu.home-dir | path join 'go' 'bin')
+  ($nu.home-dir | path join '.cargo' 'bin')
+  ($nu.home-dir | path join '.local' 'bin')
+]
+
+prepend-paths-if-exist $extra_paths
+{{- /* vim: set filetype=nu.chezmoitemplate: */}}

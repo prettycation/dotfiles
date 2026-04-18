@@ -1,0 +1,31 @@
+source ./themes/catppuccin_mocha.nu
+
+let vendor_autoload = ($nu.data-dir | path join "vendor" "autoload")
+if not ($vendor_autoload | path exists) {
+  mkdir $vendor_autoload
+}
+
+{{- if lookPath "starship" }}
+starship init nu | save -f ($vendor_autoload | path join "starship.nu")
+{{- else }}
+if (($vendor_autoload | path join "starship.nu") | path exists) {
+  rm -f ($vendor_autoload | path join "starship.nu")
+}
+{{- end }}
+
+{{- if lookPath "tv" }}
+tv init nu | save -f ($vendor_autoload | path join "tv.nu")
+{{- else }}
+if (($vendor_autoload | path join "tv.nu") | path exists) {
+  rm -f ($vendor_autoload | path join "tv.nu")
+}
+{{- end }}
+
+{{- if lookPath "zoxide" }}
+zoxide init nushell --cmd cd | save -f ($vendor_autoload | path join "zoxide.nu")
+{{- else }}
+if (($vendor_autoload | path join "zoxide.nu") | path exists) {
+  rm -f ($vendor_autoload | path join "zoxide.nu")
+}
+{{- end }}
+{{- /* vim: set filetype=nu.chezmoitemplate: */}}

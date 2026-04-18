@@ -1,0 +1,12 @@
+{{ if and .personal .github_token -}}
+# -----------------------------------------------------------------
+# GitHub Token (私有本地文件)
+# -----------------------------------------------------------------
+
+{
+  GITHUB_TOKEN: {{ .github_token | quote }}
+  GITHUB_ACCESS_TOKEN: {{ .github_token | quote }}
+  CHEZMOI_GITHUB_ACCESS_TOKEN: {{ .github_token | quote }}
+}
+{{ end -}}
+{{- /* vim: set filetype=nuon.chezmoitemplate: */}}

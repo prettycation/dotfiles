@@ -1,0 +1,36 @@
+# -----------------------------------------------------------------
+# Homebrew
+# -----------------------------------------------------------------
+
+{{- $macBrew := "/opt/homebrew/bin/brew" -}}
+{{- $userBrew := joinPath .chezmoi.homeDir ".linuxbrew/bin/brew" -}}
+{{- $systemBrew := "/home/linuxbrew/.linuxbrew/bin/brew" -}}
+
+{{- if stat $macBrew }}
+prepend-paths-if-exist [
+  "/opt/homebrew/bin"
+  "/opt/homebrew/sbin"
+]
+$env.HOMEBREW_PREFIX = "/opt/homebrew"
+$env.HOMEBREW_CELLAR = "/opt/homebrew/Cellar"
+$env.HOMEBREW_REPOSITORY = "/opt/homebrew"
+
+{{- else if stat $userBrew }}
+prepend-paths-if-exist [
+  "{{ joinPath .chezmoi.homeDir ".linuxbrew/bin" }}"
+  "{{ joinPath .chezmoi.homeDir ".linuxbrew/sbin" }}"
+]
+$env.HOMEBREW_PREFIX = "{{ joinPath .chezmoi.homeDir ".linuxbrew" }}"
+$env.HOMEBREW_CELLAR = "{{ joinPath .chezmoi.homeDir ".linuxbrew/Cellar" }}"
+$env.HOMEBREW_REPOSITORY = "{{ joinPath .chezmoi.homeDir ".linuxbrew" }}"
+
+{{- else if stat $systemBrew }}
+prepend-paths-if-exist [
+  "/home/linuxbrew/.linuxbrew/bin"
+  "/home/linuxbrew/.linuxbrew/sbin"
+]
+$env.HOMEBREW_PREFIX = "/home/linuxbrew/.linuxbrew"
+$env.HOMEBREW_CELLAR = "/home/linuxbrew/.linuxbrew/Cellar"
+$env.HOMEBREW_REPOSITORY = "/home/linuxbrew/.linuxbrew"
+{{- end }}
+{{- /* vim: set filetype=nu.chezmoitemplate: */}}
