@@ -155,12 +155,12 @@ function Invoke-YaziWithCwdSync {
 # 环境变量
 # -----------------------------------------------------------------
 
-{{- if lookPath "nvim.exe" }}
+{{- if lookPath "nvim" }}
 # nvim
 $env:EDITOR = "nvim"
 {{- end }}
 
-{{- if lookPath "bash.exe" }}
+{{- if lookPath "bash" }}
 # CLAUDE_CODE
 # Git Bash 路径
 if ($env:SCOOP) {
@@ -174,7 +174,7 @@ $env:CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = "1"
 $env:INTELLI_SEARCH_HOTKEY = "Ctrl+r"
 
 # 配置 FZF 默认选项 (配色方案)
-{{- if lookPath "fzf.exe" }}
+{{- if lookPath "fzf" }}
 $env:FZF_DEFAULT_OPTS = @"
 --color=bg+:$($Catppuccin.Surface0),bg:$($Catppuccin.Base),spinner:$($Catppuccin.Rosewater),hl:$($Catppuccin.Red)
 --color=fg:$($Catppuccin.Text),header:$($Catppuccin.Red),info:$($Catppuccin.Mauve),pointer:$($Catppuccin.Rosewater)
@@ -197,7 +197,7 @@ function global:Clear-Host {
         Microsoft.PowerShell.Core\Clear-Host
     }
 
-    {{- if lookPath "fastfetch.exe" }}
+    {{- if lookPath "fastfetch" }}
     # 检查 $env:NVIM 是否为空 (如果不为空，则为 Neovim 内部，跳过显示)
     if (-not $env:NVIM) {
         fastfetch -c "{{ joinPath .chezmoi.homeDir ".config" "fastfetch" "config.jsonc" }}"
@@ -205,7 +205,7 @@ function global:Clear-Host {
     {{- end }}
 }
 
-{{- if and (lookPath "zoxide.exe") (lookPath "yazi.exe") (lookPath "fzf.exe") }}
+{{- if and (lookPath "zoxide") (lookPath "yazi") (lookPath "fzf") }}
 # zy (Zoxide + Yazi with CD on quit)
 # 1. 使用 fzf 模糊搜索 zoxide 的历史目录。
 # 2. 在选中的目录启动 yazi。
@@ -221,7 +221,7 @@ function zy {
 }
 {{- end }}
 
-{{- if lookPath "zoxide.exe" }}
+{{- if lookPath "zoxide" }}
 # cd
 # 结合 Set-Location 和 zoxide
 function cd {
@@ -250,7 +250,7 @@ function cd {
 }
 {{- end }}
 
-{{- if lookPath "yazi.exe" }}
+{{- if lookPath "yazi" }}
 # Yazi Shell Wrapper Function (Official Version)
 # 会启动 yazi，并在退出后将 PowerShell 的目录切换到 yazi 最后所在的目录。
 function yy {
@@ -306,7 +306,7 @@ function Switch-Java {
     java -version
 }
 
-{{- if lookPath "fzf.exe" }}
+{{- if lookPath "fzf" }}
 # Wi-Fi TUI
 function Open-WifiMenu {
     # 导入模块，屏蔽警告
@@ -376,7 +376,7 @@ function Close-WifiConnection {
     }
 }
 
-{{- if lookPath "hl.exe" }}
+{{- if lookPath "hl" }}
 function hl.history {
     Get-History | Select-Object `
         @{n='time';e={$_.StartExecutionTime}}, `
@@ -387,7 +387,7 @@ function hl.history {
 }
 {{- end }}
 
-{{- if lookPath "eza.exe" }}
+{{- if lookPath "eza" }}
 Remove-Item alias:ls -Force -ErrorAction SilentlyContinue
 
 # 基础 ls 命令，只设置图标。
@@ -407,7 +407,7 @@ function lg { eza.exe -l -h -a --git --icons --time-style '+%Y-%m-%d %H:%M:%S' @
 function tree { eza.exe -T --icons @args }
 {{- end }}
 
-{{- if lookPath "conda.exe" }}
+{{- if lookPath "conda" }}
 # condaini，用于初始化 conda
 function condaini {
     conda shell.powershell hook | Out-String | Invoke-Expression
@@ -421,7 +421,7 @@ function condaini {
 if (-not (Get-Alias clear -ErrorAction SilentlyContinue)) { Set-Alias clear Clear-Host }
 if (-not (Get-Alias cls -ErrorAction SilentlyContinue)) { Set-Alias cls Clear-Host }
 
-{{- if lookPath "gsudo.exe" }}
+{{- if lookPath "gsudo" }}
 Set-Alias -Name sudo -Value gsudo
 {{- end }}
 
@@ -429,7 +429,7 @@ Set-Alias -Name sudo -Value gsudo
 Set-Alias -Name jdk -Value Switch-Java
 
 # Connect/Disconnect-Wifi 别名
-{{- if lookPath "fzf.exe" }}
+{{- if lookPath "fzf" }}
 Set-Alias -Name cw -Value Open-WifiMenu -Force
 {{- end }}
 Set-Alias -Name dw -Value Close-WifiConnection -Force
@@ -440,11 +440,11 @@ Set-Alias -Name dw -Value Close-WifiConnection -Force
 
 if ($EnableInteractiveProfile) {
 
-    {{- if lookPath "gsudo.exe" }}
+    {{- if lookPath "gsudo" }}
     Import-Module gsudoModule -ErrorAction SilentlyContinue
     {{- end }}
 
-    {{- if lookPath "hl.exe" }}
+    {{- if lookPath "hl" }}
     # hl (human log) 自动补全配置
     hl --shell-completions powershell | Out-String | Invoke-Expression
     {{- end }}
@@ -510,7 +510,7 @@ if ($EnableInteractiveProfile) {
             & $venvScript
         } else {
             # 情况 B: Conda 环境
-            {{- if lookPath "conda.exe" }}
+            {{- if lookPath "conda" }}
             Write-Host "⚡ Auto-activating Conda..." -ForegroundColor Green
             # 注册 Hook (让 conda activate 生效)
             (& conda "shell.powershell" "hook") | Out-String | Invoke-Expression
@@ -549,29 +549,37 @@ if ($EnableInteractiveProfile) {
         }
     }
 
-    {{- if lookPath "starship.exe" }}
+    {{- if lookPath "starship" }}
     # 绘制命令提示符
     Invoke-Expression (& starship init powershell)
     {{- end }}
 
-    {{- if lookPath "sfsu.exe" }}
+    {{- if lookPath "sfsu" }}
     # 将 sfsu 集成到 PowerShell
     Invoke-Expression (& sfsu hook --disable cleanup --disable cache --disable status --disable info --disable bucket --disable export)
     {{- end }}
 
-    {{- if lookPath "zoxide.exe" }}
+    {{- if lookPath "zoxide" }}
     # Zoxide (smart cd) Initialization
     # 将 zoxide 的钩子注入到修改过的提示符中。
     Invoke-Expression (& { (zoxide init powershell) -join "`n" })
     {{- end }}
 
-    {{- if lookPath "intelli-shell.exe" }}
+    {{- if lookPath "atuin.exe" }}
+    # 将 atuin 的钩子注入到修改过的提示符中
+    Invoke-Expression (& { (atuin init powershell --disable-up-arrow) -join "`n" })
+    {{- else if lookPath "intelli-shell" }}
     # 将 intelli-shell 的钩子注入到修改过的提示符中
     Invoke-Expression (& { (intelli-shell init powershell) -join "`n" })
+    {{- else if lookPath "tv" }}
+    # 将 tv 的钩子注入到修改过的提示符中
+    Invoke-Expression (& { (tv init powershell) -join "`n" })
     {{- end }}
 
+    {{- if lookPath "mdd" }}
     # 初始化 md
     Import-Module MessageDump -ErrorAction SilentlyContinue
+    {{- end }}
 }
 
 # -----------------------------------------------------------------
@@ -579,7 +587,7 @@ if ($EnableInteractiveProfile) {
 # -----------------------------------------------------------------
 
 if ($EnableStartupBanner) {
-    {{- if lookPath "fastfetch.exe" }}
+    {{- if lookPath "fastfetch" }}
     Clear-Host
     {{- end }}
 }

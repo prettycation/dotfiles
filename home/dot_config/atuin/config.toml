@@ -1,0 +1,142 @@
+# 是否自动同步（前提是你已经 login / register）
+# 默认 true
+auto_sync = true
+
+# 自动同步频率
+# 支持 10s / 20m / 1h 这种格式
+# 设为 "0" 表示每条命令后都同步
+sync_frequency = "5m"
+
+# 同步服务器地址
+# 官方服务保持默认
+# sync_address = "https://api.atuin.sh"
+
+# 是否自动检查更新
+update_check = false
+
+# 搜索模式
+# 可选：prefix / fulltext / fuzzy / daemon-fuzzy / skim
+# 日常最推荐 fuzzy；如果你启用了 daemon，也可以试 daemon-fuzzy
+search_mode = "fuzzy"
+
+# 默认过滤范围
+# 可选：
+# global      = 全部历史
+# host        = 当前主机
+# session     = 当前 shell 会话
+# directory   = 当前目录
+# workspace   = 当前 git 仓库
+# session-preload = 当前会话 + 会话开始前的全局历史
+filter_mode = "session-preload"
+
+# 如果你经常在 git 项目里工作，打开它后会自动启用 workspace 过滤
+# 也就是“当前仓库范围内的历史”
+workspaces = true
+
+# UI 风格
+# compact / full / auto
+style = "auto"
+
+# 搜索栏的位置
+# invert=true 会把 search bar 放到 top
+invert = false
+
+# Atuin UI 最大占用高度
+# 40 是默认；0 表示尽可能占满可用空间（接近全屏）
+inline_height = 40
+
+# 是否显示命令预览
+show_preview = true
+
+# 如果你打开了 preview，这个值限制 preview 最大高度
+max_preview_height = 4
+
+# 是否显示底部帮助栏
+show_help = false
+
+# 是否显示 Search / Inspect 之类的 tabs
+# 想更简洁一点就关掉
+show_tabs = false
+
+# compact 模式下，如果终端太矮，自动隐藏一些行
+# 这里只是保留默认思路；你已经用 full + inline_height=0，影响不大
+auto_hide_height = 8
+
+# 退出搜索界面时，ESC 的行为
+# return-original = 恢复到进入搜索前的命令行
+# return-query    = 保留你刚才输入的搜索词
+exit_mode = "return-query"
+
+# 是否记录失败命令（非 0 exit code）
+store_failed = true
+
+# 是否启用内置敏感信息过滤
+# 官方会过滤一些常见 secret/token 模式
+secrets_filter = true
+
+# 回车行为
+# false = 把命令带回命令行
+# true  = 直接接受/执行
+enter_accept = false
+
+# 搜索界面的快捷键模式
+# 可选 emacs / vim-normal
+keymap_mode = "vim-insert"
+
+# 可选：给不同 keymap 模式配置不同光标形态
+keymap_cursor = { emacs = "blink-block", vim_insert = "blink-bar", vim_normal = "steady-block" }
+
+# -------------------------
+# 历史过滤
+# -------------------------
+
+# 不记录某些命令（支持正则）
+# 注意：官方说明这些正则默认不是自动加 ^ / $ 的，所以最好自己写完整
+history_filter = ["^ls$", "^cd$", "^pwd$", "^exit$", "^clear$"]
+
+# 不记录某些目录里的命令
+# 比如私密项目、临时目录等
+# cwd_filter = [
+#   "^/Users/用户名/private",
+#   "^/Users/用户名/secrets"
+# ]
+
+# -------------------------
+# 主题
+# -------------------------
+
+[theme]
+# 内置主题有 default / autumn / marine / (none)
+name = "catppuccin-mocha-mauve"
+
+# 主题调试开关
+# 主题没生效时改成 true，Atuin 会输出为什么加载失败
+debug = false
+
+# 主题继承最大层级
+max_depth = 10
+
+# -------------------------
+# UI 列配置
+# -------------------------
+
+[ui]
+# 从 18.5 开始支持列配置
+# 可用列包括：duration / time / datetime / directory / host / user / exit / command
+# 时间戳 / 退出码 / 目录 / 命令
+columns = [
+  { type = "datetime", width = 19 },
+  { type = "exit", width = 6 },
+  { type = "directory", width = 28 },
+  { type = "command", expand = true },
+]
+
+# -------------------------
+# 可选：daemon-fuzzy 用
+# -------------------------
+# 如果你想用更快的 daemon-fuzzy，把上面的 search_mode 改成 "daemon-fuzzy"
+# 然后打开 daemon
+
+# [daemon]
+# enabled = true
+# autostart = true
