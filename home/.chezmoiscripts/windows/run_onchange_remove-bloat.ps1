@@ -123,128 +123,152 @@ $Summary = [ordered]@{
   ProvisionedFailed  = 0
 }
 
-function Write-Info($Text) {
+function Write-Info($Text)
+{
   Write-Host $Text -ForegroundColor Cyan
 }
 
-function Write-Ok($Name, $Text) {
+function Write-Ok($Name, $Text)
+{
   Write-Host ("[OK]   {0} - {1}" -f $Name, $Text) -ForegroundColor Green
 }
 
-function Write-Skip($Name, $Text) {
+function Write-Skip($Name, $Text)
+{
   Write-Host ("[SKIP] {0} - {1}" -f $Name, $Text) -ForegroundColor DarkYellow
 }
 
-function Write-Fail($Name, $Text) {
+function Write-Fail($Name, $Text)
+{
   Write-Host ("[FAIL] {0} - {1}" -f $Name, $Text) -ForegroundColor Red
 }
 
-function Remove-CurrentUserPackage([string]$Name) {
-  try {
+function Remove-CurrentUserPackage([string]$Name)
+{
+  try
+  {
     $matches = @(Get-AppxPackage -Name $Name -ErrorAction SilentlyContinue)
-    if ($matches.Count -eq 0) {
+    if ($matches.Count -eq 0)
+    {
       $Summary.CurrentUserSkipped++
       Write-Skip $Name "当前用户未安装"
       return
     }
 
-    foreach ($pkg in $matches) {
-      try {
+    foreach ($pkg in $matches)
+    {
+      try
+      {
         Remove-AppxPackage -Package $pkg.PackageFullName -ErrorAction Stop
         $Summary.CurrentUserRemoved++
         Write-Ok $Name "已从当前用户移除"
-      }
-      catch {
+      } catch
+      {
         $Summary.CurrentUserFailed++
         Write-Fail $Name ("当前用户移除失败: {0}" -f $_.Exception.Message)
       }
     }
-  }
-  catch {
+  } catch
+  {
     $Summary.CurrentUserFailed++
     Write-Fail $Name ("当前用户查询失败: {0}" -f $_.Exception.Message)
   }
 }
 
-function Remove-AllUsersPackage([string]$Name) {
-  try {
+function Remove-AllUsersPackage([string]$Name)
+{
+  try
+  {
     $matches = @(Get-AppxPackage -AllUsers -Name $Name -ErrorAction SilentlyContinue)
-    if ($matches.Count -eq 0) {
+    if ($matches.Count -eq 0)
+    {
       $Summary.AllUsersSkipped++
       Write-Skip $Name "所有用户范围未找到"
       return
     }
 
-    foreach ($pkg in $matches) {
-      try {
+    foreach ($pkg in $matches)
+    {
+      try
+      {
         Remove-AppxPackage -Package $pkg.PackageFullName -AllUsers -ErrorAction Stop
         $Summary.AllUsersRemoved++
         Write-Ok $Name "已从所有用户移除"
-      }
-      catch {
+      } catch
+      {
         $Summary.AllUsersFailed++
         Write-Fail $Name ("所有用户移除失败: {0}" -f $_.Exception.Message)
       }
     }
-  }
-  catch {
+  } catch
+  {
     $Summary.AllUsersFailed++
     Write-Fail $Name ("所有用户查询失败: {0}" -f $_.Exception.Message)
   }
 }
 
-function Remove-RegexPackages([string]$Regex) {
-  try {
+function Remove-RegexPackages([string]$Regex)
+{
+  try
+  {
     $matches = @(Get-AppxPackage -AllUsers | Where-Object { $_.Name -match $Regex } | Where-Object NonRemovable -eq $false)
-    if ($matches.Count -eq 0) {
+    if ($matches.Count -eq 0)
+    {
       $Summary.RegexSkipped++
       Write-Skip $Regex "没有匹配到额外可移除应用"
       return
     }
 
-    foreach ($pkg in $matches) {
-      try {
+    foreach ($pkg in $matches)
+    {
+      try
+      {
         Remove-AppxPackage -Package $pkg.PackageFullName -AllUsers -ErrorAction Stop
         $Summary.RegexRemoved++
         Write-Ok $pkg.Name "关键字匹配移除成功"
-      }
-      catch {
+      } catch
+      {
         $Summary.RegexFailed++
         Write-Fail $pkg.Name ("关键字匹配移除失败: {0}" -f $_.Exception.Message)
       }
     }
-  }
-  catch {
+  } catch
+  {
     $Summary.RegexFailed++
     Write-Fail $Regex ("关键字匹配查询失败: {0}" -f $_.Exception.Message)
   }
 }
 
-function Remove-ProvisionedPackages([string]$Regex) {
-  try {
+function Remove-ProvisionedPackages([string]$Regex)
+{
+  try
+  {
     $matches = @(Get-AppxProvisionedPackage -Online | Where-Object { $_.DisplayName -match $Regex })
-    if ($matches.Count -eq 0) {
+    if ($matches.Count -eq 0)
+    {
       $Summary.ProvisionedSkipped++
       Write-Skip $Regex "没有匹配到 provisioned packages"
       return
     }
 
     $index = 0
-    foreach ($pkg in $matches) {
+    foreach ($pkg in $matches)
+    {
       $index++
       Write-Info ("正在处理 provisioned package [{0}/{1}] {2}" -f $index, $matches.Count, $pkg.DisplayName)
-      try {
+      try
+      {
         Remove-AppxProvisionedPackage -Online -AllUsers -PackageName $pkg.PackageName -ErrorAction Stop | Out-Null
         $Summary.ProvisionedRemoved++
         Write-Ok $pkg.DisplayName "provisioned package 已移除"
-      }
-      catch {
+      } catch
+      {
         $Summary.ProvisionedFailed++
         Write-Fail $pkg.DisplayName ("provisioned package 移除失败: {0}" -f $_.Exception.Message)
       }
     }
-  }
-  catch {
+  } catch
+  {
     $Summary.ProvisionedFailed++
     Write-Fail $Regex ("provisioned package 查询失败: {0}" -f $_.Exception.Message)
   }
@@ -254,7 +278,8 @@ Write-Host ""
 Write-Host "Removing selected built-in apps..." -ForegroundColor Cyan
 Write-Host ""
 
-foreach ($entry in $Packages) {
+foreach ($entry in $Packages)
+{
   Write-Host ("# {0}" -f $entry.Comment) -ForegroundColor DarkGray
   Remove-CurrentUserPackage $entry.Name
   Remove-AllUsersPackage $entry.Name

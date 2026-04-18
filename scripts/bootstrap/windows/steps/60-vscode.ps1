@@ -1,6 +1,6 @@
 param(
-    [Parameter(Mandatory = $true)]
-    $Context
+  [Parameter(Mandatory = $true)]
+  $Context
 )
 
 $ErrorActionPreference = "Stop"
@@ -19,23 +19,27 @@ Write-Step "Installing VS Code Extensions"
 #   VS Code 是否安装，取决于前面的 Scoop group 选择；
 #   这里只有在 VS Code 已经存在的前提下，才进行扩展同步。
 
-if (-not (Test-CommandExists "code")) {
-    Write-Host "  VS Code CLI (code) is not available; skipping extension install." -ForegroundColor DarkGray
-    Write-OK "VS Code step skipped"
-    return
+if (-not (Test-CommandExists "code"))
+{
+  Write-Host "  VS Code CLI (code) is not available; skipping extension install." -ForegroundColor DarkGray
+  Write-OK "VS Code step skipped"
+  return
 }
 
 $extensionScript = Join-Path $Context.BootstrapRoot "tasks\install-vscode-extensions.ps1"
 
-if (-not (Test-Path $extensionScript)) {
-    throw "VS Code extension script not found: $extensionScript"
+if (-not (Test-Path $extensionScript))
+{
+  throw "VS Code extension script not found: $extensionScript"
 }
 
 Write-Host "  Using extension script: $extensionScript" -ForegroundColor Gray
 
-try {
-    & $extensionScript
-    Write-OK "VS Code extensions processed"
-} catch {
-    throw "VS Code extension installation failed: $_"
+try
+{
+  & $extensionScript
+  Write-OK "VS Code extensions processed"
+} catch
+{
+  throw "VS Code extension installation failed: $_"
 }

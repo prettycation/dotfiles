@@ -27,17 +27,17 @@
 #>
 
 param(
-    # Skip the VS Code extensions step.
-    [switch]$SkipVSCode,
+  # Skip the VS Code extensions step.
+  [switch]$SkipVSCode,
 
-    # Skip the mise config/runtime step.
-    [switch]$SkipMise,
+  # Skip the mise config/runtime step.
+  [switch]$SkipMise,
 
-    # Optional hint shown in the final manual chezmoi steps.
-    [string]$ChezmoiRepo = "",
+  # Optional hint shown in the final manual chezmoi steps.
+  [string]$ChezmoiRepo = "",
 
-    # Reserved for later optional Dev Drive step.
-    [string]$DevDrive = ""
+  # Reserved for later optional Dev Drive step.
+  [string]$DevDrive = ""
 )
 
 $ErrorActionPreference = "Stop"
@@ -48,10 +48,10 @@ Import-Module (Join-Path $PSScriptRoot "bootstrap.common.psm1") -Force
 # Create a shared context object so step scripts do not need to recompute paths
 # or re-read manifests independently.
 $context = New-BootstrapContext `
-    -BootstrapRoot $PSScriptRoot `
-    -ChezmoiRepo $ChezmoiRepo `
-    -DevDrive $DevDrive `
-    -SkipChezmoi $true
+  -BootstrapRoot $PSScriptRoot `
+  -ChezmoiRepo $ChezmoiRepo `
+  -DevDrive $DevDrive `
+  -SkipChezmoi $true
 
 # Preconditions that should fail fast before any side effects happen.
 Assert-RunningAsAdministrator
@@ -61,12 +61,12 @@ $repoRoot = $context.RepoRoot
 
 # Read manifests once and share them across all steps.
 $context.WindowsPackages = Get-ManifestJson `
-    -RepoRoot $repoRoot `
-    -RelativePath "manifests\windows.packages.json"
+  -RepoRoot $repoRoot `
+  -RelativePath "manifests\windows.packages.json"
 
 $context.WindowsRuntimes = Get-ManifestJson `
-    -RepoRoot $repoRoot `
-    -RelativePath "manifests\windows.runtimes.json"
+  -RepoRoot $repoRoot `
+  -RelativePath "manifests\windows.runtimes.json"
 
 # New bootstrap only supports the scoopGroups-based manifest structure.
 Assert-ManifestHasScoopGroups -WindowsPackages $context.WindowsPackages
@@ -74,35 +74,41 @@ Assert-ManifestHasScoopGroups -WindowsPackages $context.WindowsPackages
 # Ordered execution plan.
 # Each step receives the same Context object.
 $steps = @(
-    "steps\00-preflight.ps1",
-    "steps\05-xdg-env.ps1",
-    "steps\10-scoop-core.ps1",
-    "steps\15-bootstrap-required.ps1",
-    "steps\20-scoop-groups.ps1"
+  "steps\00-preflight.ps1",
+  "steps\05-xdg-env.ps1",
+  "steps\10-scoop-core.ps1",
+  "steps\15-bootstrap-required.ps1",
+  "steps\20-scoop-groups.ps1"
 )
 
-if (-not $SkipMise) {
-    $steps += "steps\40-mise.ps1"
+if (-not $SkipMise)
+{
+  $steps += "steps\40-mise.ps1"
 }
 
-if (-not $SkipVSCode) {
-    $steps += "steps\60-vscode.ps1"
+if (-not $SkipVSCode)
+{
+  $steps += "steps\60-vscode.ps1"
 }
 
-foreach ($relativeStep in $steps) {
-    $stepPath = Join-Path $PSScriptRoot $relativeStep
+foreach ($relativeStep in $steps)
+{
+  $stepPath = Join-Path $PSScriptRoot $relativeStep
 
-    if (-not (Test-Path $stepPath)) {
-        throw "Bootstrap step not found: $stepPath"
-    }
+  if (-not (Test-Path $stepPath))
+  {
+    throw "Bootstrap step not found: $stepPath"
+  }
 
-    try {
-        & $stepPath -Context $context
-    } catch {
-        $msg = $_.Exception.Message
-        $stack = $_.ScriptStackTrace
-        throw "Bootstrap step failed: $relativeStep`n$msg`n$stack"
-    }
+  try
+  {
+    & $stepPath -Context $context
+  } catch
+  {
+    $msg = $_.Exception.Message
+    $stack = $_.ScriptStackTrace
+    throw "Bootstrap step failed: $relativeStep`n$msg`n$stack"
+  }
 }
 
 # Final summary.
@@ -114,10 +120,12 @@ Write-Host "============================================================" -Foreg
 Write-Host ""
 Write-Host (Get-ManualChezmoiNextSteps -RepoHint $ChezmoiRepo) -ForegroundColor White
 
-if ($SkipMise) {
-    Write-Warn "mise step was skipped."
+if ($SkipMise)
+{
+  Write-Warn "mise step was skipped."
 }
 
-if ($SkipVSCode) {
-    Write-Warn "VS Code extensions step was skipped."
+if ($SkipVSCode)
+{
+  Write-Warn "VS Code extensions step was skipped."
 }

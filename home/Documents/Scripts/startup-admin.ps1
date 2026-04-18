@@ -24,30 +24,30 @@ $EnableLogging = $false
 #   }
 
 $AdminStartupApps = @(
-    @{
-        Name    = "mousemaster"
-        Command = {
-        $psi = [System.Diagnostics.ProcessStartInfo]::new()
-        $psi.FileName = "$env:SCOOP\apps\mousemaster\current\mousemaster.exe"
-        $psi.WorkingDirectory = "$env:SCOOP\apps\mousemaster\current"
-        $psi.UseShellExecute = $false
-        $psi.CreateNoWindow = $true
+  @{
+    Name    = "mousemaster"
+    Command = {
+      $psi = [System.Diagnostics.ProcessStartInfo]::new()
+      $psi.FileName = "$env:SCOOP\apps\mousemaster\current\mousemaster.exe"
+      $psi.WorkingDirectory = "$env:SCOOP\apps\mousemaster\current"
+      $psi.UseShellExecute = $false
+      $psi.CreateNoWindow = $true
 
-        [System.Diagnostics.Process]::Start($psi) | Out-Null
-        }
-        Enabled = $true
+      [System.Diagnostics.Process]::Start($psi) | Out-Null
     }
+    Enabled = $true
+  }
 
-    # 示例:
-    # ,@{
-    #     Name    = "Windhawk"
-    #     Command = {
-    #         Start-Process `
-    #             -FilePath "$env:SCOOP\apps\windhawk\current\windhawk.exe" `
-    #             -ArgumentList "-tray-only"
-    #     }
-    #     Enabled = $true
-    # }
+  # 示例:
+  # ,@{
+  #     Name    = "Windhawk"
+  #     Command = {
+  #         Start-Process `
+  #             -FilePath "$env:SCOOP\apps\windhawk\current\windhawk.exe" `
+  #             -ArgumentList "-tray-only"
+  #     }
+  #     Enabled = $true
+  # }
 )
 
 # ==================================================================================
@@ -60,77 +60,89 @@ $logPath = Join-Path $logDir "startup-admin.log"
 # --- [核心逻辑 (Core Script Logic)] ---
 # ==================================================================================
 
-function Write-Log {
-    param(
-        [Parameter(Mandatory)]
-        [string]$Message
-    )
+function Write-Log
+{
+  param(
+    [Parameter(Mandatory)]
+    [string]$Message
+  )
 
-    if (-not $EnableLogging) {
-        return
-    }
+  if (-not $EnableLogging)
+  {
+    return
+  }
 
-    $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
-    "[$timestamp] $Message" | Out-File -FilePath $logPath -Append -Encoding utf8
+  $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
+  "[$timestamp] $Message" | Out-File -FilePath $logPath -Append -Encoding utf8
 }
 
-function Initialize-LogDirectory {
-    if (-not $EnableLogging) {
-        return
-    }
+function Initialize-LogDirectory
+{
+  if (-not $EnableLogging)
+  {
+    return
+  }
 
-    if (-not (Test-Path $logDir -PathType Container)) {
-        New-Item -Path $logDir -ItemType Directory -Force | Out-Null
-    }
+  if (-not (Test-Path $logDir -PathType Container))
+  {
+    New-Item -Path $logDir -ItemType Directory -Force | Out-Null
+  }
 }
 
-function Start-AdminApp {
-    param(
-        [Parameter(Mandatory)]
-        [hashtable]$App
-    )
+function Start-AdminApp
+{
+  param(
+    [Parameter(Mandatory)]
+    [hashtable]$App
+  )
 
-    $name = $App.Name
+  $name = $App.Name
 
-    if ($App.ContainsKey('Enabled') -and -not $App.Enabled) {
-        Write-Log "SKIP  [$name] disabled"
-        return
-    }
+  if ($App.ContainsKey('Enabled') -and -not $App.Enabled)
+  {
+    Write-Log "SKIP  [$name] disabled"
+    return
+  }
 
-    if (-not $App.ContainsKey('Command') -or $null -eq $App.Command) {
-        throw "[$name] Command is missing."
-    }
+  if (-not $App.ContainsKey('Command') -or $null -eq $App.Command)
+  {
+    throw "[$name] Command is missing."
+  }
 
-    if ($App.Command -isnot [scriptblock]) {
-        throw "[$name] Command must be a script block."
-    }
+  if ($App.Command -isnot [scriptblock])
+  {
+    throw "[$name] Command must be a script block."
+  }
 
-    Write-Log "BEGIN [$name]"
-    & $App.Command
-    Write-Log "OK    [$name] started successfully"
+  Write-Log "BEGIN [$name]"
+  & $App.Command
+  Write-Log "OK    [$name] started successfully"
 }
 
-try {
-    Initialize-LogDirectory
-    Write-Log "=============================================================="
-    Write-Log "startup-admin.ps1 begin"
-    Write-Log "SCOOP = $env:SCOOP"
+try
+{
+  Initialize-LogDirectory
+  Write-Log "=============================================================="
+  Write-Log "startup-admin.ps1 begin"
+  Write-Log "SCOOP = $env:SCOOP"
 
-    foreach ($app in $AdminStartupApps) {
-        try {
-            Start-AdminApp -App $app
-        }
-        catch {
-            Write-Log "ERROR [$($app.Name)] $($_.Exception.Message)"
-            Write-Log ($_ | Out-String)
-        }
+  foreach ($app in $AdminStartupApps)
+  {
+    try
+    {
+      Start-AdminApp -App $app
+    } catch
+    {
+      Write-Log "ERROR [$($app.Name)] $($_.Exception.Message)"
+      Write-Log ($_ | Out-String)
     }
+  }
 
-    Write-Log "startup-admin.ps1 end"
-    Write-Log "=============================================================="
-}
-catch {
-    Write-Log "FATAL $($_.Exception.Message)"
-    Write-Log ($_ | Out-String)
-    throw
+  Write-Log "startup-admin.ps1 end"
+  Write-Log "=============================================================="
+} catch
+{
+  Write-Log "FATAL $($_.Exception.Message)"
+  Write-Log ($_ | Out-String)
+  throw
 }

@@ -1,6 +1,6 @@
 param(
-    [Parameter(Mandatory = $true)]
-    $Context
+  [Parameter(Mandatory = $true)]
+  $Context
 )
 
 $ErrorActionPreference = "Stop"
@@ -24,72 +24,80 @@ Write-Step "Installing Required Scoop Groups"
 #   5. 如果本次新装了 pwsh，并且当前还不是在 pwsh 中运行，则提示切换到 pwsh 后重跑
 
 $windowsPackages = $Context.WindowsPackages
-if ($null -eq $windowsPackages) {
-    throw "Context.WindowsPackages is null."
+if ($null -eq $windowsPackages)
+{
+  throw "Context.WindowsPackages is null."
 }
 
 Assert-ManifestHasScoopGroups -WindowsPackages $windowsPackages
 
-function Get-ObjectPropValue {
-    <#
+function Get-ObjectPropValue
+{
+  <#
     .SYNOPSIS
         安全读取对象属性，属性不存在时返回 fallback。
     #>
-    param(
-        [object]$Object,
-        [string]$Name,
-        [object]$Fallback = $null
-    )
+  param(
+    [object]$Object,
+    [string]$Name,
+    [object]$Fallback = $null
+  )
 
-    if ($null -ne $Object -and $Object.PSObject.Properties[$Name]) {
-        return $Object.$Name
-    }
+  if ($null -ne $Object -and $Object.PSObject.Properties[$Name])
+  {
+    return $Object.$Name
+  }
 
-    return $Fallback
+  return $Fallback
 }
 
-function Get-RequiredGroupObjects {
-    <#
+function Get-RequiredGroupObjects
+{
+  <#
     .SYNOPSIS
         从 manifest.scoopGroups 中筛出 selection = required 的组。
     #>
-    param(
-        [Parameter(Mandatory = $true)]
-        [object]$Manifest
-    )
+  param(
+    [Parameter(Mandatory = $true)]
+    [object]$Manifest
+  )
 
-    $result = @()
+  $result = @()
 
-    if (-not $Manifest.PSObject.Properties["scoopGroups"] -or $null -eq $Manifest.scoopGroups) {
-        return @()
+  if (-not $Manifest.PSObject.Properties["scoopGroups"] -or $null -eq $Manifest.scoopGroups)
+  {
+    return @()
+  }
+
+  foreach ($groupProp in $Manifest.scoopGroups.PSObject.Properties)
+  {
+    $groupId = [string]$groupProp.Name
+    $group   = $groupProp.Value
+
+    $selection = [string](Get-ObjectPropValue -Object $group -Name "selection" -Fallback "optional")
+    if ($selection -ne "required")
+    {
+      continue
     }
 
-    foreach ($groupProp in $Manifest.scoopGroups.PSObject.Properties) {
-        $groupId = [string]$groupProp.Name
-        $group   = $groupProp.Value
-
-        $selection = [string](Get-ObjectPropValue -Object $group -Name "selection" -Fallback "optional")
-        if ($selection -ne "required") {
-            continue
-        }
-
-        $result += [PSCustomObject]@{
-            Id              = $groupId
-            Title           = [string](Get-ObjectPropValue -Object $group -Name "title" -Fallback $groupId)
-            Description     = [string](Get-ObjectPropValue -Object $group -Name "description" -Fallback "")
-            Selection       = $selection
-            PromptOrder     = [int](Get-ObjectPropValue -Object $group -Name "promptOrder" -Fallback 999)
-            InstallPriority = [int](Get-ObjectPropValue -Object $group -Name "installPriority" -Fallback 500)
-            Buckets         = Get-ObjectPropValue -Object $group -Name "buckets" -Fallback $null
-            PackageOptions  = Get-ObjectPropValue -Object $group -Name "packageOptions" -Fallback $null
-        }
+    $result += [PSCustomObject]@{
+      Id              = $groupId
+      Title           = [string](Get-ObjectPropValue -Object $group -Name "title" -Fallback $groupId)
+      Description     = [string](Get-ObjectPropValue -Object $group -Name "description" -Fallback "")
+      Selection       = $selection
+      PromptOrder     = [int](Get-ObjectPropValue -Object $group -Name "promptOrder" -Fallback 999)
+      InstallPriority = [int](Get-ObjectPropValue -Object $group -Name "installPriority" -Fallback 500)
+      Buckets         = Get-ObjectPropValue -Object $group -Name "buckets" -Fallback $null
+      PackageOptions  = Get-ObjectPropValue -Object $group -Name "packageOptions" -Fallback $null
     }
+  }
 
-    return @($result | Sort-Object InstallPriority, PromptOrder, Title)
+  return @($result | Sort-Object InstallPriority, PromptOrder, Title)
 }
 
-function Get-RequiredGroupPackageSpecs {
-    <#
+function Get-RequiredGroupPackageSpecs
+{
+  <#
     .SYNOPSIS
         展开 required 组下的 bucket/package 列表，并合并 packageOptions。
     .DESCRIPTION
@@ -97,86 +105,100 @@ function Get-RequiredGroupPackageSpecs {
           - 包级 selection=optional => 本阶段跳过，留给后续更细的交互逻辑
           - 包级 selection 未写 / required / default => 本阶段安装
     #>
-    param(
-        [Parameter(Mandatory = $true)]
-        [object]$Group
-    )
+  param(
+    [Parameter(Mandatory = $true)]
+    [object]$Group
+  )
 
-    $specs = @()
+  $specs = @()
 
-    if ($null -eq $Group.Buckets) {
-        return @()
+  if ($null -eq $Group.Buckets)
+  {
+    return @()
+  }
+
+  foreach ($bucketProp in $Group.Buckets.PSObject.Properties)
+  {
+    $bucketName = [string]$bucketProp.Name
+    $packageNames = @($bucketProp.Value)
+    $bucketPackageOptions = $null
+
+    if ($null -ne $Group.PackageOptions -and $Group.PackageOptions.PSObject.Properties[$bucketName])
+    {
+      $bucketPackageOptions = $Group.PackageOptions.$bucketName
     }
 
-    foreach ($bucketProp in $Group.Buckets.PSObject.Properties) {
-        $bucketName = [string]$bucketProp.Name
-        $packageNames = @($bucketProp.Value)
-        $bucketPackageOptions = $null
+    foreach ($pkg in $packageNames)
+    {
+      $packageName = [string]$pkg
+      $packageOption = $null
 
-        if ($null -ne $Group.PackageOptions -and $Group.PackageOptions.PSObject.Properties[$bucketName]) {
-            $bucketPackageOptions = $Group.PackageOptions.$bucketName
-        }
+      if ($null -ne $bucketPackageOptions -and $bucketPackageOptions.PSObject.Properties[$packageName])
+      {
+        $packageOption = $bucketPackageOptions.$packageName
+      }
 
-        foreach ($pkg in $packageNames) {
-            $packageName = [string]$pkg
-            $packageOption = $null
+      # 对 required group 来说：
+      # - 包级 selection=optional => 本阶段跳过，留给后续更细的交互逻辑
+      # - 包级 selection 未写 / required / default => 本阶段安装
+      $packageSelection = [string](Get-ObjectPropValue -Object $packageOption -Name "selection" -Fallback "required")
+      if ($packageSelection -eq "optional")
+      {
+        continue
+      }
 
-            if ($null -ne $bucketPackageOptions -and $bucketPackageOptions.PSObject.Properties[$packageName]) {
-                $packageOption = $bucketPackageOptions.$packageName
-            }
+      $installMode = [string](Get-ObjectPropValue -Object $packageOption -Name "installMode" -Fallback "auto")
+      if ($installMode -eq "skip")
+      {
+        continue
+      }
 
-            # 对 required group 来说：
-            # - 包级 selection=optional => 本阶段跳过，留给后续更细的交互逻辑
-            # - 包级 selection 未写 / required / default => 本阶段安装
-            $packageSelection = [string](Get-ObjectPropValue -Object $packageOption -Name "selection" -Fallback "required")
-            if ($packageSelection -eq "optional") {
-                continue
-            }
+      $packagePriority = [int](Get-ObjectPropValue -Object $packageOption -Name "installPriority" -Fallback $Group.InstallPriority)
+      $requiresAdmin   = [bool](Get-ObjectPropValue -Object $packageOption -Name "requiresAdmin" -Fallback $false)
+      $notes           = [string](Get-ObjectPropValue -Object $packageOption -Name "notes" -Fallback "")
 
-            $installMode = [string](Get-ObjectPropValue -Object $packageOption -Name "installMode" -Fallback "auto")
-            if ($installMode -eq "skip") {
-                continue
-            }
+      $packageRef = if ($bucketName -and $bucketName -ne "main")
+      { "$bucketName/$packageName" 
+      } else
+      { $packageName 
+      }
 
-            $packagePriority = [int](Get-ObjectPropValue -Object $packageOption -Name "installPriority" -Fallback $Group.InstallPriority)
-            $requiresAdmin   = [bool](Get-ObjectPropValue -Object $packageOption -Name "requiresAdmin" -Fallback $false)
-            $notes           = [string](Get-ObjectPropValue -Object $packageOption -Name "notes" -Fallback "")
-
-            $packageRef = if ($bucketName -and $bucketName -ne "main") { "$bucketName/$packageName" } else { $packageName }
-
-            $specs += [PSCustomObject]@{
-                GroupId              = $Group.Id
-                GroupTitle           = $Group.Title
-                GroupInstallPriority = [int]$Group.InstallPriority
-                Bucket               = $bucketName
-                Name                 = $packageName
-                PackageRef           = $packageRef
-                Selection            = $packageSelection
-                InstallMode          = $installMode
-                InstallPriority      = $packagePriority
-                RequiresAdmin        = $requiresAdmin
-                Notes                = $notes
-            }
-        }
+      $specs += [PSCustomObject]@{
+        GroupId              = $Group.Id
+        GroupTitle           = $Group.Title
+        GroupInstallPriority = [int]$Group.InstallPriority
+        Bucket               = $bucketName
+        Name                 = $packageName
+        PackageRef           = $packageRef
+        Selection            = $packageSelection
+        InstallMode          = $installMode
+        InstallPriority      = $packagePriority
+        RequiresAdmin        = $requiresAdmin
+        Notes                = $notes
+      }
     }
+  }
 
-    return @($specs | Sort-Object GroupInstallPriority, InstallPriority, Bucket, Name)
+  return @($specs | Sort-Object GroupInstallPriority, InstallPriority, Bucket, Name)
 }
 
 $requiredGroups = @(Get-RequiredGroupObjects -Manifest $windowsPackages)
 
-if ($requiredGroups.Count -eq 0) {
-    Write-Host "  No required Scoop groups found." -ForegroundColor DarkGray
-    Write-OK "Required Scoop group step complete"
-    return
+if ($requiredGroups.Count -eq 0)
+{
+  Write-Host "  No required Scoop groups found." -ForegroundColor DarkGray
+  Write-OK "Required Scoop group step complete"
+  return
 }
 
 Write-Host "  Required groups to install:" -ForegroundColor Gray
-foreach ($group in $requiredGroups) {
-    Write-Host ("    - {0} [{1}]" -f $group.Title, $group.Id) -ForegroundColor White
-    if ($group.Description) {
-        Write-Host ("      {0}" -f $group.Description) -ForegroundColor DarkGray
-    }
+foreach ($group in $requiredGroups)
+{
+  Write-Host ("    - {0} [{1}]" -f $group.Title, $group.Id) -ForegroundColor White
+  if ($group.Description)
+  {
+    Write-Host ("      {0}" -f $group.Description) -ForegroundColor DarkGray
+  }
 }
 
 $hadPwshBefore   = Test-CommandExists "pwsh"
@@ -187,36 +209,42 @@ $plannedPackages = @{}
 $manualPackages  = @()
 $installResults  = @()
 
-foreach ($group in $requiredGroups) {
-    Write-Host ""
-    Write-Host ("  Group: {0}" -f $group.Title) -ForegroundColor Cyan
+foreach ($group in $requiredGroups)
+{
+  Write-Host ""
+  Write-Host ("  Group: {0}" -f $group.Title) -ForegroundColor Cyan
 
-    $packageSpecs = @(Get-RequiredGroupPackageSpecs -Group $group)
-    if ($packageSpecs.Count -eq 0) {
-        Write-Host "    No auto-install packages in this required group." -ForegroundColor DarkGray
-        continue
+  $packageSpecs = @(Get-RequiredGroupPackageSpecs -Group $group)
+  if ($packageSpecs.Count -eq 0)
+  {
+    Write-Host "    No auto-install packages in this required group." -ForegroundColor DarkGray
+    continue
+  }
+
+  foreach ($pkg in $packageSpecs)
+  {
+    if ($plannedPackages.ContainsKey($pkg.PackageRef))
+    {
+      Write-Host ("    Skip duplicate package: {0}" -f $pkg.PackageRef) -ForegroundColor DarkGray
+      continue
     }
 
-    foreach ($pkg in $packageSpecs) {
-        if ($plannedPackages.ContainsKey($pkg.PackageRef)) {
-            Write-Host ("    Skip duplicate package: {0}" -f $pkg.PackageRef) -ForegroundColor DarkGray
-            continue
-        }
+    $plannedPackages[$pkg.PackageRef] = $true
 
-        $plannedPackages[$pkg.PackageRef] = $true
-
-        if ($pkg.InstallMode -eq "manual") {
-            $manualPackages += $pkg
-            Write-Warn "Manual package skipped: $($pkg.PackageRef)"
-            if ($pkg.Notes) {
-                Write-Host ("      {0}" -f $pkg.Notes) -ForegroundColor DarkGray
-            }
-            continue
-        }
-
-        $installResult = Install-ScoopApp -App $pkg.Name -Bucket $pkg.Bucket
-        $installResults += $installResult
+    if ($pkg.InstallMode -eq "manual")
+    {
+      $manualPackages += $pkg
+      Write-Warn "Manual package skipped: $($pkg.PackageRef)"
+      if ($pkg.Notes)
+      {
+        Write-Host ("      {0}" -f $pkg.Notes) -ForegroundColor DarkGray
+      }
+      continue
     }
+
+    $installResult = Install-ScoopApp -App $pkg.Name -Bucket $pkg.Bucket
+    $installResults += $installResult
+  }
 }
 
 # 新装了 pwsh 后刷新 PATH，确保同一会话能探测到它
@@ -224,25 +252,29 @@ Update-PathEnvironment
 
 $hasPwshAfter = Test-CommandExists "pwsh"
 
-if (-not $hadPwshBefore -and $hasPwshAfter -and -not $runningInPwsh7) {
-    Write-Host "`n============================================================" -ForegroundColor Green
-    Write-Host "  ✓  PowerShell 7 installed successfully!" -ForegroundColor Green
-    Write-Host "============================================================" -ForegroundColor Green
-    Write-Host ""
-    Write-Host "Please CLOSE this window and re-run bootstrap under PowerShell 7 (pwsh)." -ForegroundColor Cyan
-    Write-Host "This ensures later steps run in the intended shell environment." -ForegroundColor Gray
-    exit 0
+if (-not $hadPwshBefore -and $hasPwshAfter -and -not $runningInPwsh7)
+{
+  Write-Host "`n============================================================" -ForegroundColor Green
+  Write-Host "  ✓  PowerShell 7 installed successfully!" -ForegroundColor Green
+  Write-Host "============================================================" -ForegroundColor Green
+  Write-Host ""
+  Write-Host "Please CLOSE this window and re-run bootstrap under PowerShell 7 (pwsh)." -ForegroundColor Cyan
+  Write-Host "This ensures later steps run in the intended shell environment." -ForegroundColor Gray
+  exit 0
 }
 
-if ($manualPackages.Count -gt 0) {
-    Write-Host ""
-    Write-Warn "Required group packages that need manual handling:"
-    foreach ($pkg in $manualPackages) {
-        Write-Warn "  $($pkg.PackageRef) [$($pkg.GroupTitle)]"
-        if ($pkg.Notes) {
-            Write-Host ("      {0}" -f $pkg.Notes) -ForegroundColor DarkGray
-        }
+if ($manualPackages.Count -gt 0)
+{
+  Write-Host ""
+  Write-Warn "Required group packages that need manual handling:"
+  foreach ($pkg in $manualPackages)
+  {
+    Write-Warn "  $($pkg.PackageRef) [$($pkg.GroupTitle)]"
+    if ($pkg.Notes)
+    {
+      Write-Host ("      {0}" -f $pkg.Notes) -ForegroundColor DarkGray
     }
+  }
 }
 
 Write-ScoopPackageHints -InstallResults @($installResults)
