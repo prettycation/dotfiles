@@ -150,7 +150,7 @@ patch:
       base: aj #可以填入多个类别如aj
       addlist:
         - "诶濛硷氽尛躝〇冇吔咗囧屌鲶芶咲畑垅燐"
-      blacklist: [鹵, 彔, 䵽]
+      blacklist: [鹵, 彔, 䵽, 䌬, 罿]
     - option: s2t
       base: fa
       addlist: []
