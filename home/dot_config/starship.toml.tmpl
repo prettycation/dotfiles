@@ -1,9 +1,11 @@
 {{- $hasNode := or (ne (lookPath "node") "") (ne (lookPath "nodejs") "") -}}
+{{- $hasBun := ne (lookPath "bun") "" -}}
 {{- $hasPython := or (ne (lookPath "python") "") (ne (lookPath "python3") "") -}}
 {{- $hasConda := or (ne (lookPath "conda") "") (ne (lookPath "mamba") "") (ne (lookPath "micromamba") "") -}}
 {{- $hasMaven := ne (lookPath "mvn") "" -}}
 {{- $hasJava := or (ne (lookPath "java") "") (ne (lookPath "javac") "") -}}
 {{- $hasCCompiler := or (ne (lookPath "clang") "") (ne (lookPath "gcc") "") (ne (lookPath "cc") "") (ne (lookPath "clang++") "") (ne (lookPath "g++") "") -}}
+{{- $hasCppCompiler := or (ne (lookPath "c++") "") (ne (lookPath "g++") "") (ne (lookPath "clang++") "") -}}
 {{- $hasRust := or (ne (lookPath "rustc") "") (ne (lookPath "cargo") "") -}}
 
 "$schema" = "https://starship.rs/config-schema.json"
@@ -23,9 +25,11 @@ $line_break\
 $python\
 $conda\
 $nodejs\
+$bun\
 $maven\
 $java\
 $c\
+$cpp\
 $rust\
 $character\
 """
@@ -151,6 +155,7 @@ git_modules = "$git_branch$git_status"
 format = "via [$symbol$branch]($style) "
 style = "bold fg:git"
 symbol = " "
+ignore_bare_repo = true
 
 [git_status]
 format = '([\[$conflicted$stashed$untracked$renamed$worktree_added$worktree_modified$worktree_deleted$worktree_typechanged$index_added$index_modified$index_deleted$index_typechanged$ahead_behind\]]($style) )'
@@ -193,6 +198,13 @@ symbol = " "
 version_format = "${raw}"
 disabled = {{ if $hasNode }}false{{ else }}true{{ end }}
 
+[bun]
+format = "[ $symbol$version ]($style)"
+style = "bg:node fg:text_light"
+symbol = "🥟 "
+version_format = "${raw}"
+disabled = {{ if $hasBun }}false{{ else }}true{{ end }}
+
 [python]
 disabled = {{ if $hasPython }}false{{ else }}true{{ end }}
 format = '[ $symbol$version( \($virtualenv\)) ]($style)'
@@ -204,7 +216,7 @@ generic_venv_names = [".venv", "venv"]
 [conda]
 format = "[ $symbol$environment ]($style)"
 style = "bg:conda fg:text_light"
-ignore_base = false
+ignore_base = true
 disabled = {{ if $hasConda }}false{{ else }}true{{ end }}
 symbol = " "
 
@@ -213,6 +225,7 @@ format = "[ $symbol$version ]($style)"
 style = "bg:java fg:text_light"
 version_format = "${raw}"
 symbol = "mvn "
+recursive = true
 disabled = {{ if $hasMaven }}false{{ else }}true{{ end }}
 
 [java]
@@ -229,10 +242,18 @@ symbol = " "
 version_format = "${raw}"
 disabled = {{ if $hasCCompiler }}false{{ else }}true{{ end }}
 
+[cpp]
+format = "[ $symbol($version(-$name)) ]($style)"
+style = "bg:clang fg:text_light"
+symbol = " "
+version_format = "${raw}"
+disabled = {{ if $hasCppCompiler }}false{{ else }}true{{ end }}
+
 [rust]
 format = "[ $symbol$version ]($style)"
 style = "bg:rust fg:text_light"
 symbol = " "
 version_format = "${raw}"
 disabled = {{ if $hasRust }}false{{ else }}true{{ end }}
+
 {{/* vim: set ft=toml.chezmoitemplate: */}}
