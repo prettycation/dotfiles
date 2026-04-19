@@ -39,7 +39,7 @@ style = "auto"
 
 # 搜索栏的位置
 # invert=true 会把 search bar 放到 top
-invert = false
+invert = true
 
 # Atuin UI 最大占用高度
 # 40 是默认；0 表示尽可能占满可用空间（接近全屏）
@@ -68,7 +68,7 @@ auto_hide_height = 8
 exit_mode = "return-query"
 
 # 是否记录失败命令（非 0 exit code）
-store_failed = true
+store_failed = false
 
 # 是否启用内置敏感信息过滤
 # 官方会过滤一些常见 secret/token 模式
@@ -100,6 +100,13 @@ history_filter = ["^ls$", "^cd$", "^pwd$", "^exit$", "^clear$"]
 #   "^/Users/用户名/private",
 #   "^/Users/用户名/secrets"
 # ]
+
+# -------------------------
+# 快捷键
+# -------------------------
+
+[keymap.vim-normal]
+"space" = "return-selection"
 
 # -------------------------
 # 主题
