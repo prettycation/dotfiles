@@ -7,6 +7,7 @@
 {{- $hasCCompiler := or (ne (lookPath "clang") "") (ne (lookPath "gcc") "") (ne (lookPath "cc") "") (ne (lookPath "clang++") "") (ne (lookPath "g++") "") -}}
 {{- $hasCppCompiler := or (ne (lookPath "c++") "") (ne (lookPath "g++") "") (ne (lookPath "clang++") "") -}}
 {{- $hasRust := or (ne (lookPath "rustc") "") (ne (lookPath "cargo") "") -}}
+{{- $hasDirenv := ne (lookPath "direnv") "" -}}
 
 "$schema" = "https://starship.rs/config-schema.json"
 
@@ -14,6 +15,7 @@ format = """\
 [╭╴](fg:arrow)\
 $os\
 $username\
+# $hostname\
 $vcs\
 (\
     [at](fg:overlay1) \
@@ -24,6 +26,7 @@ $line_break\
 [╰─](fg:arrow)\
 $python\
 $conda\
+$direnv\
 $nodejs\
 $bun\
 $maven\
@@ -31,6 +34,7 @@ $java\
 $c\
 $cpp\
 $rust\
+$status\
 $character\
 """
 
@@ -95,6 +99,18 @@ style_root = "bold os_admin"
 format = "[$user]($style) "
 disabled = false
 show_always = true
+# aliases = { "corpuser034g" = "gao", "gaohuan" = "gao" }
+
+# [hostname]
+# ssh_only = false
+# format = "[@$hostname]($style) "
+# style = "bold fg:overlay1"
+# aliases = {
+#   "My-MacBook-Pro" = "mbp",
+#   "DESKTOP-XXXXXXX" = "wsl",
+#   "arch-devbox" = "arch"
+# }
+# disabled = false
 
 [os]
 format = "[$symbol]($style)"
@@ -210,6 +226,7 @@ disabled = {{ if $hasPython }}false{{ else }}true{{ end }}
 format = '[ $symbol$version( \($virtualenv\)) ]($style)'
 symbol = " "
 version_format = "${raw}"
+python_binary = "python3"
 style = "bg:python fg:text_light"
 generic_venv_names = [".venv", "venv"]
 
@@ -219,6 +236,12 @@ style = "bg:conda fg:text_light"
 ignore_base = true
 disabled = {{ if $hasConda }}false{{ else }}true{{ end }}
 symbol = " "
+
+[direnv]
+format = "[ $symbol$loaded/$allowed ]($style)"
+symbol = "direnv "
+style = "fg:overlay1"
+disabled = {{ if $hasDirenv }}false{{ else }}true{{ end }}
 
 [maven]
 format = "[ $symbol$version ]($style)"
@@ -255,5 +278,16 @@ style = "bg:rust fg:text_light"
 symbol = " "
 version_format = "${raw}"
 disabled = {{ if $hasRust }}false{{ else }}true{{ end }}
+
+[status]
+disabled = false
+format = "[$symbol$status]($style) "
+symbol = "✘ "
+success_symbol = ""
+pipestatus = true
+pipestatus_separator = "|"
+success_style = "fg:overlay1"
+failure_style = "bold fg:red"
+style = "bold fg:red"
 
 {{/* vim: set ft=toml.chezmoitemplate: */}}
