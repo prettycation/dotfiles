@@ -111,6 +111,7 @@
           "pamburus.hl"
         ],
         "main": [
+          "atuin",
           "curl",
           "duckdb",
           "fd",
@@ -148,12 +149,21 @@
         "main": [
           "direnv",
           "scoop-search"
+        ],
+        "margin": [
+          "kd"
         ]
       },
       "packageOptions": {
         "abyss": {
           "Nushell.Nushell": {
             "selection": "optional"
+          }
+        },
+        "margin": {
+          "kd": {
+            "selection": "optional",
+            "notes": "命令行翻译工具"
           }
         }
       }
@@ -225,12 +235,21 @@
       "installPriority": 60,
       "buckets": {
         "main": [
+          "ascii-image-converter",
           "ghostscript",
           "imagemagick",
           "mediainfo",
           "poppler",
           "pandoc"
         ]
+      },
+      "packageOptions": {
+        "main": {
+          "ascii-image-converter": {
+            "selection": "optional",
+            "notes": "ASCII art"
+          }
+        }
       }
     },
     "terminal-cli": {
@@ -816,7 +835,8 @@
       "buckets": {
         "abyss": [
           "LocalSend.LocalSend",
-          "viarotel.Escrcpy"
+          "viarotel.Escrcpy",
+          "RustDesk.RustDesk"
         ]
       }
     },

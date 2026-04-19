@@ -220,6 +220,7 @@ scoopClassification:
       installPriority: 20
       buckets:
         main:
+          - atuin
           - curl
           - duckdb
           - fd
@@ -258,6 +259,8 @@ scoopClassification:
           - Cishoon.md
           - twpayne.chezmoi
           - Nushell.Nushell
+        margin:
+          - kd
 
     git-devtools-cli:
       title: Git 工作流 CLI
@@ -315,6 +318,7 @@ scoopClassification:
       installPriority: 60
       buckets:
         main:
+          - ascii-image-converter
           - ghostscript
           - imagemagick
           - mediainfo
@@ -722,6 +726,7 @@ scoopClassification:
         abyss:
           - LocalSend.LocalSend
           - viarotel.Escrcpy
+          - RustDesk.RustDesk
 
     misc-lab:
       title: 未分类 / 实验
@@ -740,6 +745,9 @@ scoopClassification:
         installPriority: 30
       pwsh:
         installPriority: 40
+      ascii-image-converter:
+        selection: optional
+        notes: ASCII art
 
     extras:
       archwsl:
@@ -787,6 +795,9 @@ scoopClassification:
       mpv-handler:
         selection: optional
         notes: Seanime 依赖，用于在外部使用 mpv 播放媒体
+      kd:
+        selection: optional
+        notes: 命令行翻译工具
 
     dorado:
       texlive-full:
