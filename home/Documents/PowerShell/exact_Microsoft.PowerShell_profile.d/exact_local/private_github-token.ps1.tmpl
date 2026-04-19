@@ -1,0 +1,91 @@
+{{ if and .personal .github_token -}}
+# -----------------------------------------------------------------
+# GitHub Token (私有本地文件)
+# -----------------------------------------------------------------
+
+# Token 仅保存在当前 shell 变量中，不默认 export 给所有子进程
+$script:GITHUB_TOKEN_VALUE = {{ .github_token | quote }}
+
+# chezmoi 需要访问 GitHub 时按需注入
+function global:chezmoi {
+    param(
+        [Parameter(ValueFromRemainingArguments = $true)]
+        [object[]]$Args
+    )
+
+    $oldChezmoiGithubAccessToken = $env:CHEZMOI_GITHUB_ACCESS_TOKEN
+
+    try {
+        $env:CHEZMOI_GITHUB_ACCESS_TOKEN = $script:GITHUB_TOKEN_VALUE
+
+        $chezmoiCommand = Get-Command chezmoi -CommandType Application -ErrorAction Stop |
+            Select-Object -First 1 -ExpandProperty Source
+
+        & $chezmoiCommand @Args
+    }
+    finally {
+        if ($null -eq $oldChezmoiGithubAccessToken) {
+            Remove-Item Env:CHEZMOI_GITHUB_ACCESS_TOKEN -ErrorAction SilentlyContinue
+        }
+        else {
+            $env:CHEZMOI_GITHUB_ACCESS_TOKEN = $oldChezmoiGithubAccessToken
+        }
+    }
+}
+
+# 其他需要 GitHub token 的命令，显式通过这个辅助函数注入
+function global:with-github-token {
+    param(
+        [Parameter(ValueFromRemainingArguments = $true)]
+        [object[]]$CommandLine
+    )
+
+    if (-not $CommandLine -or $CommandLine.Count -eq 0) {
+        Write-Error "用法: with-github-token <command> [args...]"
+        return
+    }
+
+    $command = $CommandLine[0]
+    $arguments = if ($CommandLine.Count -gt 1) {
+        $CommandLine[1..($CommandLine.Count - 1)]
+    }
+    else {
+        @()
+    }
+
+    $oldGithubAccessToken = $env:GITHUB_ACCESS_TOKEN
+    $oldChezmoiGithubAccessToken = $env:CHEZMOI_GITHUB_ACCESS_TOKEN
+    $oldGithubToken = $env:GITHUB_TOKEN
+
+    try {
+        $env:GITHUB_ACCESS_TOKEN = $script:GITHUB_TOKEN_VALUE
+        $env:CHEZMOI_GITHUB_ACCESS_TOKEN = $script:GITHUB_TOKEN_VALUE
+        $env:GITHUB_TOKEN = $script:GITHUB_TOKEN_VALUE
+
+        & $command @arguments
+    }
+    finally {
+        if ($null -eq $oldGithubAccessToken) {
+            Remove-Item Env:GITHUB_ACCESS_TOKEN -ErrorAction SilentlyContinue
+        }
+        else {
+            $env:GITHUB_ACCESS_TOKEN = $oldGithubAccessToken
+        }
+
+        if ($null -eq $oldChezmoiGithubAccessToken) {
+            Remove-Item Env:CHEZMOI_GITHUB_ACCESS_TOKEN -ErrorAction SilentlyContinue
+        }
+        else {
+            $env:CHEZMOI_GITHUB_ACCESS_TOKEN = $oldChezmoiGithubAccessToken
+        }
+
+        if ($null -eq $oldGithubToken) {
+            Remove-Item Env:GITHUB_TOKEN -ErrorAction SilentlyContinue
+        }
+        else {
+            $env:GITHUB_TOKEN = $oldGithubToken
+        }
+    }
+}
+{{ end -}}
+{{/* vim: set filetype=ps1.chezmoitemplate: */}}

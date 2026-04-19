@@ -1,0 +1,25 @@
+# -----------------------------------------------------------------
+# 别名
+# -----------------------------------------------------------------
+
+if (-not (Get-Alias clear -ErrorAction SilentlyContinue)) {
+    Set-Alias clear Clear-Host
+}
+
+if (-not (Get-Alias cls -ErrorAction SilentlyContinue)) {
+    Set-Alias cls Clear-Host
+}
+
+{{- if lookPath "gsudo" }}
+Set-Alias -Name sudo -Value gsudo
+{{- end }}
+
+# 为 Switch-Java 函数设置一个更短的别名 'jdk'
+Set-Alias -Name jdk -Value Switch-Java
+
+# Connect/Disconnect-Wifi 别名
+{{- if lookPath "fzf" }}
+Set-Alias -Name cw -Value Open-WifiMenu -Force
+{{- end }}
+Set-Alias -Name dw -Value Close-WifiConnection -Force
+{{/* vim: set filetype=ps1.chezmoitemplate: */}}

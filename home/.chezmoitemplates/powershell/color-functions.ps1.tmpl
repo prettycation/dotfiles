@@ -1,0 +1,26 @@
+function Convert-HexToAnsiForeground {
+    param(
+        [Parameter(Mandatory)]
+        [string]$Hex
+    )
+
+    $clean = $Hex.TrimStart('#')
+    $r = [Convert]::ToInt32($clean.Substring(0, 2), 16)
+    $g = [Convert]::ToInt32($clean.Substring(2, 2), 16)
+    $b = [Convert]::ToInt32($clean.Substring(4, 2), 16)
+    return "`e[38;2;${r};${g};${b}m"
+}
+
+function Convert-HexToAnsiBackground {
+    param(
+        [Parameter(Mandatory)]
+        [string]$Hex
+    )
+
+    $clean = $Hex.TrimStart('#')
+    $r = [Convert]::ToInt32($clean.Substring(0, 2), 16)
+    $g = [Convert]::ToInt32($clean.Substring(2, 2), 16)
+    $b = [Convert]::ToInt32($clean.Substring(4, 2), 16)
+    return "`e[48;2;${r};${g};${b}m"
+}
+{{/* vim: set filetype=ps1.chezmoitemplate: */}}

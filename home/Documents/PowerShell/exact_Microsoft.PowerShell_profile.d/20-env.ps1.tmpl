@@ -1,0 +1,34 @@
+# -----------------------------------------------------------------
+# 环境变量
+# -----------------------------------------------------------------
+
+{{- if lookPath "nvim" }}
+# nvim
+$env:EDITOR = "nvim"
+{{- end }}
+
+{{- if lookPath "bash" }}
+# CLAUDE_CODE
+# Git Bash 路径
+if ($env:SCOOP) {
+    $env:CLAUDE_CODE_GIT_BASH_PATH = Join-Path $env:SCOOP "apps\git\current\bin\bash.exe"
+}
+{{- end }}
+
+# 禁用不必要的遥测和检查
+$env:CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC = "1"
+
+# intelli-shell
+$env:INTELLI_SEARCH_HOTKEY = "Ctrl+r"
+
+# 配置 FZF 默认选项 (配色方案)
+{{- if lookPath "fzf" }}
+$env:FZF_DEFAULT_OPTS = @"
+--color=bg+:$($Catppuccin.Surface0),bg:$($Catppuccin.Base),spinner:$($Catppuccin.Rosewater),hl:$($Catppuccin.Red)
+--color=fg:$($Catppuccin.Text),header:$($Catppuccin.Red),info:$($Catppuccin.Mauve),pointer:$($Catppuccin.Rosewater)
+--color=marker:$($Catppuccin.Lavender),fg+:$($Catppuccin.Text),prompt:$($Catppuccin.Mauve),hl+:$($Catppuccin.Red)
+--color=selected-bg:$($Catppuccin.Surface1)
+--color=border:$($Catppuccin.Overlay0),label:$($Catppuccin.Text)
+"@
+{{- end }}
+{{/* vim: set filetype=ps1.chezmoitemplate: */}}

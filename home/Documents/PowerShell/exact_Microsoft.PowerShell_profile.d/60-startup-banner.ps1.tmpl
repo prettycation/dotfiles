@@ -1,0 +1,10 @@
+# -----------------------------------------------------------------
+# 启动展示
+# -----------------------------------------------------------------
+
+if ($EnableStartupBanner) {
+    {{- if lookPath "fastfetch" }}
+    Clear-Host
+    {{- end }}
+}
+{{/* vim: set filetype=ps1.chezmoitemplate: */}}

@@ -1,0 +1,58 @@
+# -----------------------------------------------------------------
+# 基础环境与编码
+# -----------------------------------------------------------------
+
+# 编码
+try {
+    [Console]::InputEncoding = [System.Text.Encoding]::UTF8
+    [Console]::OutputEncoding = [System.Text.Encoding]::UTF8
+    $OutputEncoding = [System.Text.UTF8Encoding]::new($false)
+    chcp 65001 > $null
+} catch {}
+
+# -----------------------------------------------------------------
+# 会话开关
+# -----------------------------------------------------------------
+
+# 这里分三层：
+# 1. 始终加载：环境变量、函数、别名
+# 2. 交互增强：补全、提示符、hook、自动激活
+# 3. 启动展示：Clear-Host / fastfetch
+
+# PowerShell 启动参数
+$PwshArgs = [Environment]::GetCommandLineArgs()
+
+# 脚本/非交互调用时，不加载交互增强
+# for run_after、pwsh -File、pwsh -Command and so on
+$IsScriptLikeInvocation = $false
+foreach ($arg in $PwshArgs) {
+    if ($arg -match '^(?i)-(File|Command|c|EncodedCommand|NonInteractive)$') {
+        $IsScriptLikeInvocation = $true
+        break
+    }
+}
+
+# 终端上下文
+$IsInteractiveShell = ($null -ne $Host.UI) -and ($null -ne $Host.UI.RawUI) -and (-not $IsScriptLikeInvocation)
+$IsInsideNeovim = -not [string]::IsNullOrWhiteSpace($env:NVIM)
+$IsWezTerm = -not [string]::IsNullOrWhiteSpace($env:WEZTERM_PANE)
+
+# 手动总开关
+$EnableInteractiveProfile = $IsInteractiveShell
+$EnableTerminalIntegration = $EnableInteractiveProfile -and $IsWezTerm
+$EnableStartupBanner = $EnableInteractiveProfile -and (-not $IsInsideNeovim)
+
+# 临时禁用交互增强：
+# $env:NO_PROFILE_EXTRAS = "1"
+if ($env:NO_PROFILE_EXTRAS -eq "1") {
+    $EnableInteractiveProfile = $false
+    $EnableTerminalIntegration = $false
+    $EnableStartupBanner = $false
+}
+
+# 只禁用启动展示：
+# $env:NO_PROFILE_BANNER = "1"
+if ($env:NO_PROFILE_BANNER -eq "1") {
+    $EnableStartupBanner = $false
+}
+{{/* vim: set filetype=ps1.chezmoitemplate: */}}

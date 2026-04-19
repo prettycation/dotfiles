@@ -1,0 +1,42 @@
+# -----------------------------------------------------------------
+# Catppuccin Mocha 调色板
+# -----------------------------------------------------------------
+
+{{ includeTemplate "powershell/catppuccin-vars.ps1.tmpl" . }}
+
+# -----------------------------------------------------------------
+# 辅助函数
+# -----------------------------------------------------------------
+
+{{ includeTemplate "powershell/color-functions.ps1.tmpl" . }}
+
+function Set-LocationIfExists {
+    param(
+        [string]$Path
+    )
+
+    if (-not [string]::IsNullOrWhiteSpace($Path) -and (Test-Path -LiteralPath $Path)) {
+        $resolved = (Resolve-Path -LiteralPath $Path).Path
+        if ($resolved -ne $PWD.Path) {
+            Set-Location -LiteralPath $resolved
+        }
+    }
+}
+
+function Invoke-YaziWithCwdSync {
+    param(
+        [Parameter(ValueFromRemainingArguments = $true)]
+        [string[]]$YaziArgs
+    )
+
+    $tmp = (New-TemporaryFile).FullName
+    try {
+        yazi @YaziArgs --cwd-file="$tmp"
+        $cwd = Get-Content -Path $tmp -Encoding UTF8 -ErrorAction SilentlyContinue
+        Set-LocationIfExists -Path $cwd
+    }
+    finally {
+        Remove-Item -LiteralPath $tmp -Force -ErrorAction SilentlyContinue
+    }
+}
+{{/* vim: set filetype=ps1.chezmoitemplate: */}}
