@@ -123,5 +123,42 @@ return {
       label = { uppercase = false },
       modes = { char = { enabled = false } },
     },
+    init = function()
+      local function set_flash_highlights()
+        local name = vim.g.colors_name or ""
+        if not name:find("catppuccin") then
+          return
+        end
+
+        local C = require("catppuccin.palettes").get_palette("mocha")
+
+        vim.api.nvim_set_hl(0, "FlashLabel", {
+          fg = C.base,
+          bg = C.red,
+          bold = true,
+        })
+
+        vim.api.nvim_set_hl(0, "FlashCurrent", {
+          fg = C.base,
+          bg = C.sapphire,
+          bold = true,
+        })
+
+        vim.api.nvim_set_hl(0, "FlashMatch", {
+          fg = C.sapphire,
+          bg = "NONE",
+          bold = true,
+        })
+      end
+
+      vim.api.nvim_create_autocmd("ColorScheme", {
+        callback = set_flash_highlights,
+      })
+
+      vim.api.nvim_create_autocmd("User", {
+        pattern = "VeryLazy",
+        callback = set_flash_highlights,
+      })
+    end,
   },
 }
