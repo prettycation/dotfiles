@@ -1,31 +1,40 @@
+{{- $hasNode := or (ne (lookPath "node") "") (ne (lookPath "nodejs") "") -}}
+{{- $hasPython := or (ne (lookPath "python") "") (ne (lookPath "python3") "") -}}
+{{- $hasConda := or (ne (lookPath "conda") "") (ne (lookPath "mamba") "") (ne (lookPath "micromamba") "") -}}
+{{- $hasMaven := ne (lookPath "mvn") "" -}}
+{{- $hasJava := or (ne (lookPath "java") "") (ne (lookPath "javac") "") -}}
+{{- $hasCCompiler := or (ne (lookPath "clang") "") (ne (lookPath "gcc") "") (ne (lookPath "cc") "") (ne (lookPath "clang++") "") (ne (lookPath "g++") "") -}}
+{{- $hasRust := or (ne (lookPath "rustc") "") (ne (lookPath "cargo") "") -}}
+
+"$schema" = "https://starship.rs/config-schema.json"
+
 format = """\
 [╭╴](fg:arrow)\
 $os\
 $username\
-$git_branch\
+$vcs\
 (\
-    at \
+    [at](fg:overlay1) \
     $directory\
 )\
 $cmd_duration\
-(\
-    via \
-    $python\
-    $conda\
-    $nodejs\
-    $c\
-    $rust\
-    $java\
-)
-[╰─](fg:arrow)$character\
+$line_break\
+[╰─](fg:arrow)\
+$python\
+$conda\
+$nodejs\
+$maven\
+$java\
+$c\
+$rust\
+$character\
 """
-# Add the modules you need
 
 # Disable the blank line at the start of the prompt
-add_newline = true
+# prompt 已经是双行，设为 false，避免 Starship 再额外插入一行空白
+add_newline = false
 
-
-palette = "normal"
+palette = "catppuccin_mocha"
 
 [palettes.catppuccin_mocha]
 rosewater = "#f5e0dc"
@@ -55,25 +64,7 @@ base = "#1e1e2e"
 mantle = "#181825"
 crust = "#11111b"
 
-[palettes.normal]
-# arrow = "#333533"
-# os = "#16f4d0"
-# os_admin = "#e4ff1a"
-# directory = "#9ffff5"
-# time = "#bdfffd"
-# node = "#a5e6ba"
-# git = "#f17f29"
-# git_status = "#DFEBED"
-# python = "#edf67d"
-# conda = "#70e000"
-# java = "#F86279"
-# rust = "#ffdac6"
-# clang = "#caf0f8"
-# duration = "#ce4257"
-# text_color = "#EDF2F4"
 # text_light = "#26272A"
-
-# I disabled some modules (Rust, Java...) since some things aren't installed in my machine, enable them if you need.
 
 # --- Catppuccin Mocha 风格 ---
 arrow = "#6c7086"      # (Overlay0) 提示符分隔符，低调的灰色
@@ -92,11 +83,12 @@ clang = "#74c7ec"      # (Sapphire) C/C++ 环境
 duration = "#f38ba8"   # (Red) 命令执行时间过长，用红色提示
 text_color = "#cdd6f4" # (Text) 默认前景色
 text_light = "#11111b" # (Crust) 用于浅色背景下的文字颜色（最高对比度）
+overlay1 = "#7f849c"
 
 [username]
-style_user = 'bold os'
-style_root = 'bold os_admin'
-format = '[$user](fg:$style) '
+style_user = "bold os"
+style_root = "bold os_admin"
+format = "[$user]($style) "
 disabled = false
 show_always = true
 
@@ -132,10 +124,13 @@ format = "[$path](bold $style)[$read_only]($read_only_style) "
 truncation_length = 0
 style = "fg:directory"
 read_only_style = "fg:directory"
-before_repo_root_style = "fg:directory"
+before_repo_root_style = "fg:overlay1"
+repo_root_style = "bold fg:directory"
+repo_root_format = "[$before_root_path]($before_repo_root_style)[$repo_root]($repo_root_style)[$path]($style)[$read_only]($read_only_style) "
 truncation_symbol = "…/"
 # 在 git 仓库中显示完整的绝对路径
 truncate_to_repo = false
+home_symbol = "~"
 read_only = "  "
 
 [time]
@@ -149,15 +144,37 @@ format = "took [ $duration]($style) "
 style = "bold fg:duration"
 min_time = 500
 
+[vcs]
+git_modules = "$git_branch$git_status"
+
 [git_branch]
 format = "via [$symbol$branch]($style) "
 style = "bold fg:git"
 symbol = " "
 
 [git_status]
-format = '[ $all_status$ahead_behind ]($style)'
-style = "fg:text_color bg:git"
-disabled = true
+format = '([\[$conflicted$stashed$untracked$renamed$worktree_added$worktree_modified$worktree_deleted$worktree_typechanged$index_added$index_modified$index_deleted$index_typechanged$ahead_behind\]]($style) )'
+style = "fg:text_light bg:git"
+
+conflicted = "[=${count}]"
+stashed = "[$${count}]"
+untracked = "[?${count}]"
+renamed = "[R${count}]"
+
+worktree_added = "[+${count}]"
+worktree_modified = "[!${count}]"
+worktree_deleted = "[-${count}]"
+worktree_typechanged = "[~${count}]"
+
+index_added = "[A${count}]"
+index_modified = "[M${count}]"
+index_deleted = "[D${count}]"
+index_typechanged = "[T${count}]"
+
+ahead = "[⇡${count}]"
+behind = "[⇣${count}]"
+diverged = "[⇕⇡${ahead_count}⇣${behind_count}]"
+up_to_date = "[✓]"
 
 [docker_context]
 disabled = true
@@ -174,39 +191,48 @@ format = "[ $symbol$version ]($style)"
 style = "bg:node fg:text_light"
 symbol = " "
 version_format = "${raw}"
-disabled = false
+disabled = {{ if $hasNode }}false{{ else }}true{{ end }}
 
 [python]
-disabled = false
-format = '[ ${symbol}${pyenv_prefix}(${version})( \($virtualenv\)) ]($style)'
+disabled = {{ if $hasPython }}false{{ else }}true{{ end }}
+format = '[ $symbol$version( \($virtualenv\)) ]($style)'
 symbol = " "
 version_format = "${raw}"
 style = "bg:python fg:text_light"
+generic_venv_names = [".venv", "venv"]
 
 [conda]
 format = "[ $symbol$environment ]($style)"
 style = "bg:conda fg:text_light"
 ignore_base = false
-disabled = false
+disabled = {{ if $hasConda }}false{{ else }}true{{ end }}
 symbol = " "
+
+[maven]
+format = "[ $symbol$version ]($style)"
+style = "bg:java fg:text_light"
+version_format = "${raw}"
+symbol = "mvn "
+disabled = {{ if $hasMaven }}false{{ else }}true{{ end }}
 
 [java]
 format = "[ $symbol$version ]($style)"
 style = "bg:java fg:text_light"
 version_format = "${raw}"
 symbol = " "
-disabled = true
+disabled = {{ if $hasJava }}false{{ else }}true{{ end }}
 
 [c]
 format = "[ $symbol($version(-$name)) ]($style)"
 style = "bg:clang fg:text_light"
 symbol = " "
 version_format = "${raw}"
-disabled = true
+disabled = {{ if $hasCCompiler }}false{{ else }}true{{ end }}
 
 [rust]
 format = "[ $symbol$version ]($style)"
 style = "bg:rust fg:text_light"
 symbol = " "
 version_format = "${raw}"
-disabled = true
+disabled = {{ if $hasRust }}false{{ else }}true{{ end }}
+{{/* vim: set ft=toml.chezmoitemplate: */}}
