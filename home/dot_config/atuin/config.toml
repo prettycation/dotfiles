@@ -56,7 +56,7 @@ show_help = false
 
 # 是否显示 Search / Inspect 之类的 tabs
 # 想更简洁一点就关掉
-show_tabs = false
+show_tabs = true
 
 # compact 模式下，如果终端太矮，自动隐藏一些行
 # 这里只是保留默认思路；你已经用 full + inline_height=0，影响不大
@@ -132,9 +132,10 @@ max_depth = 10
 # 可用列包括：duration / time / datetime / directory / host / user / exit / command
 # 时间戳 / 退出码 / 目录 / 命令
 columns = [
-  { type = "datetime", width = 19 },
-  { type = "exit", width = 6 },
-  { type = "directory", width = 28 },
+  { type = "time", width = 10 },
+  { type = "exit", width = 3 },
+  { type = "host", width = 10 },
+  # { type = "directory", width = 28 },
   { type = "command", expand = true },
 ]
 

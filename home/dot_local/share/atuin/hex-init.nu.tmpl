@@ -1,0 +1,3 @@
+{{- if and (ne .chezmoi.os "windows") (lookPath "atuin") -}}
+{{ output "atuin" "hex" "init" "nu" -}}
+{{- end -}}

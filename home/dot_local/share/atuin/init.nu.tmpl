@@ -1,0 +1,5 @@
+{{- if lookPath "atuin" -}}
+{{ output "atuin" "init" "nu" "--disable-up-arrow" -}}
+{{- else if lookPath "tv" -}}
+{{ output "tv" "init" "nu" -}}
+{{- end -}}
