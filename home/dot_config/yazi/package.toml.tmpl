@@ -3,6 +3,7 @@
 {{- $hasMediaInfo := lookPath "mediainfo" -}}
 {{- $hasDuckDB := lookPath "duckdb" -}}
 {{- $hasRecycleBinCli := lookPath "trash-list" -}}
+{{- $hasSqlite3 := lookPath "sqlite3" -}}
 
 [[plugin.deps]]
 use = "yazi-rs/plugins:smart-filter"
@@ -51,6 +52,11 @@ use = "prettycation/duckdb"
 {{- if $hasRecycleBinCli }}
 [[plugin.deps]]
 use = "uhs-robert/recycle-bin"
+{{- end }}
+
+{{- if $hasSqlite3 }}
+[[plugin.deps]]
+use = "AminurAlam/yazi-plugins:preview-sqlite"
 {{- end }}
 
 [flavor]

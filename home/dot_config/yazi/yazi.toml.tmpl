@@ -4,6 +4,8 @@
 {{- $hasMediainfo := lookPath "mediainfo" -}}
 {{- $hasDuckdb := lookPath "duckdb" -}}
 {{- $hasPlay := or $hasMpv $hasMediainfo -}}
+{{- $hasSqlite3 := lookPath "sqlite3" -}}
+{{- $hasSqliteBrowser := lookPath "DB Browser for SQLite.exe" -}}
 "$schema" = "https://yazi-rs.github.io/schemas/yazi.json"
 
 # --- [mgr] (Manager) ---
@@ -108,6 +110,19 @@ edit_nvim = [
   { run = 'nvim %s', block = true, desc = "Edit with Neovim", for = "windows" },
   { run = 'nvim %s', block = true, desc = "Edit with Neovim", for = "unix" },
 ]
+{{- if $hasSqliteBrowser }}
+# 自定义的 "sqlite_browser" 动作，用于调用 DB Browser for SQLite。
+sqlite_browser = [
+  { run = 'start "" "DB Browser for SQLite.exe" %s1', orphan = true, desc = "DB Browser for SQLite", for = "windows" },
+]
+{{- end }}
+{{- if $hasSqlite3 }}
+# 自定义的 "sqlite_shell" 动作，用于在终端内调用 sqlite3。
+sqlite_shell = [
+  { run = 'sqlite3 %s1', block = true, desc = "sqlite3", for = "windows" },
+  { run = 'sqlite3 %s1', block = true, desc = "sqlite3", for = "unix" },
+]
+{{- end }}
 
 # --- [open] ---
 # 定义“规则”(rules)，将不同的文件类型映射到上面定义的“动作”。
@@ -175,6 +190,19 @@ rules = [
     "edit",
     "reveal",
   ] },
+  {{- if or $hasSqliteBrowser $hasSqlite3 }}
+  # SQLite 数据库：Windows 下优先用 DB Browser for SQLite 打开；
+  # 如果安装了 sqlite3，也会在 "Open with" 里提供终端内打开选项。
+  { url = "*.{sqlite3,sqlite,db3,s3db,sl3}", use = [
+    {{- if $hasSqliteBrowser }}
+    "sqlite_browser",
+    {{- end }}
+    {{- if $hasSqlite3 }}
+    "sqlite_shell",
+    {{- end }}
+    "reveal",
+  ], desc = "Open SQLite database" },
+  {{- end }}
   # 最后的备用规则：对于所有其他文件，使用 'open' (系统默认) 和 'reveal'。
   { url = "*", use = [
     "open",
@@ -319,6 +347,16 @@ previewers = [
   { mime = "{audio,video,image}/*", run = "mediainfo" },
   { mime = "application/subrip", run = "mediainfo" },
   { mime = "application/postscript", run = "mediainfo" },
+  {{- end }}
+
+  {{- if $hasSqlite3 }}
+  # SQLite 数据库：使用 preview-sqlite.yazi 在右侧预览 schema
+  { url = "*.sqlite3", run = "preview-sqlite" },
+  { url = "*.sqlite",  run = "preview-sqlite" },
+  { url = "*.db3",     run = "preview-sqlite" },
+  { url = "*.s3db",    run = "preview-sqlite" },
+  { url = "*.sl3",     run = "preview-sqlite" },
+  { mime = "application/sqlite3", run = "preview-sqlite" },
   {{- end }}
 
   { mime = "application/pdf", run = "pdf" },                                                                                 # PDF 文件使用 'pdf' 预览器 (它会调用 pdftoppm)
