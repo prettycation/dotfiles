@@ -237,3 +237,16 @@ conds = [
   { if = "exec", text = "", fg = "#a6e3a1" },
   { if = "!dir", text = "", fg = "#cdd6f4" },
 ]
+
+# : Confirm (确认框) {{{
+[confirm]
+border = { fg = "#cba6f7" }             # Mauve，和 input / pick / tasks 一致
+title = { fg = "#f5c2e7", bold = true } # Pink，和 hovered / desc 一致
+body = { fg = "#cdd6f4" }               # Text
+list = { fg = "#94e2d5" }               # Teal，突出待操作对象
+
+btn_yes = { fg = "#f38ba8", bold = true }
+btn_no = { fg = "#cba6f7", bold = true }
+
+btn_labels = ["[Space] 确认", "[N] 取消"]
+# : }}}
