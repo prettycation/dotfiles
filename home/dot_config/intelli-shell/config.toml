@@ -1,0 +1,21 @@
+[ai]
+enabled = true
+
+[ai.models]
+suggest = "main"
+fix = "main"
+import = "main"
+completion = "main"
+fallback = "fallback"
+
+[ai.catalog.main]
+provider = "openai"
+model = "gpt-4o"
+url = "https://api.chatanywhere.tech/v1"
+api_key_env = "OPENAI_API_KEY"
+
+[ai.catalog.fallback]
+provider = "openai"
+model = "gpt-4o-mini"
+url = "https://api.chatanywhere.tech/v1"
+api_key_env = "OPENAI_API_KEY"

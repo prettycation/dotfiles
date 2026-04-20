@@ -131,12 +131,14 @@ if ($EnableInteractiveProfile) {
     Invoke-Expression (& { (zoxide init powershell) -join "`n" })
     {{- end }}
 
+    {{- if lookPath "intelli-shell" }}
+    # 将 intelli-shell 的钩子注入到修改过的提示符中
+    Invoke-Expression (& { (intelli-shell init powershell) -join "`n" })
+    {{- end }}
+
     {{- if lookPath "atuin.exe" }}
     # 将 atuin 的钩子注入到修改过的提示符中
     Invoke-Expression (& { (atuin init powershell --disable-up-arrow) -join "`n" })
-    {{- else if lookPath "intelli-shell" }}
-    # 将 intelli-shell 的钩子注入到修改过的提示符中
-    Invoke-Expression (& { (intelli-shell init powershell) -join "`n" })
     {{- else if lookPath "tv" }}
     # 将 tv 的钩子注入到修改过的提示符中
     Invoke-Expression (& { (tv init powershell) -join "`n" })
