@@ -83,6 +83,11 @@ $utf16LeEncoding = [System.Text.Encoding]::Unicode
 $ansiEncoding = [System.Text.Encoding]::GetEncoding([System.Globalization.CultureInfo]::CurrentCulture.TextInfo.ANSICodePage)
 $gbkEncoding = [System.Text.Encoding]::GetEncoding(936)
 
+$chezmoiExe = "{{ lookPath "chezmoi" }}"
+if ([string]::IsNullOrWhiteSpace($chezmoiExe)) {
+    throw "Failed to resolve chezmoi executable path at template render time."
+}
+
 function ConvertTo-StringArray {
     param([object]$Value)
 
@@ -97,6 +102,49 @@ function ConvertTo-StringArray {
     }
 
     return @([string]$Value)
+}
+
+function Invoke-ChezmoiExecuteTemplate {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$TemplateContent
+    )
+
+    $psi = [System.Diagnostics.ProcessStartInfo]::new()
+    $psi.FileName = $chezmoiExe
+    $psi.ArgumentList.Add("execute-template")
+    $psi.RedirectStandardInput = $true
+    $psi.RedirectStandardOutput = $true
+    $psi.RedirectStandardError = $true
+    $psi.UseShellExecute = $false
+    $psi.CreateNoWindow = $true
+    $psi.StandardInputEncoding = $utf8Encoding
+    $psi.StandardOutputEncoding = $utf8Encoding
+    $psi.StandardErrorEncoding = $utf8Encoding
+
+    $proc = [System.Diagnostics.Process]::new()
+    $proc.StartInfo = $psi
+
+    try {
+        [void]$proc.Start()
+
+        $proc.StandardInput.Write($TemplateContent)
+        $proc.StandardInput.Close()
+
+        $stdout = $proc.StandardOutput.ReadToEnd()
+        $stderr = $proc.StandardError.ReadToEnd()
+
+        $proc.WaitForExit()
+
+        if ($proc.ExitCode -ne 0) {
+            throw "chezmoi execute-template failed with exit code $($proc.ExitCode): $stderr"
+        }
+
+        return $stdout
+    }
+    finally {
+        $proc.Dispose()
+    }
 }
 
 # ----------------------------
@@ -323,7 +371,8 @@ foreach ($app in $apps) {
 
         if ($isTmpl) {
             # 模板文件：渲染并对比内容
-            $renderedContent = (Get-Content $file.FullName -Raw | chezmoi execute-template) -join "`r`n"
+            $templateContent = [System.IO.File]::ReadAllText($file.FullName, $utf8Encoding)
+            $renderedContent = Invoke-ChezmoiExecuteTemplate -TemplateContent $templateContent
             $shouldWrite = $true
 
             if ($tgtFileInfo.Exists -and -not $forceRefresh) {
