@@ -3,9 +3,9 @@
 {{- $hasMpv := lookPath "mpv" -}}
 {{- $hasMediainfo := lookPath "mediainfo" -}}
 {{- $hasDuckdb := lookPath "duckdb" -}}
-{{- $hasPlay := or $hasMpv $hasMediainfo -}}
 {{- $hasSqlite3 := lookPath "sqlite3" -}}
 {{- $hasSqliteBrowser := lookPath "DB Browser for SQLite.exe" -}}
+{{- $hasPlay := or $hasMpv $hasMediainfo -}}
 "$schema" = "https://yazi-rs.github.io/schemas/yazi.json"
 
 # --- [mgr] (Manager) ---
@@ -126,9 +126,9 @@ sqlite_shell = [
 
 # --- [open] ---
 # 定义“规则”(rules)，将不同的文件类型映射到上面定义的“动作”。
-# yazi 会从上到下匹配第一条符合的规则。
+# 这里改为在 Yazi 默认规则基础上增量混入，而不是整段重写。
 [open]
-rules = [
+prepend_rules = [
   # 最高优先级：.txt 和 .md 文件默认使用 'edit_nvim' (Neovim) 动作。
   # { url = "*.{txt,md}", use = [ "edit_emeditor", "reveal" ], desc = "Open with EmEditor" },
   { url = "*.{txt,md}", use = [
@@ -136,6 +136,20 @@ rules = [
     "edit",
     "reveal",
   ], desc = "Open with Neovim" },
+
+  {{- if or $hasSqliteBrowser $hasSqlite3 }}
+  # SQLite 数据库：优先交给图形化工具；如果没有，则回退到 sqlite3。
+  # 故意不匹配 *.db，避免与 DuckDB 数据库冲突。
+  { url = "*.{sqlite3,sqlite,db3,s3db,sl3}", use = [
+    {{- if $hasSqliteBrowser }}
+    "sqlite_browser",
+    {{- end }}
+    {{- if $hasSqlite3 }}
+    "sqlite_shell",
+    {{- end }}
+    "reveal",
+  ], desc = "Open SQLite database" },
+  {{- end }}
 
   # 文件夹：提供 'edit_nvim'(Neovim), 'edit'(VSCode), 'open'(系统默认) 和 'reveal' 选项。
   { url = "*/", use = [
@@ -156,7 +170,7 @@ rules = [
     "reveal",
   ] },
   {{- if $hasPlay }}
-  # 媒体：使用 'play' (mpv) 和 'reveal'。
+  # 媒体：使用 'play' (mpv / mediainfo) 和 'reveal'。
   { mime = "{audio,video}/*", use = [
     "play",
     "reveal",
@@ -190,24 +204,6 @@ rules = [
     "edit",
     "reveal",
   ] },
-  {{- if or $hasSqliteBrowser $hasSqlite3 }}
-  # SQLite 数据库：Windows 下优先用 DB Browser for SQLite 打开；
-  # 如果安装了 sqlite3，也会在 "Open with" 里提供终端内打开选项。
-  { url = "*.{sqlite3,sqlite,db3,s3db,sl3}", use = [
-    {{- if $hasSqliteBrowser }}
-    "sqlite_browser",
-    {{- end }}
-    {{- if $hasSqlite3 }}
-    "sqlite_shell",
-    {{- end }}
-    "reveal",
-  ], desc = "Open SQLite database" },
-  {{- end }}
-  # 最后的备用规则：对于所有其他文件，使用 'open' (系统默认) 和 'reveal'。
-  { url = "*", use = [
-    "open",
-    "reveal",
-  ] },
 ]
 
 # --- [tasks] ---
@@ -230,14 +226,6 @@ suppress_preload = false
 # --- [plugin] ---
 # 配置 yazi 如何调用外部插件和工具来获取信息或生成预览。
 [plugin]
-# "fetchers" 用于在 yazi 扫描文件时，提前获取额外信息。
-fetchers = [
-  # 细化 MIME 获取规则，"mime" 会调用外部程序 (如 file.exe(scoop main bucket下的是 32 位无法预览)) 来确定每个文件的 MIME 类型。
-  { id = "mime", url = "*/", run = "mime.dir", prio = "high" },
-  { id = "mime", url = "local://*", run = "mime.local", prio = "high" },
-  { id = "mime", url = "remote://*", run = "mime.remote", prio = "high" },
-]
-
 # "spotters" 在新版中用于快速识别文件特征。
 spotters = [
   { url = "*/", run = "folder" },
@@ -253,15 +241,17 @@ spotters = [
 ]
 
 # "preloaders" 在文件进入视野时提前加载预览内容。
-preloaders = [
-  # --- DuckDB 数据预览预加载开始 (已注释等待修复) ---
-  # { url = "*.csv", run = "duckdb", multi = false },
-  # { url = "*.tsv", run = "duckdb", multi = false },
-  # { url = "*.json", run = "duckdb", multi = false },
-  # { url = "*.parquet", run = "duckdb", multi = false },
-  # { url = "*.txt", run = "duckdb", multi = false },
-  # { url = "*.xlsx", run = "duckdb", multi = false },
-  # --- DuckDB 数据预览预加载结束 ---
+# 这里改为在默认 preloader 基础上追加自定义规则。
+prepend_preloaders = [
+  {{- if $hasDuckdb }}
+  # DuckDB：按最新官方 preloader 规则字段配置；旧版 README 里的 `multi = false` 已不再属于合法字段。
+  { url = "*.csv", run = "duckdb" },
+  { url = "*.tsv", run = "duckdb" },
+  { url = "*.json", run = "duckdb" },
+  { url = "*.parquet", run = "duckdb" },
+  { url = "*.txt", run = "duckdb" },
+  { url = "*.xlsx", run = "duckdb" },
+  {{- end }}
 
   {{- if $hasSoffice }}
   # --- Office 文档预览规则开始 ---
@@ -293,14 +283,21 @@ preloaders = [
   { mime = "application/subrip", run = "mediainfo" },
   { mime = "application/postscript", run = "mediainfo" },
   {{- end }}
-
-  { mime = "application/pdf", run = "pdf" },
-  { mime = "font/*", run = "font" },
-  { mime = "application/ms-opentype", run = "font" },
 ]
 
 # "previewers" 定义了针对不同文件类型，应该使用哪个内置的预览器插件。
-previewers = [
+# 这里改为在默认 previewer 基础上插入自定义规则。
+prepend_previewers = [
+  {{- if $hasSqlite3 }}
+  # SQLite：使用 preview-sqlite.yazi 预览 schema / table information。
+  { url = "*.sqlite3", run = "preview-sqlite" },
+  { url = "*.sqlite", run = "preview-sqlite" },
+  { url = "*.db3", run = "preview-sqlite" },
+  { url = "*.s3db", run = "preview-sqlite" },
+  { url = "*.sl3", run = "preview-sqlite" },
+  { mime = "application/sqlite3", run = "preview-sqlite" },
+  {{- end }}
+
   {{- if $hasDuckdb }}
   # --- DuckDB 数据预览规则开始 (由于其支持表格视图，建议放在 Office 和 Code 之前) ---
   { url = "*.csv", run = "duckdb" },
@@ -337,38 +334,12 @@ previewers = [
   # --- Office 文档预览规则结束 ---
   {{- end }}
 
-  { url = "*/", run = "folder" },                                              # 文件夹使用 'folder' 预览器
-  { mime = "text/*", run = "code" },                                           # 文本文件使用 'code' 预览器 (它会调用 bat)
-  { mime = "application/{mbox,javascript,wine-extension-ini}", run = "code" },
-  { mime = "application/{json,ndjson}", run = "json" },                        # JSON 文件使用 'json' 预览器 (它也会调用 bat)
-
   {{- if $hasMediainfo }}
   # [mediainfo] 使用 mediainfo 替代原有的 magick, image, video 规则
   { mime = "{audio,video,image}/*", run = "mediainfo" },
   { mime = "application/subrip", run = "mediainfo" },
   { mime = "application/postscript", run = "mediainfo" },
   {{- end }}
-
-  {{- if $hasSqlite3 }}
-  # SQLite 数据库：使用 preview-sqlite.yazi 在右侧预览 schema
-  { url = "*.sqlite3", run = "preview-sqlite" },
-  { url = "*.sqlite",  run = "preview-sqlite" },
-  { url = "*.db3",     run = "preview-sqlite" },
-  { url = "*.s3db",    run = "preview-sqlite" },
-  { url = "*.sl3",     run = "preview-sqlite" },
-  { mime = "application/sqlite3", run = "preview-sqlite" },
-  {{- end }}
-
-  { mime = "application/pdf", run = "pdf" },                                                                                 # PDF 文件使用 'pdf' 预览器 (它会调用 pdftoppm)
-  { mime = "application/{zip,rar,7z*,tar,gzip,xz,zstd,bzip*,lzma,compress,archive,cpio,arj,xar,ms-cab*}", run = "archive" }, # 压缩包使用 'archive' 预览器
-  { url = "*.{AppImage,appimage}", run = "archive" },
-  { mime = "application/{iso9660-image...}", run = "archive" },
-  { mime = "application/virtualbox-{vhd,vhdx}", run = "archive" },
-  { url = "*.{img,fat,ext,ext2,ext3,ext4,squashfs,ntfs,hfs,hfsx}", run = "archive" },
-  { mime = "font/*", run = "font" },
-  { mime = "application/ms-opentype", run = "font" },
-  { mime = "inode/empty", run = "empty" },
-  { url = "*", run = "file" },                                                                                               # 备用规则：对所有其他文件，显示基本文件信息
 ]
 
 # --- [input], [confirm], [pick], [which] ---
