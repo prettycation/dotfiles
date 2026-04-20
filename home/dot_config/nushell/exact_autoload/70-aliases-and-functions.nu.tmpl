@@ -44,18 +44,13 @@ def --wrapped la [...args] {
 
 {{- if lookPath "yazi" }}
 def --env yy [...args] {
-  let tmpfile = (^mktemp $"(($env.TMPDIR? | default '/tmp'))/yazi-cwd.XXXXXX" | str trim)
-
-  ^yazi ...$args --cwd-file $tmpfile
-
-  let dir = (try { open $tmpfile | str trim } catch { "" })
-  if ($dir != "") and ($dir | path exists) and ($dir != $env.PWD) {
-    cd $dir
-  }
-
-  if ($tmpfile | path exists) {
-    rm -f $tmpfile
-  }
+	let tmp = (mktemp -t "yazi-cwd.XXXXXX")
+	^yazi ...$args --cwd-file $tmp
+	let cwd = (open $tmp)
+	if $cwd != $env.PWD and ($cwd | path exists) {
+		cd $cwd
+	}
+	rm -fp $tmp
 }
 {{- end }}
 
@@ -63,7 +58,6 @@ def --env yy [...args] {
 def --env zy [] {
   let dest = (
     ^zoxide query -l
-    | lines
     | ^fzf --height 40% --reverse
     | str trim
   )
