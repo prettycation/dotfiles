@@ -11,19 +11,20 @@
 
 "$schema" = "https://starship.rs/config-schema.json"
 
+# 使用 overlay0 作为提示符分隔符颜色，低调的灰色
 format = """\
-[╭╴](fg:arrow)\
+[╭╴](fg:overlay0)\
 $os\
 $username\
-# $hostname\
+{{/* $hostname\ */}}
 $vcs\
 (\
-    [at](fg:overlay1) \
+    [at](fg:text) \
     $directory\
 )\
 $cmd_duration\
 $line_break\
-[╰─](fg:arrow)\
+[╰─](fg:overlay0)\
 $python\
 $conda\
 $direnv\
@@ -72,30 +73,9 @@ base = {{ .catppuccin.base | quote }}
 mantle = {{ .catppuccin.mantle | quote }}
 crust = {{ .catppuccin.crust | quote }}
 
-# text_light = "#26272A"
-
-# --- Catppuccin Mocha 风格 ---
-arrow = "#6c7086"      # (Overlay0) 提示符分隔符，低调的灰色
-os = "#89dceb"         # (Sky) 操作系统标识，醒目的天蓝色
-os_admin = "#f38ba8"   # (Red) 管理员权限！使用红色作为强烈的警告
-directory = "#89b4fa"  # (Blue) 目录路径，蓝色是最适合文件系统的颜色
-time = "#74c7ec"       # (Sapphire) 时间戳，用蓝宝石色与目录区分
-node = "#a6e3a1"       # (Green) Node.js 环境，绿色代表健康和稳定
-git = "#fab387"        # (Peach) Git 分支，桃色温暖而清晰
-git_status = "#cdd6f4" # (Text) Git 状态文本，使用标准文字颜色
-python = "#f9e2af"     # (Yellow) Python 环境，黄色是 Python 的标志色之一
-conda = "#a6e3a1"      # (Green) Conda 环境，同样使用绿色
-java = "#f38ba8"       # (Red) Java 环境，红色系
-rust = "#fab387"       # (Peach) Rust 环境，与 Git 共享桃色
-clang = "#74c7ec"      # (Sapphire) C/C++ 环境
-duration = "#f38ba8"   # (Red) 命令执行时间过长，用红色提示
-text_color = "#cdd6f4" # (Text) 默认前景色
-text_light = "#11111b" # (Crust) 用于浅色背景下的文字颜色（最高对比度）
-overlay1 = "#7f849c"
-
 [username]
-style_user = "bold os"
-style_root = "bold os_admin"
+style_user = "bold sky" # 操作系统标识，醒目的天蓝色
+style_root = "bold red" # 管理员权限！使用红色作为强烈的警告
 format = "[$user]($style) "
 disabled = false
 show_always = true
@@ -114,7 +94,7 @@ show_always = true
 
 [os]
 format = "[$symbol]($style)"
-style = "bold os"
+style = "bold sky" # 操作系统标识，醒目的天蓝色
 disabled = false
 
 [os.symbols]
@@ -135,17 +115,17 @@ Ubuntu = " "
 Windows = " "
 
 [character]
-success_symbol = "[󰍟](fg:arrow)"
-error_symbol = "[󰍟](fg:red)"
+success_symbol = "[󰍟](fg:overlay0)" # 提示符分隔符，低调的灰色
+error_symbol = "[󰍟](fg:red)"        # 错误状态使用红色强调
 
 [directory]
 format = "[$path](bold $style)[$read_only]($read_only_style) "
 # 显示完整路径
 truncation_length = 0
-style = "fg:directory"
-read_only_style = "fg:directory"
-before_repo_root_style = "fg:overlay1"
-repo_root_style = "bold fg:directory"
+style = "fg:blue"                # 目录路径，蓝色是最适合文件系统的颜色
+read_only_style = "fg:blue"      # 目录路径，蓝色是最适合文件系统的颜色
+before_repo_root_style = "fg:lavender"  # repo root 前缀，着浅色
+repo_root_style = "bold fg:blue" # 目录路径，蓝色是最适合文件系统的颜色
 repo_root_format = "[$before_root_path]($before_repo_root_style)[$repo_root]($repo_root_style)[$path]($style)[$read_only]($read_only_style) "
 truncation_symbol = "…/"
 # 在 git 仓库中显示完整的绝对路径
@@ -157,11 +137,11 @@ read_only = "  "
 disabled = true
 format = "at [󱑈 $time]($style)"
 time_format = "%H:%M"
-style = "bold fg:time"
+style = "bold fg:sapphire" # 时间戳，用蓝宝石色与目录区分
 
 [cmd_duration]
 format = "took [ $duration]($style) "
-style = "bold fg:duration"
+style = "bold fg:red" # 命令执行时间过长，用红色提示
 min_time = 500
 
 [vcs]
@@ -169,13 +149,13 @@ git_modules = "$git_branch$git_status"
 
 [git_branch]
 format = "via [$symbol$branch]($style) "
-style = "bold fg:git"
+style = "bold fg:peach" # Git 分支，桃色温暖而清晰
 symbol = " "
 ignore_bare_repo = true
 
 [git_status]
 format = '([\[$conflicted$stashed$untracked$renamed$worktree_added$worktree_modified$worktree_deleted$worktree_typechanged$index_added$index_modified$index_deleted$index_typechanged$ahead_behind\]]($style) )'
-style = "fg:text_light bg:git"
+style = "fg:crust bg:peach" # Git 状态文本使用高对比前景，背景与 Git 分支共享桃色
 
 conflicted = "[=${count}]"
 stashed = "[$${count}]"
@@ -209,14 +189,14 @@ symbol = " "
 
 [nodejs]
 format = "[ $symbol$version ]($style)"
-style = "bg:node fg:text_light"
+style = "bg:green fg:crust" # Node.js 环境，绿色代表健康和稳定
 symbol = " "
 version_format = "${raw}"
 disabled = {{ if $hasNode }}false{{ else }}true{{ end }}
 
 [bun]
 format = "[ $symbol$version ]($style)"
-style = "bg:node fg:text_light"
+style = "bg:green fg:crust" # Bun 沿用 Node.js 的绿色语义
 symbol = "🥟 "
 version_format = "${raw}"
 disabled = {{ if $hasBun }}false{{ else }}true{{ end }}
@@ -227,12 +207,12 @@ format = '[ $symbol$version( \($virtualenv\)) ]($style)'
 symbol = " "
 version_format = "${raw}"
 python_binary = "python3"
-style = "bg:python fg:text_light"
+style = "bg:yellow fg:crust" # Python 环境，黄色是 Python 的标志色之一
 generic_venv_names = [".venv", "venv"]
 
 [conda]
 format = "[ $symbol$environment ]($style)"
-style = "bg:conda fg:text_light"
+style = "bg:green fg:crust" # Conda 环境，同样使用绿色
 ignore_base = true
 disabled = {{ if $hasConda }}false{{ else }}true{{ end }}
 symbol = " "
@@ -245,7 +225,7 @@ disabled = {{ if $hasDirenv }}false{{ else }}true{{ end }}
 
 [maven]
 format = "[ $symbol$version ]($style)"
-style = "bg:java fg:text_light"
+style = "bg:red fg:crust" # Java 生态，红色系
 version_format = "${raw}"
 symbol = "mvn "
 recursive = true
@@ -253,28 +233,28 @@ disabled = {{ if $hasMaven }}false{{ else }}true{{ end }}
 
 [java]
 format = "[ $symbol$version ]($style)"
-style = "bg:java fg:text_light"
+style = "bg:red fg:crust" # Java 环境，红色系
 version_format = "${raw}"
 symbol = " "
 disabled = {{ if $hasJava }}false{{ else }}true{{ end }}
 
 [c]
 format = "[ $symbol($version(-$name)) ]($style)"
-style = "bg:clang fg:text_light"
+style = "bg:sapphire fg:crust" # C/C++ 环境
 symbol = " "
 version_format = "${raw}"
 disabled = {{ if $hasCCompiler }}false{{ else }}true{{ end }}
 
 [cpp]
 format = "[ $symbol($version(-$name)) ]($style)"
-style = "bg:clang fg:text_light"
+style = "bg:sapphire fg:crust" # C/C++ 环境
 symbol = " "
 version_format = "${raw}"
 disabled = {{ if $hasCppCompiler }}false{{ else }}true{{ end }}
 
 [rust]
 format = "[ $symbol$version ]($style)"
-style = "bg:rust fg:text_light"
+style = "bg:peach fg:crust" # Rust 环境，与 Git 共享桃色
 symbol = " "
 version_format = "${raw}"
 disabled = {{ if $hasRust }}false{{ else }}true{{ end }}
@@ -288,6 +268,6 @@ pipestatus = true
 pipestatus_separator = "|"
 success_style = "fg:overlay1"
 failure_style = "bold fg:red"
-style = "bold fg:red"
+style = "bold fg:red" # 错误状态用红色强调
 
 {{/* vim: set ft=toml.chezmoitemplate: */}}
