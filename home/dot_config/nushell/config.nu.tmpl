@@ -1,5 +1,13 @@
 source ./themes/catppuccin_mocha.nu
 
+{{- if and (ne .chezmoi.os "windows") (lookPath "atuin") }}
+source ~/.local/share/atuin/hex-init.nu
+{{- end }}
+
+{{- if or (lookPath "atuin") (lookPath "tv") }}
+source ~/.local/share/atuin/init.nu
+{{- end }}
+
 let vendor_autoload = ($nu.data-dir | path join "vendor" "autoload")
 if not ($vendor_autoload | path exists) {
   mkdir $vendor_autoload
@@ -10,14 +18,6 @@ starship init nu | save -f ($vendor_autoload | path join "starship.nu")
 {{- else }}
 if (($vendor_autoload | path join "starship.nu") | path exists) {
   rm -f ($vendor_autoload | path join "starship.nu")
-}
-{{- end }}
-
-{{- if lookPath "tv" }}
-tv init nu | save -f ($vendor_autoload | path join "tv.nu")
-{{- else }}
-if (($vendor_autoload | path join "tv.nu") | path exists) {
-  rm -f ($vendor_autoload | path join "tv.nu")
 }
 {{- end }}
 

@@ -5,10 +5,10 @@ local options = {
 
 {{- if eq .chezmoi.os "windows" }}
 
-{{- if lookPath "pwsh.exe" }}
-options.default_prog = { {{ lookPath "pwsh.exe" | toJson }}, "-NoLogo" }
-{{- else if lookPath "nu.exe" }}
+{{- if lookPath "nu.exe" }}
 options.default_prog = { {{ lookPath "nu.exe" | toJson }} }
+{{- else if lookPath "pwsh.exe" }}
+options.default_prog = { {{ lookPath "pwsh.exe" | toJson }}, "-NoLogo" }
 {{- else if lookPath "powershell.exe" }}
 options.default_prog = { {{ lookPath "powershell.exe" | toJson }} }
 {{- else if lookPath "cmd.exe" }}
@@ -16,11 +16,11 @@ options.default_prog = { {{ lookPath "cmd.exe" | toJson }} }
 {{- end }}
 
 options.launch_menu = {
+  {{- if lookPath "pwsh.exe" }}
+  { label = "PowerShell Core", args = { {{ lookPath "pwsh.exe" | toJson }}, "-NoLogo" } },
   {{- if lookPath "nu.exe" }}
   { label = "Nushell", args = { {{ lookPath "nu.exe" | toJson }} } },
   {{- end }}
-  {{- if lookPath "pwsh.exe" }}
-  { label = "PowerShell Core", args = { {{ lookPath "pwsh.exe" | toJson }}, "-NoLogo" } },
   {{- end }}
   {{- if lookPath "bash.exe" }}
   { label = "Git Bash", args = { {{ lookPath "bash.exe" | toJson }}, "-l" } },
@@ -38,12 +38,12 @@ options.launch_menu = {
 
 {{- else if eq .chezmoi.os "darwin" }}
 
-{{- if lookPath "fish" }}
+{{- if lookPath "zsh" }}
+options.default_prog = { {{ lookPath "zsh" | toJson }}, "-l" }
+{{- else if lookPath "fish" }}
 options.default_prog = { {{ lookPath "fish" | toJson }}, "-l" }
 {{- else if lookPath "nu" }}
 options.default_prog = { {{ lookPath "nu" | toJson }}, "-l" }
-{{- else if lookPath "zsh" }}
-options.default_prog = { {{ lookPath "zsh" | toJson }}, "-l" }
 {{- else if lookPath "bash" }}
 options.default_prog = { {{ lookPath "bash" | toJson }}, "-l" }
 {{- end }}
@@ -65,12 +65,12 @@ options.launch_menu = {
 
 {{- else if eq .chezmoi.os "linux" }}
 
-{{- if lookPath "fish" }}
+{{- if lookPath "zsh" }}
+options.default_prog = { {{ lookPath "zsh" | toJson }}, "-l" }
+{{- else if lookPath "fish" }}
 options.default_prog = { {{ lookPath "fish" | toJson }}, "-l" }
 {{- else if lookPath "nu" }}
 options.default_prog = { {{ lookPath "nu" | toJson }}, "-l" }
-{{- else if lookPath "zsh" }}
-options.default_prog = { {{ lookPath "zsh" | toJson }}, "-l" }
 {{- else if lookPath "bash" }}
 options.default_prog = { {{ lookPath "bash" | toJson }}, "-l" }
 {{- end }}
@@ -93,3 +93,4 @@ options.launch_menu = {
 {{- end }}
 
 return options
+{{/* vim: set ft=lua.chezmoitmpl: */}}
