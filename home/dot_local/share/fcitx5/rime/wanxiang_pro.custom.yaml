@@ -8,6 +8,21 @@ patch:
       - 小鹤双拼飞键
   ##########################以上格式受指令初始化控制，最好保持格式不变，如果发生变更请不要使用指令修改相关数据#####################################
 
+  # 把并击基础对象挂进 patch
+  __patch:
+    - 并击基础
+
+  "engine/processors/@before 3": chord_composer
+
+  # 把并击的 algebra 规则按模块拼起来
+  chord_composer/algebra:
+    __patch:
+      - 并击预处理
+      - 并击字母
+      - 并击大写
+      - 并击符号
+      - 并击清理
+
   # 开关
   # reset: 默认状态。注释掉后，切换窗口时不会重置到默认状态。
   # states: 方案选单显示的名称。可以注释掉，仍可以通过快捷键切换。
@@ -61,14 +76,6 @@ patch:
 
   # 输入引擎
   # 使用 *文件名*对象名 的语法直接加载 Lua 插件
-
-  # 预测引擎
-  # ⚠️ 必须放在靠前位置（以确保精准拦截按键）
-  # "engine/processors/@before0": lua_processor@*wanxiang.user_predict*P
-  # 负责生成上屏后的预测候选词
-  # "engine/translators/@next": lua_translator@*wanxiang.user_predict*T
-  # ⚠️ 负责最终的候选词实时提权调频
-  # "engine/filters/@next": lua_filter@*wanxiang.user_predict*F
 
   # rime-trans 翻译插件
   # 挂载处理器 (处理快捷键)
@@ -218,10 +225,6 @@ patch:
     # 翻页键设置
     - { accept: minus, send: Page_Up, when: paging }
     - { accept: equal, send: Page_Down, when: has_menu }
-    # - { accept: comma, send: Page_Up, when: paging }
-    # - { accept: period, send: Page_Down, when: has_menu }
-    # - { accept: bracketleft, send: Page_Up, when: paging }
-    # - { accept: bracketright, send: Page_Down, when: has_menu }
     # 次选和三选
     - { accept: semicolon, send: 2, when: has_menu } # 分号次选
     - { accept: apostrophe, send: 3, when: has_menu } # 单引号三选
@@ -298,3 +301,156 @@ patch:
     - derive/^xq(\d?)/xo$1/
     # zv -> zm
     - derive/^zv(\d?)/zm$1/
+
+并击基础:
+  chord_composer:
+    # true：任意一个并击键先松开，就立刻结算本次并击
+    finish_chord_on_first_key_release: true
+
+    # 并击键位顺序表
+    # 并击最终会按这里的顺序排序，不是按手指按下顺序
+    # 后面的规则必须按这个顺序写，例如 wf 不能写成 fw
+    alphabet: qazwsxedcrfvtgbyhnujmik,ol.p;/
+
+并击预处理:
+  __append:
+    # 把 ; , . / 临时映射成 A C X Z
+    # 目的是避免这些符号在正则和 YAML 里造成转义/分隔干扰
+    - xlit|;,./|ACXZ|
+
+    # 左手并击包装成 <...>
+    # 例如 ef -> <ef>
+    - xform/([qwertasdfgzxcvb]+)/<$1>/
+
+    # 右手并击包装成 <...>
+    # 注意这里的 A C X Z 已经分别代表 ; , . /
+    - xform/([yuiophjklAnmCXZ]+)/<$1>/
+
+# 并击字母：普通小写输出
+并击字母:
+  __append:
+    # ---- 单键镜像区 ----
+
+    # 左右手对应位置输出同一个字母，降低左右手负担
+    - xform=(<q>|<p>)=q= # q 或 p -> q
+    - xform=(<w>|<o>)=w= # w 或 o -> w
+    - xform=(<e>|<i>)=e= # e 或 i -> e
+    - xform=(<r>|<u>)=r= # r 或 u -> r
+    - xform=(<t>|<y>)=t= # t 或 y -> t
+
+    - xform=(<a>|<A>)=a= # a 或 ; -> a
+    - xform=(<s>|<l>)=s= # s 或 l -> s
+    - xform=(<d>|<k>)=d= # d 或 k -> d
+    - xform=(<f>|<j>)=f= # f 或 j -> f
+    - xform=(<g>|<h>)=g= # g 或 h -> g
+
+    - xform=(<z>|<Z>)=z= # z 或 / -> z
+    - xform=(<x>|<X>)=x= # x 或 . -> x
+    - xform=(<c>|<C>)=c= # c 或 , -> c
+    - xform=(<v>|<m>)=v= # v 或 m -> v
+    - xform=(<b>|<n>)=b= # b 或 n -> b
+
+    # ---- 双键和弦区 ----
+    # 用常见双击组合补足剩余字母
+    # 左右两侧尽量做镜像，保持手感一致
+
+    # 上排补字母：y u i o p
+    - xform=(<ef>|<ji>)=y= # e+f 或 j+i -> y
+    - xform=(<er>|<ui>)=u= # e+r 或 u+i -> u
+    - xform=(<we>|<io>)=i= # w+e 或 i+o -> i
+    - xform=(<wr>|<uo>)=o= # w+r 或 u+o -> o
+    - xform=(<qr>|<up>)=p= # q+r 或 u+p -> p
+
+    # 中排补字母：h j k l
+    - xform=(<wf>|<jo>)=h= # w+f 或 j+o -> h
+    - xform=(<df>|<jk>)=j= # d+f 或 j+k -> j
+    - xform=(<sd>|<kl>)=k= # s+d 或 k+l -> k
+    - xform=(<sf>|<jl>)=l= # s+f 或 j+l -> l
+
+    # 边缘补字母：n m
+    - xform=(<af>|<jA>)=n= # a+f 或 j+; -> n
+    - xform=(<cv>|<mC>)=m= # c+v 或 m+, -> m
+
+# 并击大写：辅码/筛选用
+并击大写:
+  __append:
+    # 产出大写编码，和辅码、大写筛选联动
+    #
+    # 上排大写：Q W E R T Y U I O P
+    - xform=(<sef>|<jil>)=Q= # s+e+f 或 j+i+l -> Q
+    - xform=(<wt>|<yo>)=W= # w+t 或 y+o -> W
+    - xform=(<et>|<yi>)=R= # e+t 或 y+i -> R
+    - xform=(<ed>|<ik>)=E= # e+d 或 i+k -> E
+    - xform=(<qt>|<yp>)=T= # q+t 或 y+p -> T
+    - xform=(<qe>|<ip>)=Y= # q+e 或 i+p -> Y
+    - xform=(<ser>|<uil>)=U= # s+e+r 或 u+i+l -> U
+    - xform=(<wef>|<jio>)=I= # w+e+f 或 j+i+o -> I
+    - xform=(<aw>|<oA>)=O= # a+w 或 o+; -> O
+    - xform=(<qf>|<jp>)=P= # q+f 或 j+p -> P
+
+    # 中排大写：A S D F G H J K L
+    - xform=(<ar>|<uA>)=A= # a+r 或 u+; -> A
+    - xform=(<sr>|<ul>)=S= # s+r 或 u+l -> S
+    - xform=(<dr>|<uk>)=D= # d+r 或 u+k -> D
+    - xform=(<rf>|<uj>)=F= # r+f 或 u+j -> F
+    - xform=(<tg>|<yh>)=G= # t+g 或 y+h -> G
+    - xform=(<qwf>|<jop>)=H= # q+w+f 或 j+o+p -> H
+    - xform=(<dg>|<hk>)=J= # d+g 或 h+k -> J
+    - xform=(<sdf>|<jkl>)=K= # s+d+f 或 j+k+l -> K
+    - xform=(<asf>|<jlA>)=L= # a+s+f 或 j+l+; -> L
+
+    # 下排及补位大写：Z X C V B N M
+    - xform=(<zf>|<jZ>)=Z= # z+f 或 j+/ -> Z
+    - xform=(<xf>|<jX>)=X= # x+f 或 j+. -> X
+    - xform=(<asr>|<ulA>)=C= # a+s+r 或 u+l+; -> C
+    - xform=(<ac>|<mA>)=V= # a+c 或 m+; -> V
+    - xform=(<dc>|<mk>)=B= # d+c 或 m+k -> B
+    - xform=(<se>|<il>)=N= # s+e 或 i+l -> N
+    - xform=(<qw>|<op>)=M= # q+w 或 o+p -> M
+
+# 并击符号：直接出标点或配对符号
+并击符号:
+  __append:
+    # 常用符号
+    - xform=(<as>|<lA>)=/= # a+s 或 l+; -> /
+    - xform=(<zx>|<XZ>)=!= # z+x 或 .+/ -> !
+    - xform=(<xc>|<CX>)=,= # x+c 或 ,+. -> ,
+    - xform=(<xv>|<mX>)=.= # x+v 或 m+. -> .
+    - xform=(<zv>|<mZ>)=?= # z+v 或 m+/ -> ?
+    - xform=(<zc>|<CZ>)=:= # z+c 或 ,+/ -> :
+    - xform=(<kA>)=;= # k+; -> ;
+    - xform=(<ad>)=\= # a+d -> \
+    - xform=(<ml>)=@= # m+l -> @
+    - xform=(<sc>)=~= # s+c -> ~
+    - xform=(<fg>)=*= # f+g -> *
+    - xform=(<hj>)=+= # h+j -> +
+    - xform=(<yu>)=-= # y+u -> -
+    - xform=(<rt>)=%= # r+t -> %
+    - xform=(<rg>)=^= # r+g -> ^
+    - xform=(<hu>)=#= # h+u -> #
+
+    # 括号 / 引号 / 成组符号区
+    - xform=(<ag>)=[= # a+g -> [
+    - xform=(<hA>)=]= # h+; -> ]
+    - xform=(<vb>)=“= # v+b -> 左双引号
+    - xform=(<nm>)=”= # n+m -> 右双引号
+    - xform=(<wd>)=:“= # w+d -> :“
+    - xform=(<ko>)=,“= # k+o -> ,“
+
+# 并击清理：收尾、兜底、防脏码
+并击清理:
+  __append:
+    # 个别特殊残留的收尾处理
+    - xform/<1>/ /
+    - xform/<"1>/"/
+
+    # 如果还有没被识别掉的 <...> 并击串，直接清空
+    # 防止脏码继续流入后面的双拼/辅码链
+    - xform/^.*<.+>.*$//
+
+    # 符号后处理
+    # 把前面转义保护过的结果还原成最终标点
+    - xform=，="""",=
+    - xform=。="""".=
+    - xform=！=""""!=
+    - xform=？=""""?=
