@@ -96,7 +96,10 @@ export FZF_DEFAULT_OPTS=" \
 --color=border:#6C7086,label:#CDD6F4"
 {{- end }}
 
-{{ if lookPath "tv" }}
+{{ if lookPath "atuin" }}
+# atuin 初始化
+eval "$(atuin init zsh --disable-up-arrow)"
+{{ else if lookPath "tv" }}
 # television 初始化
 eval "$(tv init zsh)"
 {{ end }}
