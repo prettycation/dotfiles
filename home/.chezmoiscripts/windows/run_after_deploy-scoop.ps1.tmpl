@@ -160,10 +160,10 @@ foreach ($app in $apps) {
         ""
     }
 
-    # 区分“未定义 app_path”和“定义为空字符串”
-    $hasAppPath = $app.ContainsKey('app_path')
-    $appPath = if ($hasAppPath -and $null -ne $app['app_path']) {
-        [string]$app['app_path']
+    # 区分“未定义 current_path”和“定义为空字符串”
+    $hasAppPath = $app.ContainsKey('current_path')
+    $currentPath = if ($hasAppPath -and $null -ne $app['current_path']) {
+        [string]$app['current_path']
     } else {
         $null
     }
@@ -196,18 +196,18 @@ foreach ($app in $apps) {
     $globalAppPath = [System.IO.Path]::Combine($scoopGlobalRoot, "apps", $scoopApp)
     $isGlobal = (-not ([System.IO.Directory]::Exists($userAppPath)) -and ([System.IO.Directory]::Exists($globalAppPath)))
 
-    # 判断是否配置了 app_path (如果未配置，回退到 persist)
+    # 判断是否配置了 current_path (如果未配置，回退到 persist)
     if ($hasAppPath) {
-        # --- 模式 A: 部署到 app 目录 ---
+        # --- 模式 A: 部署到 current 目录 ---
         $appBase = if ($isGlobal) {
-            [System.IO.Path]::Combine($scoopGlobalRoot, "apps", $scoopApp, "current", "app")
+            [System.IO.Path]::Combine($scoopGlobalRoot, "apps", $scoopApp, "current")
         } else {
-            [System.IO.Path]::Combine($scoopRoot, "apps", $scoopApp, "current", "app")
+            [System.IO.Path]::Combine($scoopRoot, "apps", $scoopApp, "current")
         }
-        $targetRoot = if ([string]::IsNullOrWhiteSpace($appPath)) {
+        $targetRoot = if ([string]::IsNullOrWhiteSpace($currentPath)) {
             $appBase
         } else {
-            [System.IO.Path]::Combine($appBase, $appPath)
+            [System.IO.Path]::Combine($appBase, $currentPath)
         }
         if ($verboseDeploy) {
             Write-Host "[$appName] Target mode: App Directory ($targetRoot)" -ForegroundColor DarkGray
@@ -332,8 +332,8 @@ foreach ($app in $apps) {
         $tgtLen = if ($tgtFileInfo.Exists) { $tgtFileInfo.Length } else { 0 }
         $tgtTicks = if ($tgtFileInfo.Exists) { $tgtFileInfo.LastWriteTimeUtc.Ticks } else { 0 }
 
-        # 缓存键名增加 app_path，解决多路径映射下的缓存冲突
-        $entryAppPath = if ($null -ne $appPath) { $appPath } else { "" }
+        # 缓存键名增加 current_path，解决多路径映射下的缓存冲突
+        $entryAppPath = if ($null -ne $currentPath) { $currentPath } else { "" }
         $entryKey = "$appName|$entryAppPath|$targetRelPath"
         $cached = $state['entries'][$entryKey]
 

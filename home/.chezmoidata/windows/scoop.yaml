@@ -4,8 +4,8 @@ scoop:
       scoop_app: "sharkdp.bat"
       source_base: "dot_config/bat"
       target_base: "AppData/Roaming/bat"
-      # 若无 persist 目录，直接改 current/app
-      # app_path: ""
+      # 若无 persist 目录，直接改 current
+      # current_path: ""
       ignore_path: ".config/bat" # 供 .chezmoiignore 使用，Windows 下忽略 ~/.config/bat，防止与 scoop 自动创建的 junction 冲突
       # 如果不写 includes，默认包含了 dot_config/wezterm 下的所有文件
       # includes:
@@ -57,6 +57,11 @@ scoop:
       scoop_app: "mousemaster"
       source_base: ".chezmoitemplates/windows-apps/mousemaster/mousemaster.properties"
       target_base: "mousemaster.properties"
+
+    - name: "nilesoft-shell"
+      scoop_app: "nilesoft-shell"
+      source_base: ".chezmoitemplates/windows-apps/nilesoft-shell/imports/theme.nss"
+      current_path: "imports/theme.nss"
 
     - name: "SpaceKey"
       scoop_app: "abgox.SpaceKey"
