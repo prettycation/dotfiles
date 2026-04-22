@@ -37,7 +37,7 @@ require("lazy").setup({
   defaults = {
     -- By default, only LazyVim plugins will be lazy-loaded. Your custom plugins will load during startup.
     -- If you know what you're doing, you can set this to `true` to have all your custom plugins lazy-loaded by default.
-    lazy = false,
+    lazy = true,
     -- It's recommended to leave version=false for now, since a lot the plugin that support versioning,
     -- have outdated releases, which may break your Neovim install.
     version = false, -- always use the latest git commit
@@ -54,14 +54,43 @@ require("lazy").setup({
     rtp = {
       -- disable some rtp plugins
       disabled_plugins = {
+        -- 不用 .editorconfig 规则时可关
+        "editorconfig",
+
+        -- 不直接打开 .gz / .zip / .tar 文件时可关
         "gzip",
-        -- "matchit",
-        -- "matchparen",
-        -- "netrwPlugin",
         "tarPlugin",
-        "tohtml",
-        "tutor",
         "zipPlugin",
+
+        -- 不用 :Man 时可关
+        "man",
+
+        -- 不常用 % 在 if/endif、html tag 等结构间跳转时可关
+        -- "matchit",
+
+        -- 不需要高亮配对括号时可关
+        -- "matchparen",
+
+        -- 已禁用 netrw / 不用内置目录浏览
+        "netrwPlugin",
+
+        -- 不需要 OSC52 终端剪贴板时可关
+        "osc52",
+
+        -- 不自动下载缺失 spellfile 时可关
+        "spellfile",
+
+        -- 不用内置教程
+        "tutor",
+
+        -- tohtml 本来就不是默认加载，关不关都影响很小
+        "tohtml",
+
+        -- 使用非纯 lua 插件需要 / 按需启动 remote hosts
+        -- "rplugin",
+
+        -- 跨会话保存 marks / history / registers
+        -- "shada",
       },
     },
   },
