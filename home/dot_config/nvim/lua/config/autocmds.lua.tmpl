@@ -16,6 +16,15 @@ vim.api.nvim_create_autocmd("FileType", {
   end,
 })
 
+-- 禁用 chezmoi Lua 模板文件的自动格式化
+-- 避免保存时把 {{/* ... */}} 这类模板语法交给 Lua formatter 处理
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = { "lua.chezmoitemplate" },
+  callback = function()
+    vim.b.autoformat = false
+  end,
+})
+
 {{- if ne .chezmoi.os "windows" }}
 vim.api.nvim_create_autocmd("FileType", {
   pattern = { "markdown" },
@@ -134,3 +143,4 @@ if not vim.g.vscode then
   })
 {{- end }}
 end
+{{/* vim: set ft=lua.chezmoitemplate: */}}
