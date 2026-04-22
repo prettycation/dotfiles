@@ -324,6 +324,8 @@ scoopClassification:
           - mediainfo
           - poppler
           - pandoc
+          - ffmpeg
+          - resvg
 
     terminal-cli:
       title: 终端增强 CLI
@@ -387,6 +389,9 @@ scoopClassification:
           - Rime.Weasel
         lemon:
           - mousemaster
+        margin:
+          - rime-ls
+          - librime-msvc
 
     browser-gui:
       title: 浏览器
@@ -477,6 +482,8 @@ scoopClassification:
       buckets:
         ZhangTianrong_scoop-bucket:
           - emeditor-pro
+        extras:
+          - sqlitebrowser
 
     diff-merge-gui:
       title: Diff / Merge GUI
@@ -748,6 +755,26 @@ scoopClassification:
       ascii-image-converter:
         selection: optional
         notes: ASCII art
+      ffmpeg:
+        notes: yazi 依赖
+      jq:
+        notes: yazi 依赖
+      poppler:
+        notes: yazi 依赖
+      fd:
+        notes: yazi 依赖
+      ripgrep:
+        notes: yazi 依赖
+      fzf:
+        notes: yazi 依赖
+      zoxide:
+        notes: yazi 依赖
+      resvg:
+        notes: yazi 依赖
+      imagemagick:
+        notes: yazi 依赖
+      duckdb:
+        notes: yazi 插件依赖
 
     extras:
       archwsl:
@@ -755,6 +782,9 @@ scoopClassification:
         selection: optional
       fancontrol:
         requiresAdmin: true
+      sqlitebrowser:
+        selection: optional
+        notes: yazi 依赖
 
     abyss:
       HuLaSpark.HuLa:
@@ -798,6 +828,13 @@ scoopClassification:
       kd:
         selection: optional
         notes: 命令行翻译工具
+      rime-ls:
+        selection: optional
+        notes: nvim 内 rime lsp 依赖
+      librime-msvc:
+        installMode: manual
+        selection: optional
+        notes: rime-ls 依赖, 已绑定, 无需手动安装
 
     dorado:
       texlive-full:

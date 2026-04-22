@@ -127,6 +127,25 @@
           "yazi",
           "zoxide"
         ]
+      },
+      "packageOptions": {
+        "main": {
+          "duckdb": {
+            "notes": "yazi 插件依赖"
+          },
+          "fd": {
+            "notes": "yazi 依赖"
+          },
+          "jq": {
+            "notes": "yazi 依赖"
+          },
+          "ripgrep": {
+            "notes": "yazi 依赖"
+          },
+          "zoxide": {
+            "notes": "yazi 依赖"
+          }
+        }
       }
     },
     "shell-workflow-cli": {
@@ -240,7 +259,9 @@
           "imagemagick",
           "mediainfo",
           "poppler",
-          "pandoc"
+          "pandoc",
+          "ffmpeg",
+          "resvg"
         ]
       },
       "packageOptions": {
@@ -248,6 +269,18 @@
           "ascii-image-converter": {
             "selection": "optional",
             "notes": "ASCII art"
+          },
+          "imagemagick": {
+            "notes": "yazi 依赖"
+          },
+          "poppler": {
+            "notes": "yazi 依赖"
+          },
+          "ffmpeg": {
+            "notes": "yazi 依赖"
+          },
+          "resvg": {
+            "notes": "yazi 依赖"
           }
         }
       }
@@ -271,6 +304,13 @@
           "fastfetch",
           "fzf"
         ]
+      },
+      "packageOptions": {
+        "main": {
+          "fzf": {
+            "notes": "yazi 依赖"
+          }
+        }
       }
     },
     "fonts": {
@@ -323,7 +363,24 @@
         ],
         "main": [
           "espanso"
+        ],
+        "margin": [
+          "rime-ls",
+          "librime-msvc"
         ]
+      },
+      "packageOptions": {
+        "margin": {
+          "rime-ls": {
+            "selection": "optional",
+            "notes": "nvim 内 rime lsp 依赖"
+          },
+          "librime-msvc": {
+            "selection": "optional",
+            "installMode": "manual",
+            "notes": "rime-ls 依赖, 已绑定, 无需手动安装"
+          }
+        }
       }
     },
     "browser-gui": {
@@ -438,6 +495,9 @@
       "promptOrder": 180,
       "installPriority": 180,
       "buckets": {
+        "extras": [
+          "sqlitebrowser"
+        ],
         "ZhangTianrong_scoop-bucket": [
           "emeditor-pro"
         ]
@@ -447,6 +507,12 @@
           "emeditor-pro": {
             "installMode": "manual",
             "notes": "依赖 baidupcs-go / 百度网盘下载，建议手动处理"
+          }
+        },
+        "extras": {
+          "sqlitebrowser": {
+            "selection": "optional",
+            "notes": "yazi 依赖"
           }
         }
       }
@@ -837,19 +903,6 @@
           "LocalSend.LocalSend",
           "viarotel.Escrcpy",
           "RustDesk.RustDesk"
-        ]
-      }
-    },
-    "misc-lab": {
-      "title": "未分类 / 实验",
-      "description": "暂未定类或实验性工具",
-      "selection": "optional",
-      "promptOrder": 999,
-      "installPriority": 999,
-      "buckets": {
-        "margin": [
-          "librime-msvc",
-          "rime-ls"
         ]
       }
     }
