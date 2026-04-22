@@ -1,0 +1,58 @@
+local group = vim.api.nvim_create_augroup("personal_startup_events", { clear = true })
+
+local startup_done = false
+
+local function is_real_file()
+  return vim.bo.filetype ~= "alpha" and vim.api.nvim_buf_get_name(0) ~= ""
+end
+
+local function fire_file_ready()
+  vim.api.nvim_exec_autocmds("User", { pattern = "FileReady" })
+end
+
+local function fire_theme_ready()
+  vim.api.nvim_exec_autocmds("User", { pattern = "ThemeReady" })
+end
+
+-- 启动阶段：
+-- 不能在最早的 ColorScheme 上立刻触发 ThemeReady，
+-- 因为这时 LazyVim 的 colorscheme 阶段里，Snacks 还没加载完。
+vim.api.nvim_create_autocmd("VimEnter", {
+  group = group,
+  once = true,
+  callback = function()
+    vim.schedule(function()
+      startup_done = true
+      fire_theme_ready()
+
+      if is_real_file() then
+        fire_file_ready()
+        return
+      end
+
+      local file_ready
+      file_ready = vim.api.nvim_create_autocmd("BufEnter", {
+        group = group,
+        callback = function()
+          if is_real_file() then
+            fire_file_ready()
+            vim.api.nvim_del_autocmd(file_ready)
+          end
+        end,
+      })
+    end)
+  end,
+})
+
+-- 运行期：
+-- 如果之后手动切换 colorscheme，仍然可以重新发 ThemeReady。
+vim.api.nvim_create_autocmd("ColorScheme", {
+  group = group,
+  callback = function()
+    if startup_done then
+      fire_theme_ready()
+    end
+  end,
+})
+
+{{/* vim: set ft=lua.chezmoitemplate: */}}

@@ -1,7 +1,8 @@
 return {
   {
     "nvim-treesitter/nvim-treesitter",
-    lazy = false,
+    -- lazy = false,
+    event = "User ThemeReady",
     build = ":TSUpdate",
     opts = {
       ensure_installed = {
@@ -68,6 +69,9 @@ return {
           pcall(vim.treesitter.start, args.buf, lang)
         end,
       })
+
+      -- 主动发一个 User ... 事件，让后续插件挂到这个事件上，把 Treesitter 本身变成一个“后续插件可以依赖的阶段节点”
+      vim.api.nvim_exec_autocmds("User", { pattern = "TreesitterReady" })
 
       -- 如果当前 buffer 已经有 filetype，则补触发一次，
       -- 确保启动后首个符合条件的 buffer 也能正确启用 Treesitter。

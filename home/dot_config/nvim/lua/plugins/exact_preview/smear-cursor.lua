@@ -1,6 +1,7 @@
 return {
   "sphamba/smear-cursor.nvim",
-  event = "VeryLazy",
+  -- event = "VeryLazy",
+  event = "User FileReady",
   opts = {
     smear_insert_mode = false,
     -- 刚度（默认0.6）

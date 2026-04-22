@@ -1,6 +1,7 @@
 return {
   "lewis6991/gitsigns.nvim",
-  event = { "BufReadPre", "BufNewFile" },
+  -- event = { "BufReadPre", "BufNewFile" },
+  event = "User FileReady",
 
   {{- if eq .chezmoi.os "windows" }}
   -- -- 禁用懒加载：确保 init 中的路径劫持 Hook 在任何 Git 操作前生效

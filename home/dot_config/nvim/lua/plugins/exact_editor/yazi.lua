@@ -2,7 +2,8 @@ return {
   {
     "mikavilpas/yazi.nvim",
     cond = not vim.g.vscode,
-    event = "VeryLazy",
+    -- event = "VeryLazy",
+    event = "User FileReady",
     dependencies = { "nvim-lua/plenary.nvim" },
 
     -- 来自 https://github.com/mikavilpas/yazi.nvim/issues/675，不过已经在 autocmd 中设置了
