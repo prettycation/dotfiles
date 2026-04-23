@@ -23,7 +23,7 @@ map ctrl+shift+l
 
 # vi copy mode
 scrollback_pager sh -c 'NVIM_MODE="kitty-copy" {{ $nvimExecutable }} 63<&0 </dev/null -i NONE -c "au VimEnter * term cat /dev/fd/63 && sleep 100"'
-map alt+q show_scrollback
+map ctrl+q show_scrollback
 
 # split window
 # backslash is '\'
@@ -40,6 +40,9 @@ map alt+l kitten scripts/pass_keys.py right  alt+l
 map alt+up resize_window taller 3
 map alt+down resize_window shorter 3
 map alt+home resize_window reset
+
+# close window
+map alt+q close_window
 
 # zoom toggle
 # map alt+m kitten scripts/zoom_toggle.py
