@@ -1,6 +1,7 @@
 return {
   {
     "hasser0/mdmath.nvim",
+    event = { "BufReadPost", "BufNewFile" },
     dependencies = {
       "nvim-treesitter/nvim-treesitter",
     },
