@@ -1,42 +1,60 @@
 local group = vim.api.nvim_create_augroup("personal_startup_events", { clear = true })
 
 local startup_done = false
+local file_ready_fired = false
 
-local function is_real_file()
-  return vim.bo.filetype ~= "alpha" and vim.api.nvim_buf_get_name(0) ~= ""
+local function fire_user(pattern, data)
+  vim.api.nvim_exec_autocmds("User", {
+    pattern = pattern,
+    data = data,
+  })
 end
 
-local function fire_file_ready()
-  vim.api.nvim_exec_autocmds("User", { pattern = "FileReady" })
+local function is_real_file(buf)
+  buf = buf or 0
+  local name = vim.api.nvim_buf_get_name(buf)
+  return name ~= ""
+    and vim.bo[buf].buftype == ""
+    and vim.fn.buflisted(buf) == 1
 end
 
-local function fire_theme_ready()
-  vim.api.nvim_exec_autocmds("User", { pattern = "ThemeReady" })
+local function fire_file_ready(buf)
+  if file_ready_fired then
+    return
+  end
+  file_ready_fired = true
+  fire_user("FileReady", { buf = buf or 0 })
+end
+
+local function maybe_fire_file_ready(buf)
+  if is_real_file(buf) then
+    fire_file_ready(buf)
+    return true
+  end
+  return false
 end
 
 -- 启动阶段：
--- 不能在最早的 ColorScheme 上立刻触发 ThemeReady，
--- 因为这时 LazyVim 的 colorscheme 阶段里，Snacks 还没加载完。
+-- 不在最早的 ColorScheme 上直接触发 ThemeReady，
+-- 避免落在 LazyVim colorscheme 阶段、Snacks 尚未稳定的时机。
 vim.api.nvim_create_autocmd("VimEnter", {
   group = group,
   once = true,
   callback = function()
     vim.schedule(function()
       startup_done = true
-      fire_theme_ready()
+      fire_user("ThemeReady")
 
-      if is_real_file() then
-        fire_file_ready()
+      if maybe_fire_file_ready(0) then
         return
       end
 
-      local file_ready
-      file_ready = vim.api.nvim_create_autocmd("BufEnter", {
+      local watcher
+      watcher = vim.api.nvim_create_autocmd({ "BufEnter", "BufWinEnter" }, {
         group = group,
-        callback = function()
-          if is_real_file() then
-            fire_file_ready()
-            vim.api.nvim_del_autocmd(file_ready)
+        callback = function(args)
+          if maybe_fire_file_ready(args.buf) and watcher then
+            vim.api.nvim_del_autocmd(watcher)
           end
         end,
       })
@@ -44,13 +62,12 @@ vim.api.nvim_create_autocmd("VimEnter", {
   end,
 })
 
--- 运行期：
--- 如果之后手动切换 colorscheme，仍然可以重新发 ThemeReady。
+-- 运行期：手动切换 colorscheme 时，仍然重发 ThemeReady
 vim.api.nvim_create_autocmd("ColorScheme", {
   group = group,
   callback = function()
     if startup_done then
-      fire_theme_ready()
+      fire_user("ThemeReady")
     end
   end,
 })
