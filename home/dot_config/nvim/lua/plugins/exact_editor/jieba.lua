@@ -1,6 +1,7 @@
 return {
   {
     "kkew3/jieba.vim",
+    event = "User FileReady",
     -- 在 vscode 中加载
     cond = true,
     tag = "v2.1.0",

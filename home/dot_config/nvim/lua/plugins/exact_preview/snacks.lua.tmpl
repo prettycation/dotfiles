@@ -1,7 +1,12 @@
 return {
   {
     "folke/snacks.nvim",
+    cond = not vim.g.vscode,
     opts = {
+      explorer = {
+          replace_netrw = false, -- 禁用自动打开 explorer
+      },
+
       dashboard = {
         -- dashboard 总宽度；terminal section 会按这个宽度布局
         width = 72,
