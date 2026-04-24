@@ -193,6 +193,10 @@ patch:
   #   reset: "Control+l" # 重置
   #   pin: "Control+p" # 置顶
 
+  #英文自动加空格
+  #off: 关闭; before: 总是前加; after: 总是后加;
+  wanxiang_english/english_spacing: "off"
+
   key_binder/bindings/+: # 追加
     # 翻页键设置
     - { accept: minus, send: Page_Up, when: paging }
@@ -384,13 +388,14 @@ patch:
 并击符号:
   __append:
     # 常用符号
-    - xform=(<as>|<lA>)=/= # a+s 或 l+; -> /
     - xform=(<zx>|<XZ>)=!= # z+x 或 .+/ -> !
     - xform=(<xc>|<CX>)=,= # x+c 或 ,+. -> ,
     - xform=(<xv>|<mX>)=.= # x+v 或 m+. -> .
     - xform=(<zv>|<mZ>)=?= # z+v 或 m+/ -> ?
     - xform=(<zc>|<CZ>)=:= # z+c 或 ,+/ -> :
-    - xform=(<kA>)=;= # k+; -> ;
+    # - xform=(<kA>)=;= # k+; -> ;
+    - xform=(<as>)=/= # a+s -> /
+    - xform=(<lA>)=;= # l+; -> ;
     - xform=(<ad>)=\= # a+d -> \
     - xform=(<ml>)=@= # m+l -> @
     - xform=(<sc>)=~= # s+c -> ~
