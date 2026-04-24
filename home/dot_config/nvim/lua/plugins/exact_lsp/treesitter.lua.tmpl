@@ -1,82 +1,206 @@
 return {
   {
     "nvim-treesitter/nvim-treesitter",
-    -- lazy = false,
     event = "User ThemeReady",
     build = ":TSUpdate",
+
     opts = {
       ensure_installed = {
         -- Markdown 主 parser
         "markdown",
 
         -- markdown_inline 不是常规 filetype，而是 Markdown 内联内容相关的 parser。
-        -- 这里保留它，是为了让依赖 Treesitter 的功能（比如 LuaSnip 在 LaTeX inline math 场景下）
-        -- 能正确识别和匹配 Markdown 内联节点。
+        -- 保留它是为了让 LuaSnip 等依赖 Treesitter 的功能，
+        -- 能正确识别 Markdown 内联节点，例如 LaTeX inline math。
         "markdown_inline",
 
-        -- html: 处理 HTML 注释/片段
+        -- HTML 注释/片段
         "html",
+
+        -- 自身配置文件
         "lua",
-        {{- if eq .chezmoi.os "windows" }}
+
+        -- 这些 parser 会参与下面的 parser -> filetype pattern 收集。
+        -- 如果不放进 ensure_installed，后续 FileType 补触发链路也不会覆盖它们。
+        "python",
+        "typst",
+
+{{- if eq .chezmoi.os "windows" }}
         "vim",
         "vimdoc",
-        {{- end }}
+{{- end }}
       },
 
-      -- 大文件不启用 Treesitter，避免卡顿
+      -- 大文件不启用 Treesitter，避免打开超大文件时因为 parser 初始化导致明显卡顿。
       max_filesize = 1024 * 1024,
     },
+
     config = function(_, opts)
       local ts = require("nvim-treesitter")
+      local uv = vim.uv or vim.loop
+
       ts.setup({})
 
-      -- 安装必要的解析器
-      -- 这里不再像以前那样每次启动都对整组 parser 直接 ts.install({...})，
-      -- 而是只在缺失 parser 时才安装，尽量减少冷启动时的额外开销。
-      for _, parser in ipairs(opts.ensure_installed or {}) do
-        local has_parser = pcall(vim.treesitter.language.inspect, parser)
-        if not has_parser then
+      -- 让自定义 filetype "llm" 复用 markdown parser。
+      -- 这一步放在收集 filetype pattern 之前，
+      -- 让 get_filetypes("markdown") 有机会拿到 register 后的映射。
+      vim.treesitter.language.register("markdown", { "llm" })
+
+      local function ensure_parser(parser)
+        -- 只安装缺失 parser，避免每次启动都对整组 parser 直接 ts.install({...})。
+
+        -- 这样保留了 parser 自动补齐能力，同时减少冷启动时不必要的
+        -- parser 安装检查/调度成本。
+        local ok = pcall(vim.treesitter.language.inspect, parser)
+        if not ok then
           ts.install(parser)
         end
       end
 
-      -- 让自定义 filetype "llm" 复用 markdown parser
-      -- 这样 llm buffer 也能走 Markdown 的 Treesitter 语法树。
-      vim.treesitter.language.register("markdown", { "llm" })
+      local function append_parser_filetypes(patterns, parser)
+        local ok, filetypes = pcall(vim.treesitter.language.get_filetypes, parser)
+        if ok and type(filetypes) == "table" then
+          vim.list_extend(patterns, filetypes)
+        end
+      end
 
-      -- 只针对特定文件开启 Treesitter 高亮，避免报错
-      local group = vim.api.nvim_create_augroup("NvimTreesitterFt", { clear = true })
-      vim.api.nvim_create_autocmd("FileType", {
-        group = group,
+      local function dedupe(list)
+        local seen = {}
 
-        -- markdown / llm 都走 markdown parser
-        pattern = { "markdown", "llm" },
-
-        callback = function(args)
-          local ft = vim.bo[args.buf].filetype
-          local lang = ft == "llm" and "markdown" or ft
-
-          -- 大文件直接跳过，避免打开超大文件时 Treesitter 拖慢体验
-          local max_filesize = opts.max_filesize or (1024 * 1024)
-          local name = vim.api.nvim_buf_get_name(args.buf)
-          if name ~= "" then
-            local ok, stats = pcall(vim.uv.fs_stat, name)
-            if ok and stats and stats.size > max_filesize then
-              return
-            end
+        return vim.tbl_filter(function(item)
+          if not item or item == "" or seen[item] then
+            return false
           end
 
-          pcall(vim.treesitter.start, args.buf, lang)
+          seen[item] = true
+          return true
+        end, list)
+      end
+
+      local function collect_filetype_patterns()
+        local patterns = {}
+
+        for _, parser in ipairs(opts.ensure_installed or {}) do
+          -- 先收集 filetype pattern，再检查 parser 是否缺失。
+          -- 即使 parser 还没装好，也先把对应 FileType autocmd 注册上。
+          append_parser_filetypes(patterns, parser)
+          ensure_parser(parser)
+        end
+
+        return dedupe(patterns)
+      end
+
+      local function is_large_file(buf)
+        local name = vim.api.nvim_buf_get_name(buf)
+        if name == "" then
+          return false
+        end
+
+        -- 大文件直接跳过，避免打开超大文件时 Treesitter 拖慢体验。
+
+        -- 这里和 opts.max_filesize 配合使用。默认阈值是 1MB：
+        --   1024 * 1024
+
+        -- 超过阈值的文件不会执行 vim.treesitter.start()。
+        local ok, stats = pcall(uv.fs_stat, name)
+        return ok and stats and stats.size > (opts.max_filesize or 1024 * 1024)
+      end
+
+      local function treesitter_lang(buf)
+        local ft = vim.bo[buf].filetype
+        if ft == "" then
+          return nil
+        end
+
+        return ft == "llm" and "markdown" or ft
+      end
+
+      local function start_treesitter(buf)
+        if is_large_file(buf) then
+          return
+        end
+
+        local lang = treesitter_lang(buf)
+        if not lang then
+          return
+        end
+
+        -- 用 pcall 防御 parser 缺失、parser 安装中、或者某些 filetype 尚无 parser 的情况。
+        -- 这样不会因为单个语言的 parser 问题打断整个启动链。
+        pcall(vim.treesitter.start, buf, lang)
+      end
+
+      local patterns = collect_filetype_patterns()
+
+      -- 不再写死 { "markdown", "llm" }。
+      -- Python / Typst 是否进入补触发链路，由 ensure_installed 反推出来。
+      local group = vim.api.nvim_create_augroup("NvimTreesitterFt", { clear = true })
+
+      vim.api.nvim_create_autocmd("FileType", {
+        group = group,
+        pattern = patterns,
+        callback = function(args)
+          start_treesitter(args.buf)
         end,
       })
 
-      -- 主动发一个 User ... 事件，让后续插件挂到这个事件上，把 Treesitter 本身变成一个“后续插件可以依赖的阶段节点”
-      vim.api.nvim_exec_autocmds("User", { pattern = "TreesitterReady" })
+      local function ensure_current_filetype(buf)
+        if vim.bo[buf].filetype ~= "" then
+          return
+        end
 
-      -- 如果当前 buffer 已经有 filetype，则补触发一次，
-      -- 确保启动后首个符合条件的 buffer 也能正确启用 Treesitter。
-      vim.api.nvim_exec_autocmds("FileType", { group = "NvimTreesitterFt" })
+        local name = vim.api.nvim_buf_get_name(buf)
+        if name == "" or vim.bo[buf].buftype ~= "" then
+          return
+        end
+
+        -- ThemeReady 比首个 buffer 的 FileType 事件更晚。
+        -- 如果当前 buffer 还没有 filetype，这里补一次检测。
+        local detected = vim.filetype.match({
+          buf = buf,
+          filename = name,
+        })
+
+        if detected then
+          vim.bo[buf].filetype = detected
+        end
+      end
+
+      local function replay_current_buffer()
+        local buf = vim.api.nvim_get_current_buf()
+        local name = vim.api.nvim_buf_get_name(buf)
+
+        if name == "" or vim.bo[buf].buftype ~= "" then
+          return
+        end
+
+        ensure_current_filetype(buf)
+
+        if vim.bo[buf].filetype == "" then
+          return
+        end
+
+        -- Treesitter 的 FileType autocmd 是 ThemeReady 后才注册的。
+        -- 当前 buffer 可能已经错过第一次 FileType，所以这里只补触发本组 autocmd。
+        vim.api.nvim_exec_autocmds("FileType", {
+          group = group,
+          buffer = buf,
+          modeline = false,
+        })
+      end
+
+      replay_current_buffer()
+
+      -- 告诉后续插件：Treesitter 这一阶段已经完成。
+
+      -- 以后真正依赖 Treesitter 的插件，例如 textobjects、context、
+      -- 某些基于 query/node 的插件，可以挂到：
+
+      --   event = "User TreesitterReady"
+
+      -- 这样它们不会和 nvim-treesitter 并发抢顺序，
+      -- 而是明确排在 Treesitter setup 之后。
+      vim.api.nvim_exec_autocmds("User", { pattern = "TreesitterReady" })
     end,
   },
 }
-{{/* vim: set ft=lua.chezmoitemplate: */}}
