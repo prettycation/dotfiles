@@ -1,0 +1,74 @@
+-- Options are automatically loaded before lazy.nvim startup
+-- Default options that are always set: https://github.com/LazyVim/LazyVim/blob/main/lua/lazyvim/config/options.lua
+-- Add any additional options here
+
+vim.opt.linebreak = true -- 换行时不会从单词中间断开
+vim.opt.breakindent = true -- 换行后保持缩进
+
+-- Python LSP 使用 pyright 还是 basedpyright，
+vim.g.lazyvim_python_lsp = "basedpyright"
+-- Ruff 使用新版 ruff 还是旧版 ruff_lsp。
+vim.g.lazyvim_python_ruff = "ruff"
+
+{{- if eq .chezmoi.os "windows" }}
+-- Windows 下部分插件会依赖 HOME。
+-- 原生 Windows 通常有 USERPROFILE，但 HOME 可能不存在，或使用反斜杠路径。
+-- 这里尽早补齐 HOME，并统一使用 / 作为路径分隔符，避免插件路径判断失败。
+local home = vim.env.HOME or vim.env.USERPROFILE
+
+if home and home ~= "" then
+  vim.env.HOME = home:gsub("\\", "/"):gsub("/+$", "")
+end
+
+-- 使用 schedule 确保在 LazyVim 加载完默认配置后覆盖 shell 相关选项。
+vim.schedule(function()
+  if vim.fn.executable("nu") == 1 then
+    -- 优先使用 Nushell。
+    vim.opt.shell = "nu"
+
+    -- Nushell 不支持 Neovim 默认那种通过临时文件做 input redirection 的方式：
+    --   {shell_command} < {temp_file}
+    -- 所以关闭 shelltemp，让 Neovim 改用 stdin pipe。
+    vim.opt.shelltemp = false
+
+    -- 让 Neovim 通过 stdin 把命令交给 nu -c 执行。
+    -- --no-newline 可以避免 Nushell 给 stdout 额外追加换行。
+    vim.opt.shellcmdflag = "--stdin --no-newline -c"
+
+    -- Nushell 的 stdout + stderr 重定向语法。
+    vim.opt.shellredir = "out+err> %s"
+
+    -- :make 等命令使用的 pipe。
+    -- complete 会保留 stdout、stderr 和 exit_code；
+    -- ansi strip 用来去掉 Nushell 错误信息里的 ANSI 颜色码，避免污染 quickfix。
+    vim.opt.shellpipe = '| complete | update stderr { ansi strip } | tee { get stderr | save --force --raw %s } | into record'
+
+    -- Nushell 场景下禁用额外 quote/escape，避免命令被重复转义。
+    vim.opt.shellquote = ""
+    vim.opt.shellxquote = ""
+    vim.opt.shellxescape = ""
+  else
+    -- 没有 nu 时退回 PowerShell：优先 pwsh，其次 Windows PowerShell。
+    vim.opt.shell = vim.fn.executable("pwsh") == 1 and "pwsh.exe" or "powershell.exe"
+    vim.opt.shellcmdflag = "-NoLogo -NoProfile -ExecutionPolicy RemoteSigned -Command"
+
+    -- PowerShell 分支保持使用 Neovim 默认的临时文件行为。
+    vim.opt.shelltemp = true
+
+    vim.opt.shellquote = ""
+    vim.opt.shellxquote = ""
+    vim.opt.shellxescape = ""
+
+    -- 标准重定向，确保 Lua/systemlist 能读到输出。
+    vim.opt.shellredir = "2>&1 | Out-File -Encoding UTF8 %s; exit $LastExitCode"
+    vim.opt.shellpipe = "2>&1 | Out-File -Encoding UTF8 %s; exit $LastExitCode"
+  end
+end)
+{{- end }}
+
+if vim.g.vscode then
+  vim.notify = require("vscode").notify
+  vim.g.clipboard = vim.g.vscode_clipboard
+  vim.cmd.syntax("off")
+  return
+end

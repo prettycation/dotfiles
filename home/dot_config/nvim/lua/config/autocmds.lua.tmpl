@@ -25,6 +25,112 @@ vim.api.nvim_create_autocmd("FileType", {
   end,
 })
 
+{{- if eq .chezmoi.os "windows" }}
+
+-- 修复 LazyVim chezmoi extra 在 Windows 下保存后不自动 apply 的问题。
+
+-- LazyVim 的 chezmoi extra 默认使用类似：
+--   vim.env.HOME .. "/.local/share/chezmoi/*"
+-- 这样的 autocmd pattern 来判断是否需要 watch。
+-- 而 chezmoi.nvim 的自动 apply 依赖 watch(bufnr) 创建 BufWritePost autocmd。
+-- 所以这里手动判断当前 buffer 是否位于 Windows chezmoi source dir 下，
+-- 如果是，就主动调用 chezmoi.nvim 的 watch。
+do
+  local function normalize_path(path)
+    if not path or path == "" then
+      return nil
+    end
+
+    -- 转绝对路径，并把 Windows 反斜杠统一成正斜杠。
+    path = vim.trim(path)
+    path = vim.fn.fnamemodify(path, ":p")
+    path = path:gsub("\\", "/"):gsub("/+$", "")
+
+    return path
+  end
+
+  -- HOME 已经在 options.lua 里提前修正为 / 风格路径。
+  local chezmoi_source_path = normalize_path((vim.env.HOME or vim.env.USERPROFILE) .. "/.local/share/chezmoi")
+
+  local function is_chezmoi_source_buffer(bufnr)
+    if not chezmoi_source_path then
+      return false
+    end
+
+    local bufname = normalize_path(vim.api.nvim_buf_get_name(bufnr))
+
+    if not bufname then
+      return false
+    end
+
+    -- Windows 文件路径大小写不敏感，所以统一转小写后比较。
+    local source_lower = chezmoi_source_path:lower()
+    local buf_lower = bufname:lower()
+
+    -- 当前 buffer 要么就是 source dir 本身，
+    -- 要么位于 ~/.local/share/chezmoi/ 下。
+    return buf_lower == source_lower or vim.startswith(buf_lower, source_lower .. "/")
+  end
+
+  local function watch_chezmoi_buffer(bufnr)
+    if not vim.api.nvim_buf_is_valid(bufnr) then
+      return
+    end
+
+    -- 避免同一个 buffer 重复注册 watch。
+    if vim.b[bufnr].personal_chezmoi_windows_watch then
+      return
+    end
+
+    if not is_chezmoi_source_buffer(bufnr) then
+      return
+    end
+
+    vim.b[bufnr].personal_chezmoi_windows_watch = true
+
+    -- 延迟到当前事件结束后再 require chezmoi.nvim，
+    -- 避免插件尚未完全加载时直接 require 失败。
+    vim.schedule(function()
+      if not vim.api.nvim_buf_is_valid(bufnr) then
+        return
+      end
+
+      local ok, edit = pcall(require, "chezmoi.commands.__edit")
+
+      if ok and edit and edit.watch then
+        edit.watch(bufnr)
+      else
+        -- 如果 chezmoi.nvim 这次还没加载成功，
+        -- 清掉标记，允许后续 BufRead/BufAdd 再尝试。
+        vim.b[bufnr].personal_chezmoi_windows_watch = false
+      end
+    end)
+  end
+
+  vim.api.nvim_create_autocmd({ "BufRead", "BufNewFile", "BufAdd" }, {
+    group = vim.api.nvim_create_augroup("personal_chezmoi_windows_watch", { clear = true }),
+
+    -- 不依赖 Windows 路径 pattern。
+    -- 统一用 "*" 捕获后在 Lua callback 里做路径归一化和大小写不敏感判断。
+    pattern = "*",
+
+    callback = function(ev)
+      watch_chezmoi_buffer(ev.buf)
+    end,
+  })
+
+  -- autocmds.lua 是 VeryLazy 后加载的。
+  -- 如果当前 buffer 在这个 autocmd 创建前已经打开，
+  -- 这里主动扫描一次已有 buffer，补上 chezmoi watch。
+  vim.schedule(function()
+    for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
+      watch_chezmoi_buffer(bufnr)
+    end
+  end)
+end
+
+{{- end }}
+
 {{- if ne .chezmoi.os "windows" }}
 vim.api.nvim_create_autocmd("FileType", {
   pattern = { "markdown" },
