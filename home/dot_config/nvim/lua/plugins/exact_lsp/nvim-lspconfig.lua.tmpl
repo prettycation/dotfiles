@@ -1,3 +1,4 @@
+{{- $hasemmylua_ls := lookPath "emmylua_ls" -}}
 {{- $hasTinymist := lookPath "tinymist" -}}
 {{- $hasTypstyle := lookPath "typstyle" -}}
 {{- $hasRimeLs := lookPath "rime-ls" -}}
@@ -8,6 +9,32 @@ return {
     opts = function(_, opts)
       opts.servers = opts.servers or {}
 
+      {{ if $hasemmylua_ls }}
+      -- EmmyLua LS
+      -- 完全禁用 lua-language-server，避免 lua_ls 和 emmylua_ls 同时附着到同一个 Lua buffer。
+      opts.servers.lua_ls = {
+        enabled = false,
+        mason = false,
+      }
+
+      local emmylua_cmd = vim.fn.exepath("emmylua_ls")
+      if emmylua_cmd == "" then
+        emmylua_cmd = vim.fs.joinpath(vim.uv.os_homedir(), ".cargo", "bin", "emmylua_ls")
+      end
+
+      opts.servers.emmylua_ls = vim.tbl_deep_extend("force", opts.servers.emmylua_ls or {}, {
+        mason = false,
+        cmd = { emmylua_cmd },
+        filetypes = { "lua" },
+        root_markers = {
+          ".emmyrc.json",
+          ".luarc.json",
+          ".luacheckrc",
+          ".git",
+        },
+        workspace_required = false,
+      })
+      {{ else }}
       -- Lua LS
       opts.servers.lua_ls = opts.servers.lua_ls or {}
       opts.servers.lua_ls.settings = opts.servers.lua_ls.settings or {}
@@ -32,6 +59,7 @@ return {
           },
         }
       )
+      {{ end }}
 
       -- BasedPyright
       opts.servers.basedpyright = opts.servers.basedpyright or {}

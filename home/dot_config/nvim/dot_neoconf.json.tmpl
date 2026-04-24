@@ -1,3 +1,5 @@
+{{- $hasemmylua_ls := lookPath "emmylua_ls" -}}
+{{ if not $hasemmylua_ls }}
 {
   "neodev": {
     "library": {
@@ -13,3 +15,4 @@
     }
   }
 }
+{{ end }}
