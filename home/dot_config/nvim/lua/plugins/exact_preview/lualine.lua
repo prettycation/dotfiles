@@ -1,6 +1,10 @@
 return {
   {
     "nvim-lualine/lualine.nvim",
-    event = "User FileReady",
+    opts = function(_, opts)
+      opts.sections.lualine_z = {
+        { "encoding" },
+      }
+    end,
   },
 }
