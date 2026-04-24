@@ -43,3 +43,17 @@ matches:
 
   - trigger: "g.br"
     replace: "git branch -m feat/"
+
+  # git bisect
+
+  - trigger: "g.bss"
+    replace: "git bisect start"
+
+  - trigger: "g.bsr"
+    replace: "git bisect reset"
+
+  - trigger: "g.bsg"
+    replace: "git bisect good "
+
+  - trigger: "g.bsb"
+    replace: "git bisect bad "
