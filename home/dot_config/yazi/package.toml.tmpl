@@ -4,6 +4,7 @@
 {{- $hasDuckDB := lookPath "duckdb" -}}
 {{- $hasRecycleBinCli := lookPath "trash-list" -}}
 {{- $hasSqlite3 := lookPath "sqlite3" -}}
+{{- $hasSudo := lookPath "sudo" -}}
 
 [[plugin.deps]]
 use = "yazi-rs/plugins:smart-filter"
@@ -57,6 +58,11 @@ use = "uhs-robert/recycle-bin"
 {{- if $hasSqlite3 }}
 [[plugin.deps]]
 use = "AminurAlam/yazi-plugins:preview-sqlite"
+{{- end }}
+
+{{- if $hasSudo }}
+[[plugin.deps]]
+use = "prettycation/sudo"
 {{- end }}
 
 [flavor]

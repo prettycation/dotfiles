@@ -2,6 +2,7 @@
 {{- $hasRecycleBinCli := lookPath "trash-list" -}}
 {{- $hasMediainfo := lookPath "mediainfo" -}}
 {{- $hasDuckdb := lookPath "duckdb" -}}
+{{- $hasSudo := lookPath "sudo" -}}
 
 # A TOML linter such as https://taplo.tamasfe.dev/ can use this schema to validate your config.
 # If you encounter any issues, please make an issue at https://github.com/yazi-rs/schemas.
@@ -64,6 +65,66 @@ prepend_keymap = [
   { on = "L", run = "plugin duckdb +1", desc = "向右滚动一列表格" },
   { on = ["g", "o"], run = "plugin duckdb -open", desc = "使用 DuckDB 打开" },
   { on = ["g", "u"], run = "plugin duckdb -ui", desc = "在 DuckDB UI 中打开" },
+  {{- end }}
+
+  {{- if $hasSudo }}
+  # sudo cp/mv
+  { on = [
+    "S",
+    "p",
+    "p",
+  ], run = "plugin sudo -- paste", desc = "sudo paste" },
+
+  # sudo cp/mv --force
+  { on = [
+    "S",
+    "P",
+  ], run = "plugin sudo -- paste --force", desc = "sudo paste force" },
+
+  # sudo open editor
+  { on = [
+    "S",
+    "o",
+  ], run = "plugin sudo -- open", desc = "sudo open editor" },
+
+  # sudo mv
+  { on = [
+    "S",
+    "r",
+  ], run = "plugin sudo -- rename", desc = "sudo rename" },
+
+  # sudo ln -s (absolute-path)
+  { on = [
+    "S",
+    "p",
+    "l",
+  ], run = "plugin sudo -- link", desc = "sudo link" },
+
+  # sudo ln -s (relative-path)
+  { on = [
+    "S",
+    "p",
+    "r",
+  ], run = "plugin sudo -- link --relative", desc = "sudo link relative path" },
+
+  # sudo ln
+  { on = [
+    "S",
+    "p",
+    "L",
+  ], run = "plugin sudo -- hardlink", desc = "sudo hardlink" },
+
+  # sudo touch/mkdir
+  { on = [
+    "S",
+    "a",
+  ], run = "plugin sudo -- create", desc = "sudo create" },
+
+  # sudo delete
+  { on = [
+    "S",
+    "d",
+  ], run = "plugin sudo -- remove --permanently", desc = "sudo delete" },
   {{- end }}
 
   {{- if eq .chezmoi.os "windows" }}
