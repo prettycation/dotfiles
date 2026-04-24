@@ -1,19 +1,30 @@
 {{- $hasStylua := lookPath "stylua" -}}
-
+{{- $hasemmylua_ls := lookPath "emmylua_ls" -}}
 return {
-  -- Lua 开发环境 (LazyDev)
+  {{ if $hasemmylua_ls }}
+  -- EmmyLua 分支：使用独立 LuaCATS/luv 类型库替代 lua-language-server 的 ${3rd}/luv/library。
+  {
+    "LuaCATS/luv",
+    name = "luacats-luv",
+    lazy = true,
+  },
+  {{ end }}
+
+  -- Lua 开发环境
   {
     "folke/lazydev.nvim",
     ft = "lua",
     opts = {
       library = {
+        {{ if $hasemmylua_ls }}
+        { path = "luacats-luv/library", words = { "vim%.uv" } },
+        {{ else }}
         -- 加载 luvit 类型
         { path = "${3rd}/luv/library", words = { "vim%.uv" } },
-
+        {{ end }}
         -- 预加载核心框架和常用插件
         "LazyVim",
         { path = "nvim-lspconfig", words = { "lspconfig" } },
-        -- { path = "nvim-cmp", words = { "cmp" } },
         { path = "blink.cmp", words = { "blink" } },
       },
       -- 启用集成

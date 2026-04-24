@@ -7,6 +7,7 @@
 return {
   {
     "linux-cultist/venv-selector.nvim",
+    cmd = { "VenvSelect", "VenvSelectCached" },
     opts = function(_, opts)
       -- 基础配置
       opts.options = opts.options or {}
