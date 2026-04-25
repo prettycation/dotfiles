@@ -1,309 +1,372 @@
 # ==================================================================================
 # YASB 配置文件 (GlazeWM 适配)
 # ==================================================================================
-watch_stylesheet: true
-watch_config: true
-debug: false
+
+watch_stylesheet: true # 监听 styles.css 变化；保存样式文件后自动热重载
+watch_config: true # 监听 config.yaml 变化；保存配置文件后自动热重载
+debug: false # 是否启用调试模式；排查问题时可改为 true
+
 bars:
-  primary-bar:
-    enabled: true
-    screens: ["*"]
-    class_name: "yasb-bar"
+  primary-bar: # 主状态栏名称，可自定义；widgets 中的配置会挂载到这条 bar 上
+    enabled: true # 是否启用这条 bar
+    screens: ["*"] # 显示在哪些屏幕上；"*" 表示所有屏幕
+    class_name: "yasb-bar" # 绑定到 styles.css 中的 .yasb-bar 类
+
     alignment:
-      position: "top"
-      center: false
+      position: "top" # bar 位置：top 或 bottom
+      center: false # 是否按居中逻辑计算布局；当前使用左右布局，保持 false
+
     blur_effect:
-      enabled: false
-      acrylic: false
-      dark_mode: true
-      round_corners: false
-      border_color: None
+      enabled: false # 是否启用 bar 背景模糊
+      acrylic: false # 是否使用 Acrylic 效果
+      dark_mode: true # 模糊背景是否使用深色模式
+      round_corners: false # bar 背景是否使用圆角
+      border_color: "None" # 必须是字符串
+
     window_flags:
-      always_on_top: false
-      windows_app_bar: true
-      hide_on_fullscreen: true
+      always_on_top: false # 是否强制置顶；启用 windows_app_bar 时通常不需要
+      windows_app_bar: true # 让 Windows 为状态栏预留空间，避免窗口覆盖 bar
+      hide_on_fullscreen: true # 全屏应用时隐藏 bar
+
     dimensions:
-      width: "100%"
-      height: 32
+      width: "100%" # bar 宽度；100% 表示占满屏幕宽度
+      height: 32 # bar 高度，需与 styles.css 中组件高度配合
+
     padding:
-      top: 8
-      left: 6
-      bottom: 2
-      right: 6
+      top: 8 # bar 顶部外观留白
+      left: 6 # bar 左侧留白
+      bottom: 2 # bar 底部留白
+      right: 6 # bar 右侧留白
+
     animation:
-      enabled: false
+      enabled: false # 是否启用 bar 动画
+
     widgets:
-      left: ["glazewm_workspaces", "active_window"]
-      center: []
-      right:
-        - "systray"
-        - "traffic"
-        - "cpu"
-        - "memory"
-        - "disk"
-        - "volume"
-        - "weather"
-        - "clock"
-        - "media"
-        - "notifications"
-        - "power_menu"
+      left: # 左侧组件，从左到右排列
+        - "glazewm_workspaces" # GlazeWM 工作区
+        - "active_window" # 当前活动窗口标题
+        - "systray" # 系统托盘
+      center: [
+        "weather", # 天气
+        "clock", # 时钟/日历
+        "power_menu", # 电源菜单
+        "media" # 媒体播放信息
+      ] # 中间组件
+      right: # 右侧组件，从左到右排列
+        - "traffic" # 网络流量
+        - "cpu" # CPU 使用率
+        - "memory" # 内存使用率
+        - "disk" # 磁盘使用率
+        - "volume" # 音量
+        - "notifications" # 通知数量
 
 widgets:
   glazewm_workspaces:
-    type: "glazewm.workspaces.GlazewmWorkspacesWidget"
+    type: "glazewm.workspaces.GlazewmWorkspacesWidget" # GlazeWM 工作区组件
     options:
-      offline_label: "GlazeWM OFFLINE"
-      hide_empty_workspaces: true
-      hide_if_offline: true
+      offline_label: "GlazeWM OFFLINE" # GlazeWM 未连接时显示的文字
+      hide_empty_workspaces: true # 隐藏空工作区
+      hide_if_offline: true # GlazeWM 离线时隐藏该组件
+      monitor_exclusive: true # 只显示当前显示器对应的工作区
+      enable_scroll_switching: true # 允许鼠标滚轮切换工作区
+      reverse_scroll_direction: false # 是否反转滚轮切换方向
       app_icons:
-        enabled_populated: true
-        enabled_active: true
-        size: 16
+        enabled_populated: true # 有窗口的工作区显示应用图标
+        enabled_active: true # 活动工作区显示应用图标
+        enabled_focused: true # 聚焦工作区显示应用图标
+        size: 16 # 工作区应用图标大小
+        max_icons: 0 # 最多显示多少个图标；0 通常表示不限制
+        hide_label: false # 是否隐藏工作区数字标签
+        hide_duplicates: true # 相同应用图标是否去重
+        hide_floating: false # 是否隐藏浮动窗口的应用图标
+      animation: false # 禁用工作区切换动画
+
+  active_window:
+    type: "yasb.active_window.ActiveWindowWidget" # 活动窗口组件
+    options:
+      label: "{win[process][name]}" # 默认显示进程名
+      label_alt: "{win[title]}" # 替代显示窗口标题
+      label_no_window: "" # 没有窗口时显示的内容
+      label_icon: false # 是否显示窗口应用图标
+      label_icon_size: 12 # 窗口图标大小；label_icon 为 false 时不显示
+      max_length: 50 # 文本最大长度
+      max_length_ellipsis: "..." # 超出最大长度后的省略符
+      monitor_exclusive: false # 是否只显示当前显示器上的活动窗口
+      callbacks:
+        on_left: "toggle_label" # 左键切换 label / label_alt
+        on_right: "toggle_label" # 右键切换 label / label_alt
+
+  systray:
+    type: "yasb.systray.SystrayWidget" # 系统托盘组件
+    options:
+      class_name: "systray" # 绑定 styles.css 中的 .systray 样式
+      show_unpinned: true # 是否显示未固定托盘图标
+      show_unpinned_button: true # 是否显示展开/收起未固定图标按钮
+      show_battery: false # 是否在托盘中显示电池图标
+      show_volume: false # 是否在托盘中显示系统音量图标；已有 volume 组件，所以关闭
+      show_network: false # 是否在托盘中显示系统网络图标；已有 traffic 组件，所以关闭
 
   # 网速组件逻辑 (带弹窗菜单)
   traffic:
-    type: "yasb.traffic.TrafficWidget"
+    type: "yasb.traffic.TrafficWidget" # 网络流量组件
     options:
-      label: "<span>\udb83\udc9d</span>"
-      label_alt: "<span>\udb83\udc9d</span> \ueab4 {download_speed} | \ueab7 {upload_speed}"
-      update_interval: 1000
-
+      label: "<span>\udb83\udc9d</span>" # 网络流量图标
+      label_alt: "<span>\udb83\udc9d</span> \ueab4 {download_speed} | \ueab7 {upload_speed}" # 替代显示：下载速度 | 上传速度；图标使用你最初配置里的原始转义写法
+      update_interval: 1000 # 更新间隔，单位毫秒
+      speed_unit: "bytes" # 速度单位显示方式
+      hide_decimal: true # 是否隐藏小数位
+      hide_if_offline: false # 断网时是否隐藏组件
       menu:
-        blur: false
-        round_corners: true
-        round_corners_type: "normal"
-        border_color: "system"
-        alignment: "center"
-        direction: "down"
+        blur: false # 网速详情弹窗是否启用模糊
+        round_corners: true # 弹窗是否启用圆角
+        round_corners_type: "normal" # 圆角类型
+        border_color: "system" # 弹窗边框颜色；system 表示跟随系统/默认配置
+        alignment: "center" # 弹窗相对组件的水平对齐方式
+        direction: "down" # 弹窗打开方向
+        offset_top: 6 # 弹窗垂直偏移
+        offset_left: 0 # 弹窗水平偏移
+        show_interface_name: true # 是否显示网络接口名称
+        show_internet_info: true # 是否显示互联网连接信息
       callbacks:
-        on_left: "toggle_menu"
-        on_middle: "toggle_label"
-        on_right: "exec cmd.exe /c start ms-settings:network-status"
+        on_left: "toggle_menu" # 左键打开/关闭网速详情弹窗
+        on_middle: "toggle_label" # 中键切换 label / label_alt
+        on_right: "exec cmd.exe /c start ms-settings:network-status" # 右键打开 Windows 网络设置
 
-  memory:
-    type: "yasb.memory.MemoryWidget"
+  cpu:
+    type: "yasb.cpu.CpuWidget" # CPU 组件
     options:
-      # 默认: 图标 + 百分比
-      label: "<span>\uefc5</span> {virtual_mem_percent}%"
-      # 点击后: 图标 + 具体用量
-      label_alt: "<span>\uefc5</span> {virtual_mem_used}"
-      update_interval: 5000
+      label: "<span></span> {info[percent][total]}%" # 默认显示 CPU 总使用率
+      label_alt: "<span></span> {info[freq][current]} GHz" # 替代显示 CPU 当前频率
+      update_interval: 1000 # 更新间隔，单位毫秒
       callbacks:
         on_left: "toggle_label" # 左键切换显示模式
-        on_middle: "toggle_label"
-        on_right: "exec cmd /c Taskmgr"
+        on_right: "exec cmd /c Taskmgr" # 右键打开任务管理器
+      container_padding:
+        top: 0 # 组件容器顶部内边距
+        left: 0 # 组件容器左侧内边距
+        bottom: 0 # 组件容器底部内边距
+        right: 0 # 组件容器右侧内边距
+
+  memory:
+    type: "yasb.memory.MemoryWidget" # 内存组件
+    options:
+      label: "<span></span> {virtual_mem_percent}%" # 默认显示虚拟内存使用百分比
+      label_alt: "<span></span> {virtual_mem_used}" # 替代显示已用内存
+      update_interval: 5000 # 更新间隔，单位毫秒
+      callbacks:
+        on_left: "toggle_label" # 左键切换显示模式
+        on_middle: "toggle_label" # 中键切换显示模式
+        on_right: "exec cmd /c Taskmgr" # 右键打开任务管理器
       memory_thresholds:
-        low: 25
-        medium: 50
-        high: 90
+        low: 25 # 低占用阈值
+        medium: 50 # 中等占用阈值
+        high: 90 # 高占用阈值
 
   # 磁盘组件 (带详情弹窗)
   disk:
-    type: "yasb.disk.DiskWidget"
+    type: "yasb.disk.DiskWidget" # 磁盘组件
     options:
-      label: "<font color='#74c7ec'>{volume_label}:</font> {space[used][percent]}"
-      label_alt: "<font color='#74c7ec'>{volume_label}:</font> {space[used][gb]} / {space[total][gb]}"
-      # label: "{volume_label}: {space[used][percent]}"
-      # label_alt: "{volume_label}: {space[used][gb]} / {space[total][gb]}"
-      volume_label: "C"
-      decimal_display: 1
-      update_interval: 60
+      label: "<font color='#74c7ec'>{volume_label}:</font> {space[used][percent]}" # 默认显示指定盘符使用百分比
+      label_alt: "<font color='#74c7ec'>{volume_label}:</font> {space[used][gb]} / {space[total][gb]}" # 替代显示已用/总容量
+      volume_label: "C" # 默认监控盘符
+      decimal_display: 1 # 磁盘数值保留的小数位
+      update_interval: 60 # 更新间隔；磁盘组件按 YASB 文档使用自己的时间单位
       group_label:
-        volume_labels: ["C", "D", "E", "F", "G"]
-        show_label_name: true
-        blur: True
-        round_corners: True
-        round_corners_type: "normal"
-        border_color: "System"
-        alignment: "center"
-        direction: "down"
+        volume_labels: ["C", "D", "E", "F", "G"] # 弹窗中显示的盘符列表
+        show_label_name: true # 是否显示盘符名称
+        blur: true # 磁盘弹窗是否启用模糊
+        round_corners: true # 磁盘弹窗是否启用圆角
+        round_corners_type: "normal" # 圆角类型
+        border_color: "system" # 弹窗边框颜色
+        alignment: "center" # 弹窗对齐方式
+        direction: "down" # 弹窗打开方向
       callbacks:
-        on_left: "toggle_group"
-        on_middle: "toggle_label"
+        on_left: "toggle_group" # 左键打开/关闭磁盘列表弹窗
+        on_middle: "toggle_label" # 中键切换 label / label_alt
       disk_thresholds:
-        low: 25
-        medium: 50
-        high: 90
-
-  media:
-    type: "yasb.media.MediaWidget"
-    options:
-      label: "{artist}"
-      label_alt: "{title}"
-      max_field_size:
-        label: 40
-        label_alt: 40
-      show_thumbnail: false
-      controls_hide: false
-      hide_empty: true
-      thumbnail_alpha: 80
-      thumbnail_padding: 0
-      thumbnail_corner_radius: 0
-      icons:
-        prev_track: "\ue892"
-        next_track: "\ue893"
-        play: "\ue768"
-        pause: "\ue769"
-      callbacks:
-        on_right: "toggle_label" # 右键切换
-
-  active_window:
-    type: "yasb.active_window.ActiveWindowWidget"
-    options:
-      label: "{win[process][name]}"
-      label_alt: "{win[title]}"
-      label_no_window: ""
-      label_icon: false
-      label_icon_size: 12
-      max_length: 50
-      max_length_ellipsis: "..."
-      monitor_exclusive: false
-      callbacks:
-        on_right: "toggle_label" # 右键切换
+        low: 25 # 低磁盘占用阈值
+        medium: 50 # 中等磁盘占用阈值
+        high: 90 # 高磁盘占用阈值
 
   volume:
-    type: "yasb.volume.VolumeWidget"
+    type: "yasb.volume.VolumeWidget" # 音量组件
     options:
-      label: "<span>{icon}</span> {level}"
+      label: "<span>{icon}</span> {level}" # 默认显示音量图标和音量值
+      label_alt: "{volume[percent]}%" # 替代显示音量百分比
+      tooltip: false # 是否显示 tooltip
+      scroll_step: 2 # 鼠标滚轮调整音量的步进值
+      slider_beep: false # 调整音量时是否播放系统提示音
+      mute_text: "mute" # 静音时显示的文字
       volume_icons:
-        - "\ueee8"
-        - "\uf026"
-        - "\uf027"
-        - "\uf027"
-        - "\uf028"
-
-  notifications:
-    type: "yasb.notifications.NotificationsWidget"
-    options:
-      label: "<span>\uf476</span> {count}"
-      label_alt: "{count} notifications"
-      hide_empty: true
-      tooltip: false
-      container_padding:
-        top: 0
-        left: 10
-        bottom: 0
-        right: 12
+        - "" # 静音图标
+        - "" # 低音量图标
+        - "" # 中低音量图标
+        - "" # 中高音量图标
+        - "" # 高音量图标
+      audio_menu:
+        blur: false # 音频菜单是否启用模糊
+        round_corners: true # 音频菜单是否启用圆角
+        round_corners_type: "normal" # 圆角类型
+        border_color: "system" # 音频菜单边框颜色
+        alignment: "center" # 音频菜单对齐方式
+        direction: "down" # 音频菜单打开方向
+        offset_top: 6 # 音频菜单垂直偏移
+        offset_left: 0 # 音频菜单水平偏移
+        show_apps: true # 是否显示应用音量
+        show_app_labels: false # 是否显示应用名称
+        show_app_icons: true # 是否显示应用图标
+        show_apps_expanded: false # 是否默认展开应用音量列表
       callbacks:
-        on_left: "toggle_notification"
-        on_right: "toggle_label"
-      label_shadow:
-        enabled: true
-        color: "black"
-        radius: 3
-        offset: [1, 1]
-
-  cpu:
-    type: "yasb.cpu.CpuWidget"
-    options:
-      # 默认: 图标 + 百分比
-      label: "<span>\uf4bc</span> {info[percent][total]}%"
-      # 点击后: 图标 + 频率
-      label_alt: "<span>\uf4bc</span> {info[freq][current]} GHz"
-      update_interval: 1000
-      callbacks:
-        on_left: "toggle_label" # 左键切换显示模式
-        on_right: "exec cmd /c Taskmgr"
-      container_padding:
-        top: 0
-        left: 0
-        bottom: 0
-        right: 0
-
-  systray:
-    type: "yasb.systray.SystrayWidget"
-    options:
-      class_name: "systray"
-      show_unpinned: true
-      show_unpinned_button: true
-      show_battery: false
-      show_volume: false
-      show_network: false
+        on_left: "toggle_volume_menu" # 左键打开/关闭音量菜单
+        on_middle: "toggle_mute" # 中键静音/取消静音
+        on_right: "toggle_mute" # 右键静音/取消静音
 
   weather:
-    type: "yasb.weather.WeatherWidget"
+    type: "yasb.weather.WeatherWidget" # 天气组件
     options:
-      label: "<span>{icon}</span> {temp}"
-      label_alt: "{location}: {temp} ({min_temp}-{max_temp})"
+      label: "<span>{icon}</span> {temp}" # 默认显示天气图标和温度
+      label_alt: "{location}: {temp} ({min_temp}-{max_temp})" # 替代显示地区、当前温度和最低/最高温
       # Get your free API key from https://www.weatherapi.com/
-      api_key: {{ .weather_apikey | quote }}
-      update_interval: 600
-      hide_decimal: true
+      api_key: {{ .weather_apikey | quote }} # WeatherAPI key；由模板变量注入
+      update_interval: 600 # 天气更新间隔
+      hide_decimal: true # 是否隐藏温度小数位
+      units: "metric" # 温度单位；metric 为摄氏度
+      show_alerts: true # 是否显示天气预警
+      tooltip: false # 是否显示 tooltip
       {{- if (hasKey . "location") }}
       {{-   if .location }}
-      location: {{ .location | quote }}
+      location: {{ .location | quote }} # 天气位置；例如城市名或 “国家 城市 邮编”
       {{-   end }}
       {{- end }}
       callbacks:
-        # 点击显示天气卡片 (Menu)
-        on_left: "toggle_card"
-        on_right: "exec cmd.exe /c start msnweather:"
+        on_left: "toggle_card" # 左键显示/隐藏天气卡片
+        on_middle: "toggle_label" # 中键切换 label / label_alt
+        on_right: "exec cmd.exe /c start msnweather:" # 右键打开 MSN 天气
       icons:
-        # 图标列表
-        sunnyDay: "\ue30d"
-        clearNight: "\ue32b"
-        cloudyDay: "\ue312"
-        cloudyNight: "\ue311"
-        rainyDay: "\ue308"
-        rainyNight: "\ue333"
-        snowyDay: "\ue30a"
-        snowyNight: "\ue335"
-        blizzardDay: "\udb83\udf36"
-        blizzardNight: "\udb83\udf36"
-        foggyDay: "\ue303"
-        foggyNight: "\ue346"
-        thunderstormDay: "\ue30f"
-        thunderstormNight: "\ue338"
-        default: "\uebaa"
-      # 天气卡片配置
+        sunnyDay: "" # 晴天白天图标
+        clearNight: "" # 晴天夜间图标
+        cloudyDay: "" # 多云白天图标
+        cloudyNight: "" # 多云夜间图标
+        rainyDay: "" # 雨天白天图标
+        rainyNight: "" # 雨天夜间图标
+        snowyDay: "" # 雪天白天图标
+        snowyNight: "" # 雪天夜间图标
+        blizzardDay: "󰼶" # 暴雪白天图标
+        blizzardNight: "󰼶" # 暴雪夜间图标
+        foggyDay: "" # 雾天白天图标
+        foggyNight: "" # 雾天夜间图标
+        thunderstormDay: "" # 雷暴白天图标
+        thunderstormNight: "" # 雷暴夜间图标
+        default: "" # 默认天气图标
       weather_card:
-        blur: true
-        round_corners: true
-        round_corners_type: "normal"
-        border_color: "system"
-        alignment: "center"
-        direction: "down"
-        icon_size: 64
-        show_hourly_forecast: true
-        time_format: "24h"
+        blur: true # 天气卡片是否启用模糊
+        round_corners: true # 天气卡片是否启用圆角
+        round_corners_type: "normal" # 圆角类型
+        border_color: "system" # 天气卡片边框颜色
+        alignment: "center" # 天气卡片对齐方式
+        direction: "down" # 天气卡片打开方向
+        offset_top: 6 # 天气卡片垂直偏移
+        offset_left: 0 # 天气卡片水平偏移
+        icon_size: 64 # 当前天气大图标尺寸
+        show_hourly_forecast: true # 是否显示小时预报
+        time_format: "24h" # 小时预报时间格式
+        hourly_point_spacing: 76 # 小时预报点之间的横向距离
+        hourly_icon_size: 32 # 小时预报图标尺寸
+        icon_smoothing: true # 是否平滑天气图标
+        temp_line_width: 2 # 温度曲线线宽
+        current_line_width: 1 # 当前时间标记线宽
+        current_line_style: "dot" # 当前时间标记线样式
+        hourly_forecast_buttons:
+          enabled: false # 是否启用小时预报切换按钮
+          default_view: "temperature" # 小时预报默认视图
 
   clock:
-    type: "yasb.clock.ClockWidget"
+    type: "yasb.clock.ClockWidget" # 时钟组件
     options:
-      label: "{%H:%M:%S}"
-      # 详细模式
-      label_alt: "{%A, %d %B %Y}"
-      timezones: []
+      label: "{%H:%M:%S}" # 默认显示时分秒
+      label_alt: "{%A, %d %B %Y}" # 替代显示星期、日期、月份、年份
+      locale: "zh_CN" # 日期/月份/星期本地化语言
+      update_interval: 1000 # 时钟更新间隔，单位毫秒
+      timezones: [] # 额外时区列表；中键可切换
+      tooltip: false # 是否显示 tooltip
       callbacks:
-        on_left: "toggle_calendar" # 左键点击弹出日历
-        on_middle: "next_timezone"
-        on_right: "exec cmd.exe /c start ms-clock:"
-      # 日历弹窗配置
+        on_left: "toggle_calendar" # 左键打开/关闭日历
+        on_middle: "next_timezone" # 中键切换到下一个时区
+        on_right: "exec cmd.exe /c start ms-clock:" # 右键打开 Windows 时钟
       calendar:
-        blur: true
-        round_corners: true
-        round_corners_type: "normal"
-        border_color: "system" # CSS会覆盖此设置
-        alignment: "center"
-        direction: "down"
-        show_holidays: true
-        show_week_numbers: true
-        # 节假日高亮色 (可填颜色代码，也可由CSS控制)
-        holiday_color: "#f38ba8" # Catppuccin Red
+        blur: true # 日历弹窗是否启用模糊
+        round_corners: true # 日历弹窗是否启用圆角
+        round_corners_type: "normal" # 圆角类型
+        border_color: "system" # 日历弹窗边框颜色；CSS 可能覆盖此设置
+        alignment: "center" # 日历弹窗对齐方式
+        direction: "down" # 日历弹窗打开方向
+        offset_top: 6 # 日历弹窗垂直偏移
+        offset_left: 0 # 日历弹窗水平偏移
+        show_holidays: true # 是否显示节假日
+        show_week_numbers: true # 是否显示周数
+        show_years: true # 是否显示年份切换/年份信息
+        country_code: "CN" # 节假日国家/地区；不写时 YASB 会根据系统设置推断
+        # subdivision: "" # 省/州级节假日；需要时再启用，例如 US-CA 之类的区域细分
+        holiday_color: "#f38ba8" # 节假日颜色，Catppuccin Red
+        extended: false # 是否启用扩展日历布局
+
+  media:
+    type: "yasb.media.MediaWidget" # 媒体组件
+    options:
+      label: "{artist}" # 默认显示艺术家
+      label_alt: "{title}" # 替代显示曲名/标题
+      max_field_size:
+        label: 40 # 默认 label 最大长度
+        label_alt: 40 # 替代 label 最大长度
+      show_thumbnail: false # 是否显示封面缩略图
+      controls_hide: false # 是否隐藏播放控制按钮
+      hide_empty: true # 没有媒体播放时隐藏组件
+      thumbnail_alpha: 80 # 缩略图透明度
+      thumbnail_padding: 0 # 缩略图内边距
+      thumbnail_corner_radius: 0 # 缩略图圆角
+      icons:
+        prev_track: "" # 上一曲图标
+        next_track: "" # 下一曲图标
+        play: "" # 播放图标
+        pause: "" # 暂停图标
+      callbacks:
+        on_left: "toggle_play_pause" # 左键播放/暂停
+        on_right: "toggle_label" # 右键切换 artist / title
+
+  notifications:
+    type: "yasb.notifications.NotificationsWidget" # 通知组件
+    options:
+      label: "<span></span> {count}" # 默认显示通知图标和数量
+      label_alt: "{count} notifications" # 替代显示英文通知数量
+      hide_empty: true # 没有通知时隐藏组件
+      tooltip: false # 是否显示 tooltip
+      container_padding:
+        top: 0 # 通知组件内部顶部 padding
+        left: 10 # 通知组件内部左侧 padding
+        bottom: 0 # 通知组件内部底部 padding
+        right: 12 # 通知组件内部右侧 padding
+      callbacks:
+        on_left: "toggle_notification" # 左键打开/关闭通知中心
+        on_right: "toggle_label" # 右键切换 label / label_alt
+      label_shadow:
+        enabled: true # 是否启用文字阴影
+        color: "black" # 阴影颜色
+        radius: 3 # 阴影模糊半径
+        offset: [1, 1] # 阴影偏移 [x, y]
 
   power_menu:
-    type: "yasb.power_menu.PowerMenuWidget"
+    type: "yasb.power_menu.PowerMenuWidget" # 电源菜单组件
     options:
-      label: "\uf011"
-      uptime: True
-      blur: False
-      blur_background: True
-      animation_duration: 300 # Milisecond
-      button_row: 3 # Number of buttons in row, min 1 max 5
+      label: "" # Bar 上的电源图标
+      uptime: true # 是否在弹窗中显示系统运行时间
+      blur: false # 电源菜单是否启用模糊
+      blur_background: true # 弹窗打开时是否模糊背景
+      animation_duration: 300 # 弹窗动画时长，单位毫秒
+      button_row: 3 # 每行按钮数量，最小 1 最大 5
       buttons:
-        lock: ["\uea75", "Lock"]
-        signout: ["\udb80\udf43", "Sign out"]
-        shutdown: ["\uf011", "Shut Down"]
-        restart: ["\uead2", "Restart"]
-        hibernate: ["\uf28e", "Hibernate"]
-        cancel: ["\udb81\udf3a", "Cancel"]
+        lock: ["", "Lock"] # 锁屏按钮
+        signout: ["󰍃", "Sign out"] # 注销按钮
+        shutdown: ["", "Shut Down"] # 关机按钮
+        restart: ["", "Restart"] # 重启按钮
+        hibernate: ["", "Hibernate"] # 休眠按钮
+        cancel: ["\udb81\udf3a", "Cancel"] # 取消按钮

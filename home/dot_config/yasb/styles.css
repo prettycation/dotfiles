@@ -78,6 +78,7 @@
 
 /* 常规右侧组件间距 */
 .glazewm-workspaces,
+.active-window-widget,
 .cpu-widget,
 .memory-widget,
 .disk-widget,
@@ -376,7 +377,7 @@
 
 /* --- 媒体播放器 --- */
 .media-widget {
-  margin: 0 0 0 4px; /* 媒体组件左侧与前一个组件的间距 */
+  margin: 0 0 0 0px; /* 媒体组件左侧与前一个组件的间距 */
   padding: 0 12px; /* 媒体组件左右内边距 */
   border-radius: 8px; /* 媒体组件圆角 */
   background-color: var(--maroon); /* 媒体组件背景色 */
