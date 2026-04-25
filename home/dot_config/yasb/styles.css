@@ -34,85 +34,162 @@
   --crust: #11111b;
 }
 
+/* 全局基础：字体与默认权重 */
 * {
-  font-size: 12px;
-  color: var(--subtext0);
-  font-weight: 600;
-  font-family: "JetBrainsMono NF", sans-serif;
   margin: 0;
   padding: 0;
   border: none;
+  color: var(--subtext0);
+  font-family: "JetBrainsMono NF", sans-serif;
+  font-size: 12px;
+  font-weight: 600;
 }
+
+/* ==============================================================================
+   1. Bar 主体与通用组件
+   ============================================================================== */
 
 .yasb-bar {
-  padding: 0;
   margin: 0;
+  padding: 0;
 }
 
+/* YASB 文档中的通用图标类；图标字体由各组件单独控制 */
 .widget .icon {
   font-size: 16px;
 }
 
+/* YASB 文档中的通用文本类 */
 .widget .label {
   color: white;
 }
 
-/* --- GlazeWM 工作区 --- */
-.glazewm-workspaces {
+/* 通用卡片式组件：抽取完全一致的外观，不改变各组件图标/文字设置 */
+.cpu-widget,
+.memory-widget,
+.disk-widget,
+.systray,
+.volume-widget,
+.power-menu-widget {
+  background-color: var(--surface0);
+  border: 1px solid var(--surface1);
+  border-radius: 8px;
+}
+
+/* 常规右侧组件间距 */
+.glazewm-workspaces,
+.cpu-widget,
+.memory-widget,
+.disk-widget,
+.systray {
   margin-right: 4px;
 }
 
-.glazewm-workspaces .ws-btn {
-  font-family: Arial;
+/* Bar 上常见数值文本：Arial + Nerd Font 回退组合 */
+.cpu-widget .label,
+.memory-widget .label,
+.disk-widget .label,
+.weather-widget .label {
+  font-family: Arial, "JetBrainsMono NF";
   font-size: 14px;
   font-weight: bold;
-  background-color: var(--surface0);
-  border: 1px solid var(--surface1);
-  margin: 0 2px;
-  padding: 0 10px;
-  border-radius: 8px;
-  height: 28px;
-  min-width: 28px;
-}
-
-.glazewm-workspaces .ws-btn.populated {
   color: white;
 }
 
+/* ==============================================================================
+   2. Bar 上的具体组件
+   ============================================================================== */
+
+/* --- GlazeWM 工作区 --- */
+.glazewm-workspaces {
+  padding: 2px;
+  border: 2px solid var(--surface1);
+  border-radius: 8px;
+  background-color: var(--surface0);
+}
+
+.glazewm-workspaces .ws-btn {
+  min-width: 28px;
+  height: 24px;
+  margin: 0;
+  padding: 0 10px;
+  border: none;
+  border-radius: 6px;
+  background-color: transparent;
+  color: var(--subtext0);
+  font-family: Arial;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.glazewm-workspaces .ws-btn.populated,
+.glazewm-workspaces .ws-btn.populated QLabel {
+  color: var(--lavender); /* 有窗口但非活动工作区的文字颜色 */
+}
+
+.glazewm-workspaces .ws-btn.empty {
+  color: var(--overlay1);
+}
+
+/* 聚焦工作区：清理非活动工作区的残余高亮，背景只交给按钮本体 */
+.glazewm-workspaces .ws-btn.focused_populated,
+.glazewm-workspaces .ws-btn.focused_empty {
+  background-color: transparent;
+  border-radius: 6px;
+}
+
+.glazewm-workspaces .ws-btn.focused_populated QLabel,
+.glazewm-workspaces .ws-btn.focused_empty QLabel {
+  background-color: transparent;
+}
+
+/* 活动工作区：只给按钮本体设置高亮背景，QLabel 只控制文字颜色 */
 .glazewm-workspaces .ws-btn.active_populated,
 .glazewm-workspaces .ws-btn.active_empty {
+  color: var(--base) !important;
   background-color: var(--blue);
-  border-color: var(--blue);
-  color: var(--base);
+  border-radius: 6px;
+}
+
+.glazewm-workspaces .ws-btn.active_populated QLabel,
+.glazewm-workspaces .ws-btn.active_empty QLabel {
+  color: var(--base) !important;
+  background-color: transparent;
+}
+
+/* 活动且聚焦：放在最后，防止 focused_* 把当前工作区背景清掉 */
+.glazewm-workspaces .ws-btn.active_populated.focused_populated,
+.glazewm-workspaces .ws-btn.active_empty.focused_empty,
+.glazewm-workspaces .ws-btn.focused_populated.active_populated,
+.glazewm-workspaces .ws-btn.focused_empty.active_empty {
+  color: var(--base) !important;
+  background-color: var(--blue);
+  border-radius: 6px;
 }
 
 /* --- 活动窗口 --- */
 .active-window-widget {
-  background-color: var(--mauve);
-  border-radius: 8px;
-  padding: 0 12px;
+  padding: 0 12px; /* 活动窗口标题左右内边距 */
+  border-radius: 8px; /* 活动窗口组件圆角 */
+  background-color: var(--mauve); /* 活动窗口组件背景色 */
 }
 
 .active-window-widget .label {
-  color: var(--base);
-  font-family: Arial;
-  font-size: 14px;
-  font-weight: bold;
+  color: var(--base); /* 活动窗口标题文字颜色 */
+  font-family: Arial; /* 活动窗口标题字体 */
+  font-size: 14px; /* 活动窗口标题字号 */
+  font-weight: bold; /* 活动窗口标题字重 */
 }
 
 /* --- 系统托盘 --- */
 .systray {
-  background-color: var(--surface0);
-  border: 1px solid var(--surface1);
-  border-radius: 8px;
-  margin-right: 4px;
-  padding: 3px;
+  padding: 3px; /* 系统托盘整体内边距，影响托盘图标与边框距离 */
 }
 
 .systray .button {
-  padding: 2px;
-  border-radius: 6px;
-  transition: background-color 0.2s ease;
+  padding: 2px; /* 单个托盘图标的点击区域 */
+  border-radius: 6px; /* 托盘图标悬浮背景圆角 */
+  transition: background-color 0.2s ease; /* 托盘悬浮背景过渡效果 */
 }
 
 .systray .button[dragging="true"] {
@@ -121,9 +198,9 @@
 }
 
 .systray .unpinned-visibility-btn {
-  border-radius: 6px;
-  height: 20px;
   width: 20px;
+  height: 20px;
+  border-radius: 6px;
   color: var(--text);
 }
 
@@ -140,35 +217,22 @@
 .cpu-widget,
 .memory-widget,
 .disk-widget {
-  background-color: var(--surface0);
-  border: 1px solid var(--surface1);
-  border-radius: 8px;
-  margin-right: 4px;
-  padding: 0 10px;
+  padding: 0 10px; /* CPU / 内存 / 磁盘组件左右内边距 */
 }
 
 .cpu-widget .icon {
-  color: var(--green);
-  margin-right: 10px;
+  color: var(--green); /* CPU 图标颜色 */
+  margin-right: 10px; /* CPU 图标与数值之间的距离 */
 }
 
 .memory-widget .icon {
-  color: var(--yellow);
-  margin-right: 10px;
+  color: var(--yellow); /* 内存图标颜色 */
+  margin-right: 10px; /* 内存图标与数值之间的距离 */
 }
 
 .disk-widget .icon {
-  color: var(--sapphire);
-  margin-right: 10px;
-}
-
-.cpu-widget .label,
-.memory-widget .label,
-.disk-widget .label {
-  font-family: Arial, "JetBrainsMono NF";
-  font-size: 14px;
-  font-weight: bold;
-  color: white;
+  color: var(--sapphire); /* 磁盘图标颜色 */
+  margin-right: 10px; /* 磁盘图标与数值之间的距离 */
 }
 
 /* --- 组件悬浮高亮效果 --- */
@@ -194,13 +258,13 @@
 /* --- 网络流量 (Bar上的外观) --- */
 /* 1. 最外层容器，负责外观 */
 .traffic-widget {
-  background-color: var(--surface0);
-  border: 1px solid var(--surface1);
-  border-radius: 8px;
-  margin-right: 4px; /* 组件间距 */
-  padding-left: 6px; /* 图标左右边距 */
-  padding-right: 9px;
-  min-height: 20px;
+  min-height: 20px; /* 网络流量组件最小高度 */
+  padding-left: 6px; /* 图标左侧边距 */
+  padding-right: 9px; /* 图标/文字右侧边距 */
+  margin-right: 4px; /* 与右侧组件的间距 */
+  border: 1px solid var(--surface1); /* 网络流量组件默认边框 */
+  border-radius: 8px; /* 网络流量组件圆角 */
+  background-color: var(--surface0); /* 网络流量组件背景色 */
 }
 
 /* --- 组件悬浮高亮效果 --- */
@@ -213,241 +277,15 @@
 
 /* 2. 图标颜色 */
 .traffic-widget QLabel {
-  color: var(--teal);
-  font-family: "JetBrainsMono NF", Arial;
-  font-size: 14px;
-  font-weight: bold;
-}
-
-/* --- 1. Calendar (日历弹窗) --- */
-.calendar {
-  background-color: var(--mantle);
-  border: 1px solid var(--surface1);
-  padding: 10px;
-  border-radius: 12px;
-}
-
-.calendar .calendar-table,
-.calendar .calendar-table::item {
-  background-color: transparent;
-  color: var(--subtext0);
-  font-size: 16px;
-  margin: 0;
-  padding: 0;
-  border: none;
-  outline: none;
-}
-
-/* 选中的日期 */
-.calendar .calendar-table::item:selected {
-  color: var(--base);
-  background-color: var(--mauve); /* 紫色高亮 */
-  border-radius: 8px;
-  font-weight: bold;
-}
-
-/* 悬浮日期 */
-.calendar .calendar-table::item:hover {
-  background-color: var(--surface1);
-  border-radius: 8px;
-}
-
-/* 顶部的大日期显示 */
-.calendar .date-label {
-  font-size: 64px; /* 巨大的日期数字 */
-  font-weight: 900;
-  color: var(--text);
-  margin-top: -10px;
-  font-family: Arial, sans-serif;
-  margin-bottom: 10px;
-}
-
-/* 月份标签 */
-.calendar .month-label {
-  font-size: 20px;
-  color: var(--subtext1);
-  font-weight: normal;
-  margin-bottom: 4px;
-}
-
-/* 星期几标签 */
-.calendar .day-label {
-  font-family: "JetBrainsMono NF";
-  font-size: 14px;
-  color: var(--overlay2);
-}
-
-/* 周数和节假日 */
-.calendar .week-label,
-.calendar .holiday-label {
-  font-size: 12px;
-  font-weight: bold;
-  color: var(--overlay1);
-}
-
-.calendar .holiday-label {
-  color: var(--red); /* 节假日显示红色 */
-}
-
-/* --- 2. Traffic Menu (网速详情弹窗) --- */
-.traffic-menu {
-  background-color: var(--mantle);
-  border: 1px solid var(--surface1);
-  border-radius: 8px;
-  min-width: 320px;
-  padding-bottom: 10px;
-}
-
-.traffic-menu .header .title {
-  padding: 14px;
-  font-size: 18px;
-  font-weight: bold;
-  color: var(--mauve);
-}
-
-.traffic-menu .header .reset-button {
-  font-size: 12px;
-  padding: 4px 8px;
-  margin-right: 14px;
-  border-radius: 6px;
-  color: var(--subtext0);
-  background-color: var(--surface0);
-  border: 1px solid var(--surface1);
-}
-
-.traffic-menu .reset-button:hover {
-  background-color: var(--surface1);
-  color: var(--text);
-}
-
-.traffic-menu .download-speed,
-.traffic-menu .upload-speed {
-  background-color: transparent;
-  padding: 10px;
-  margin: 16px 12px 0 12px;
-}
-
-.traffic-menu .upload-speed-value,
-.traffic-menu .download-speed-value {
-  font-size: 24px;
-  font-weight: 900;
-  font-family: Arial;
-}
-
-.traffic-menu .download-speed-value {
-  color: var(--teal);
-}
-
-.traffic-menu .upload-speed-value {
-  color: var(--sky);
-}
-
-.traffic-menu .upload-speed-unit,
-.traffic-menu .download-speed-unit {
-  font-size: 14px;
-  font-weight: bold;
-  padding-top: 8px;
-  color: var(--subtext1);
-}
-
-.traffic-menu .section-title {
-  font-size: 12px;
-  font-weight: bold;
-  color: var(--pink);
-  margin-bottom: 4px;
-  padding-left: 10px;
-}
-
-.traffic-menu .session-section,
-.traffic-menu .today-section,
-.traffic-menu .alltime-section {
-  margin: 8px;
-  padding: 0 10px 10px 10px;
-}
-
-.traffic-menu .data-text {
-  font-size: 13px;
-  color: var(--subtext0);
-  padding: 2px 0;
-}
-
-.traffic-menu .data-value {
-  font-weight: bold;
-  font-size: 13px;
-  color: var(--text);
-  padding: 2px 0;
-}
-
-.traffic-menu .interface-info {
-  margin-top: 12px;
-  border-top: 1px solid var(--surface1);
-  font-size: 12px;
-  color: var(--overlay1);
-  padding: 8px 14px;
-  background-color: var(--crust);
-  border-radius: 0 0 8px 8px;
-}
-
-.traffic-menu .internet-info.connected {
-  color: var(--green);
-}
-
-.traffic-menu .internet-info.disconnected {
-  color: var(--red);
-}
-
-/* --- 3. Disk Group (磁盘列表弹窗) --- */
-.disk-group {
-  background-color: var(--mantle);
-  border: 1px solid var(--surface1);
-  border-radius: 8px;
-  padding: 10px;
-}
-
-.disk-group-row {
-  min-width: 250px;
-  max-width: 300px;
-  margin: 4px 0;
-  padding: 12px;
-  border-radius: 8px;
-  border: 1px solid transparent;
-  background-color: var(--base);
-}
-
-.disk-group-row:hover {
-  background-color: var(--surface0);
-  border: 1px solid var(--surface1);
-}
-
-.disk-group-label-bar {
-  margin-bottom: 8px;
-  max-height: 6px;
-  background-color: var(--surface1);
-  border-radius: 4px;
-  border: none;
-}
-
-.disk-group-label-bar::chunk {
-  background-color: var(--mauve);
-  border-radius: 4px;
-}
-
-.disk-group-label {
-  font-size: 14px;
-  font-weight: bold;
-  color: var(--text);
-}
-
-.disk-group-label-size {
-  font-size: 12px;
-  color: var(--subtext0);
+  color: var(--teal); /* 网络流量图标/文字颜色 */
+  font-family:
+    "JetBrainsMono NF", Arial; /* 网络流量图标字体，保留 Nerd Font 优先 */
+  font-size: 14px; /* 网络流量文字字号 */
+  font-weight: bold; /* 网络流量文字字重 */
 }
 
 /* --- 音量 --- */
 .volume-widget {
-  background-color: var(--surface0);
-  border: 1px solid var(--surface1);
-  border-radius: 8px;
   padding: 0 10px;
 }
 
@@ -461,32 +299,15 @@
 
 .volume-widget .icon {
   color: var(--lavender);
+  min-width: 28px; /* 音量图标自身绘制区域；图标裁切则修改这里 */
+  margin-left: -9px; /* 把图标绘制盒轻微左移，避免左边距过大，同时不破坏 min-width 防裁切 */
 }
 
 .volume-widget .label {
+  padding-left: 6px;
   font-family: Arial;
   font-size: 15px;
   font-weight: bold;
-  padding-left: 10px;
-}
-
-/* 音量下拉菜单 */
-.audio-menu {
-  background-color: var(--mantle);
-  border: 1px solid var(--surface1);
-}
-
-.audio-container .device {
-  background-color: var(--surface0);
-  border-radius: 8px;
-  padding: 6px 8px;
-  margin: 2px 0;
-  color: var(--text);
-}
-
-.audio-container .device.selected {
-  background-color: var(--green);
-  color: var(--crust);
 }
 
 /* --- 2. Weather & Clock 合并样式 --- */
@@ -512,10 +333,10 @@
 }
 
 .weather-widget .icon {
-  color: var(--peach);
-  margin-left: 8px;
-  margin-right: 6px;
-  font-size: 16px;
+  color: var(--peach); /* 天气图标颜色 */
+  margin-left: 8px; /* 天气图标左侧留白 */
+  margin-right: 6px; /* 天气图标与温度文字之间的距离 */
+  font-size: 16px; /* 天气图标字号 */
 }
 
 .weather-widget .label {
@@ -541,68 +362,24 @@
   margin-right: 0;
 
   padding-left: 8px;
+  padding-right: 10px;
   background-color: var(--surface0);
   border-top-right-radius: 8px;
   border-bottom-right-radius: 8px;
-  padding-right: 10px;
 }
 
 .clock-widget .label {
-  font-family: Arial;
-  font-size: 15px;
-  font-weight: bold;
-}
-
-/* --- 3. Weather Card (天气详情弹窗) --- */
-.weather-card {
-  background-color: var(--mantle);
-  border: 1px solid var(--surface1);
-  border-radius: 12px;
-  padding: 10px;
-}
-
-.weather-card-today .label {
-  font-size: 14px;
-  color: var(--text);
-}
-
-.weather-card-today .label.location {
-  font-size: 20px;
-  font-weight: bold;
-  color: var(--mauve);
-  margin-bottom: 5px;
-}
-
-.weather-card-today .label.alert {
-  color: var(--red);
-  border: 1px solid var(--red);
-  border-radius: 6px;
-  padding: 4px;
-  margin: 4px 0;
-}
-
-/* --- 3. Weather Card 高度修复 --- */
-.weather-card .hourly-container {
-  background-color: transparent;
-  margin-top: 10px;
-  border-top: 1px solid var(--surface1);
-  padding-top: 10px;
-  /* 增加最小高度，防止曲线被截断 */
-  min-height: 120px;
-}
-
-/* 小时预报的温度曲线颜色 */
-.weather-card .hourly-data {
-  background-color: var(--yellow);
-  font-weight: bold;
+  font-family: Arial; /* 时钟文字字体 */
+  font-size: 15px; /* 时钟文字字号 */
+  font-weight: bold; /* 时钟文字字重 */
 }
 
 /* --- 媒体播放器 --- */
 .media-widget {
-  background-color: var(--maroon);
-  border-radius: 8px;
-  padding: 0 12px;
-  margin: 0 0 0 4px;
+  margin: 0 0 0 4px; /* 媒体组件左侧与前一个组件的间距 */
+  padding: 0 12px; /* 媒体组件左右内边距 */
+  border-radius: 8px; /* 媒体组件圆角 */
+  background-color: var(--maroon); /* 媒体组件背景色 */
 }
 
 .media-widget .label {
@@ -613,9 +390,9 @@
 }
 
 .media-widget .btn {
-  font-family: "Segoe Fluent Icons";
-  color: var(--crust);
-  padding: 0 0 0 5px;
+  padding: 0 0 0 5px; /* 播放控制按钮左侧间距 */
+  color: var(--crust); /* 播放控制图标颜色 */
+  font-family: "Segoe Fluent Icons"; /* 播放/暂停等控制图标字体，勿随意改动 */
 }
 
 .media-widget .btn:hover {
@@ -629,21 +406,21 @@
 
 /* --- 通知 --- */
 .notification-widget {
-  border: 1px solid var(--mauve);
-  border-radius: 8px;
-  margin-left: 4px;
+  margin-left: 4px; /* 通知组件与左侧组件的间距 */
+  border: 2px solid var(--mauve); /* 通知组件边框颜色 */
+  border-radius: 8px; /* 通知组件圆角 */
 }
 
 .notification-widget .widget-container {
-  background-color: var(--surface0);
-  border-radius: 6px;
   padding: 0 10px;
+  border-radius: 6px;
+  background-color: var(--surface0);
 }
 
 .notification-widget .icon {
-  font-size: 16px;
-  color: var(--peach);
-  margin-right: 6px;
+  color: var(--mauve); /* 通知图标颜色 */
+  margin-right: 6px; /* 通知图标与文字之间的距离 */
+  font-size: 16px; /* 通知图标字号 */
 }
 
 .notification-widget .label.new-notification {
@@ -657,13 +434,11 @@
 
 /* --- Bar上的图标/文字按钮样式 --- */
 .power-menu-widget {
-  background-color: var(--surface0);
-  border: 1px solid var(--overlay0);
-  border-radius: 8px;
   /* 调整内边距以防文字/图标裁剪 */
-  padding: 4px 12px;
-  margin-left: 4px;
-  margin-right: 4px;
+  padding: 4px 12px; /* 电源按钮内部留白 */
+  margin-left: 4px; /* 电源按钮左侧组件间距 */
+  margin-right: 4px; /* 电源按钮右侧组件间距 */
+  border-color: var(--overlay0); /* 电源按钮默认边框颜色 */
 }
 
 .power-menu-widget:hover {
@@ -680,6 +455,297 @@
   /* 组件内部边界到内容的距离（内边距）。4 个数值遵循上、右、下、左（顺时针方向）的规则 */
   padding: 0 4px 0 0;
   margin: 0;
+}
+
+/* ==============================================================================
+   3. 弹窗、下拉菜单与详情面板
+   ============================================================================== */
+
+/* --- 1. Calendar (日历弹窗) --- */
+.calendar {
+  padding: 10px; /* 日历弹窗内部留白 */
+  border: 1px solid var(--surface1); /* 日历弹窗边框颜色 */
+  border-radius: 12px; /* 日历弹窗圆角 */
+  background-color: var(--mantle); /* 日历弹窗背景色 */
+}
+
+.calendar .calendar-table,
+.calendar .calendar-table::item {
+  margin: 0;
+  padding: 0;
+  border: none;
+  outline: none;
+  color: var(--subtext0);
+  background-color: transparent;
+  font-size: 16px;
+}
+
+/* 选中的日期 */
+.calendar .calendar-table::item:selected {
+  color: var(--base);
+  background-color: var(--mauve); /* 紫色高亮 */
+  border-radius: 8px;
+  font-weight: bold;
+}
+
+/* 悬浮日期 */
+.calendar .calendar-table::item:hover {
+  background-color: var(--surface1);
+  border-radius: 8px;
+}
+
+/* 顶部的大日期显示 */
+.calendar .date-label {
+  color: var(--text);
+  font-family: Arial, sans-serif;
+  font-size: 64px; /* 巨大的日期数字 */
+  font-weight: 900;
+  margin-top: -10px;
+  margin-bottom: 10px;
+}
+
+/* 月份标签 */
+.calendar .month-label {
+  color: var(--subtext1);
+  font-size: 20px;
+  font-weight: normal;
+  margin-bottom: 4px;
+}
+
+/* 星期几标签 */
+.calendar .day-label {
+  color: var(--overlay2);
+  font-family: "JetBrainsMono NF";
+  font-size: 14px;
+}
+
+/* 周数和节假日 */
+.calendar .week-label,
+.calendar .holiday-label {
+  color: var(--overlay1);
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.calendar .holiday-label {
+  color: var(--red); /* 节假日显示红色 */
+}
+
+/* --- 2. Traffic Menu (网速详情弹窗) --- */
+.traffic-menu {
+  min-width: 320px; /* 网速详情弹窗最小宽度 */
+  padding-bottom: 10px; /* 网速详情弹窗底部留白 */
+  border: 1px solid var(--surface1); /* 网速详情弹窗边框颜色 */
+  border-radius: 8px; /* 网速详情弹窗圆角 */
+  background-color: var(--mantle); /* 网速详情弹窗背景色 */
+}
+
+.traffic-menu .header .title {
+  color: var(--mauve);
+  padding: 14px;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.traffic-menu .header .reset-button {
+  color: var(--subtext0);
+  background-color: var(--surface0);
+  border: 1px solid var(--surface1);
+  border-radius: 6px;
+  padding: 4px 8px;
+  margin-right: 14px;
+  font-size: 12px;
+}
+
+.traffic-menu .reset-button:hover {
+  color: var(--text);
+  background-color: var(--surface1);
+}
+
+.traffic-menu .download-speed,
+.traffic-menu .upload-speed {
+  margin: 16px 12px 0 12px;
+  padding: 10px;
+  background-color: transparent;
+}
+
+.traffic-menu .upload-speed-value,
+.traffic-menu .download-speed-value {
+  font-family: Arial;
+  font-size: 24px;
+  font-weight: 900;
+}
+
+.traffic-menu .download-speed-value {
+  color: var(--teal);
+}
+
+.traffic-menu .upload-speed-value {
+  color: var(--sky);
+}
+
+.traffic-menu .upload-speed-unit,
+.traffic-menu .download-speed-unit {
+  color: var(--subtext1);
+  padding-top: 8px;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.traffic-menu .section-title {
+  color: var(--pink);
+  margin-bottom: 4px;
+  padding-left: 10px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.traffic-menu .session-section,
+.traffic-menu .today-section,
+.traffic-menu .alltime-section {
+  margin: 8px;
+  padding: 0 10px 10px 10px;
+}
+
+.traffic-menu .data-text {
+  color: var(--subtext0);
+  padding: 2px 0;
+  font-size: 13px;
+}
+
+.traffic-menu .data-value {
+  color: var(--text);
+  padding: 2px 0;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.traffic-menu .interface-info {
+  margin-top: 12px;
+  padding: 8px 14px;
+  border-top: 1px solid var(--surface1);
+  border-radius: 0 0 8px 8px;
+  color: var(--overlay1);
+  background-color: var(--crust);
+  font-size: 12px;
+}
+
+.traffic-menu .internet-info.connected {
+  color: var(--green);
+}
+
+.traffic-menu .internet-info.disconnected {
+  color: var(--red);
+}
+
+/* --- 3. Disk Group (磁盘列表弹窗) --- */
+.disk-group {
+  padding: 10px;
+  border: 1px solid var(--surface1);
+  border-radius: 8px;
+  background-color: var(--mantle);
+}
+
+.disk-group-row {
+  min-width: 250px; /* 单个磁盘卡片最小宽度 */
+  max-width: 300px; /* 单个磁盘卡片最大宽度 */
+  margin: 4px 0; /* 磁盘卡片之间的纵向间距 */
+  padding: 12px; /* 磁盘卡片内部留白 */
+  border: 1px solid transparent; /* 默认透明边框，悬浮时替换为可见边框 */
+  border-radius: 8px; /* 磁盘卡片圆角 */
+  background-color: var(--base); /* 磁盘卡片背景色 */
+}
+
+.disk-group-row:hover {
+  background-color: var(--surface0);
+  border: 1px solid var(--surface1);
+}
+
+.disk-group-label-bar {
+  max-height: 6px;
+  margin-bottom: 8px;
+  border: none;
+  border-radius: 4px;
+  background-color: var(--surface1);
+}
+
+.disk-group-label-bar::chunk {
+  border-radius: 4px;
+  background-color: var(--mauve);
+}
+
+.disk-group-label {
+  color: var(--text);
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.disk-group-label-size {
+  color: var(--subtext0);
+  font-size: 12px;
+}
+
+/* 音量下拉菜单 */
+.audio-menu {
+  border: 1px solid var(--surface1);
+  background-color: var(--mantle);
+}
+
+.audio-container .device {
+  color: var(--text); /* 音频设备名称文字颜色 */
+  background-color: var(--surface0); /* 音频设备条目背景色 */
+  border-radius: 8px; /* 音频设备条目圆角 */
+  padding: 6px 8px; /* 音频设备条目内部留白 */
+  margin: 2px 0; /* 音频设备条目之间的纵向间距 */
+}
+
+.audio-container .device.selected {
+  color: var(--crust);
+  background-color: var(--green);
+}
+
+/* --- 3. Weather Card (天气详情弹窗) --- */
+.weather-card {
+  padding: 10px; /* 天气详情弹窗内部留白 */
+  border: 1px solid var(--surface1); /* 天气详情弹窗边框颜色 */
+  border-radius: 12px; /* 天气详情弹窗圆角 */
+  background-color: var(--mantle); /* 天气详情弹窗背景色 */
+}
+
+.weather-card-today .label {
+  color: var(--text);
+  font-size: 14px;
+}
+
+.weather-card-today .label.location {
+  color: var(--mauve);
+  margin-bottom: 5px;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.weather-card-today .label.alert {
+  color: var(--red);
+  border: 1px solid var(--red);
+  border-radius: 6px;
+  padding: 4px;
+  margin: 4px 0;
+}
+
+/* --- 3. Weather Card 高度修复 --- */
+.weather-card .hourly-container {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--surface1);
+  background-color: transparent;
+  /* 增加最小高度，防止曲线被截断 */
+  min-height: 120px;
+}
+
+/* 小时预报的温度曲线颜色 */
+.weather-card .hourly-data {
+  background-color: var(--yellow);
+  font-weight: bold;
 }
 
 /* --- 弹窗整体样式 --- */
@@ -700,15 +766,14 @@
 
 /* --- 弹窗内按钮 --- */
 .power-menu-popup .button {
-  width: 160px;
-  height: 100px;
-
+  width: 160px; /* 电源菜单按钮宽度 */
+  height: 100px; /* 电源菜单按钮高度 */
   margin: 6px; /* 按钮间距 */
-  padding: 12px;
-  border-radius: 10px;
-  background-color: var(--surface0);
-  border: 1px solid var(--surface1);
-  color: var(--text);
+  padding: 12px; /* 按钮内部留白 */
+  border: 1px solid var(--surface1); /* 按钮默认边框颜色 */
+  border-radius: 10px; /* 按钮圆角 */
+  color: var(--text); /* 按钮默认文字颜色 */
+  background-color: var(--surface0); /* 按钮默认背景色 */
 }
 
 .power-menu-popup .button:hover {
@@ -773,15 +838,19 @@
   color: var(--blue);
 }
 
+/* ==============================================================================
+   4. 系统托盘/全局右键菜单
+   ============================================================================== */
+
 /* --- 系统托盘/全局右键菜单样式 --- */
 
 /* 1. 移除 .systray 前缀，直接对 QMenu 生效 */
 QMenu {
   background-color: var(--mantle); /* 使用更深的背景色 */
-  border: 1px solid var(--surface1);
-  border-radius: 8px;
-  padding: 4px;
-  color: var(--text);
+  border: 1px solid var(--surface1); /* 右键菜单边框颜色 */
+  border-radius: 8px; /* 右键菜单圆角 */
+  padding: 4px; /* 右键菜单内部留白 */
+  color: var(--text); /* 右键菜单默认文字颜色 */
 }
 
 /* 2. 菜单项的基础样式 */
