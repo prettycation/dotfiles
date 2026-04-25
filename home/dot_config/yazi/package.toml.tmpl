@@ -3,6 +3,7 @@
 {{- $hasMediaInfo := lookPath "mediainfo" -}}
 {{- $hasDuckDB := lookPath "duckdb" -}}
 {{- $hasRecycleBinCli := lookPath "trash-list" -}}
+{{- $hasTrashy := lookPath "trash" -}}
 {{- $hasSqlite3 := lookPath "sqlite3" -}}
 {{- $hasSudo := lookPath "sudo" -}}
 
@@ -50,9 +51,15 @@ use = "boydaihungst/mediainfo"
 use = "prettycation/duckdb"
 {{- end }}
 
-{{- if $hasRecycleBinCli }}
+{{- if or $hasTrashy $hasRecycleBinCli }}
+
+{{- $trashPlugin := "uhs-robert/recycle-bin" -}}
+{{- if $hasTrashy -}}
+  {{- $trashPlugin = "prettycation/trashbox" -}}
+{{- end -}}
+
 [[plugin.deps]]
-use = "uhs-robert/recycle-bin"
+use = {{ $trashPlugin | quote }}
 {{- end }}
 
 {{- if $hasSqlite3 }}

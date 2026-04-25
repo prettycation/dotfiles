@@ -1,6 +1,7 @@
 {{- $hasStarship := lookPath "starship" -}}
 {{- $hasDuckDB := lookPath "duckdb" -}}
 {{- $hasRecycleBinCli := lookPath "trash-list" -}}
+{{- $hasTrashy := lookPath "trash" -}}
 {{- $isWindows := eq .chezmoi.os "windows" -}}
 
 {{- if $hasStarship }}
@@ -27,9 +28,15 @@ require("duckdb"):setup({
 })
 {{- end }}
 
-{{- if $hasRecycleBinCli }}
-require("recycle-bin"):setup()
-{{- end }}
+{{ if or $hasTrashy $hasRecycleBinCli }}
+
+{{- $trashPlugin := "recycle-bin" -}}
+{{- if $hasTrashy -}}
+  {{- $trashPlugin = "trashbox" -}}
+{{- end -}}
+
+require({{ $trashPlugin | quote }}):setup()
+{{ end }}
 
 require("projects"):setup({
 	event = {
