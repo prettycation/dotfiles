@@ -65,12 +65,12 @@
 }
 
 /* 通用卡片式组件：抽取完全一致的外观，不改变各组件图标/文字设置 */
+/* 注意：power-menu-widget 已从这里移除，因为它现在属于 center Powerline 结构 */
 .cpu-widget,
 .memory-widget,
 .disk-widget,
 .systray,
-.volume-widget,
-.power-menu-widget {
+.volume-widget {
   background-color: var(--surface0);
   border: 1px solid var(--surface1);
   border-radius: 8px;
@@ -311,73 +311,288 @@
   font-weight: bold;
 }
 
-/* --- 2. Weather & Clock 合并样式 --- */
+/* --- Center Powerline 中心组合 --- */
+/* 结构：
+   pl_outer_l |
+   wifi | brightness |
+   pl_weather_l | weather | pl_weather_r |
+   pl_power_l   | power_menu | pl_power_r |
+   pl_clock_l   | clock | pl_clock_r |
+   cava |
+   pl_outer_r
 
-/* 天气组件 (左半部分) */
-.weather-widget {
-  /* 边框色改为 var(--sky)，与时钟一致 */
-  border: 1px solid var(--sky);
+   说明：
+   1. Powerline 分隔符由 CustomWidget 提供。
+   2. 左黑臂放 WiFi / Brightness，只显示图标。
+   3. 中间保留 weather / power_menu / clock 的彩色 Powerline 主体。
+   4. 右黑臂放 Cava 音频可视化。
+   5. 不使用 widget 本体的 margin-right 控制中心段距离，避免布局跳动。
+*/
 
-  /* 样式重置：去右边框、去右圆角 */
-  border-right: none;
-  border-top-right-radius: 0;
-  border-bottom-right-radius: 0;
-
-  /* 间距控制：右边0(连接时钟)，左边4(避开音量) */
-  margin-right: 0;
-  margin-left: 4px;
-
-  padding-right: 8px;
-  background-color: var(--surface0);
-  border-top-left-radius: 8px;
-  border-bottom-left-radius: 8px;
+/* 清空中心 Powerline 相关 widget 外框 */
+.container-center .pl-outer-l,
+.container-center .pl-outer-r,
+.container-center .pl-weather-l,
+.container-center .pl-weather-r,
+.container-center .pl-power-l,
+.container-center .pl-power-r,
+.container-center .pl-clock-l,
+.container-center .pl-clock-r,
+.container-center .wifi-widget,
+.container-center .brightness-widget,
+.container-center .cava-widget,
+.container-center .weather-widget,
+.container-center .power-menu-widget,
+.container-center .clock-widget {
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
 }
 
-.weather-widget .icon {
-  color: var(--peach); /* 天气图标颜色 */
-  margin-left: 8px; /* 天气图标左侧留白 */
-  margin-right: 6px; /* 天气图标与温度文字之间的距离 */
-  font-size: 16px; /* 天气图标字号 */
+/* 外层箭头容器保持透明，否则外壳箭头会被底座吃掉 */
+.container-center .pl-outer-l .widget-container,
+.container-center .pl-outer-r .widget-container {
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: transparent;
 }
 
-.weather-widget .label {
-  font-family: Arial, "JetBrainsMono NF";
+/* 内部组件统一使用 surface0 底座，形成左右黑臂和中间承托层 */
+.container-center .wifi-widget .widget-container,
+.container-center .brightness-widget .widget-container,
+.container-center .pl-weather-l .widget-container,
+.container-center .pl-weather-r .widget-container,
+.container-center .pl-power-l .widget-container,
+.container-center .pl-power-r .widget-container,
+.container-center .pl-clock-l .widget-container,
+.container-center .pl-clock-r .widget-container,
+.container-center .weather-widget .widget-container,
+.container-center .power-menu-widget .widget-container,
+.container-center .clock-widget .widget-container,
+.container-center .cava-widget .widget-container {
+  margin: 0;
+  padding: 1px 0; /* surface0 底座上下厚度；想更厚改为 2px */
+  border: none;
+  border-radius: 0;
+  background: var(--surface0);
+}
+
+/* 左黑臂图标组件：通过水平 padding 拉长左臂 */
+/* 注意：这里给右侧留出裁切余量，避免 WiFi / 亮度图标右边被吃掉 */
+.container-center .wifi-widget .widget-container {
+  padding: 1px 6px 1px 12px; /* 左黑臂起始长度；想更长就增大最后一个值 */
+}
+
+.container-center .brightness-widget .widget-container {
+  padding: 1px 12px 1px 6px; /* 左黑臂末端长度；想更长就增大第二个值 */
+}
+
+/* 右黑臂 Cava：通过水平 padding 拉长右臂 */
+.container-center .cava-widget .widget-container {
+  padding: 1px 14px 1px 10px; /* 顺序：上 右 下 左；右臂更长就增大第二个值 */
+}
+
+/* Powerline 分隔符基础样式 */
+.container-center .pl-outer-l .label,
+.container-center .pl-outer-r .label,
+.container-center .pl-weather-l .label,
+.container-center .pl-weather-r .label,
+.container-center .pl-power-l .label,
+.container-center .pl-power-r .label,
+.container-center .pl-clock-l .label,
+.container-center .pl-clock-r .label {
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font-family: "JetBrainsMono NF", "JetBrainsMono NFP", Arial, sans-serif;
+  font-size: 24px;
+  font-weight: 900;
+}
+
+/* Powerline 字符与主体之间的像素咬合补偿 */
+/* 注意：这里改的是 QLabel 的 margin，不是 widget 本体的 margin-right */
+.container-center .pl-outer-l .label,
+.container-center .pl-weather-l .label,
+.container-center .pl-power-l .label,
+.container-center .pl-clock-l .label {
+  margin-right: -1px;
+}
+
+.container-center .pl-outer-r .label,
+.container-center .pl-weather-r .label,
+.container-center .pl-power-r .label,
+.container-center .pl-clock-r .label {
+  margin-left: -1px;
+}
+
+/* ---------- Outer Shell:  [左黑臂 + 彩色主体 + 右黑臂]  ---------- */
+
+.container-center .pl-outer-l .label,
+.container-center .pl-outer-r .label {
+  color: var(--surface0);
+  background: transparent;
+}
+
+.container-center .pl-outer-l .label {
+  margin-right: -1px; /* 左外壳箭头与左黑臂咬合 */
+}
+
+.container-center .pl-outer-r .label {
+  margin-left: -1px; /* 右外壳箭头与右黑臂咬合 */
+  padding-right: 4px; /* 整组和 media 的距离；不需要可改为 0 */
+}
+
+/* ---------- Left Arm: WiFi / Brightness，只显示图标 ---------- */
+
+.container-center .wifi-widget .label,
+.container-center .brightness-widget .label {
+  color: var(--subtext1);
+  background: transparent;
+  font-family: "JetBrainsMono NF", "JetBrainsMono NFP", Arial, sans-serif;
   font-size: 14px;
-  font-weight: bold;
+  font-weight: 900;
+  min-width: 18px; /* 防止图标右侧被裁切 */
+  padding: 2px 2px; /* 右侧 2px 是裁切余量 */
+  margin: 0;
+  border: none;
+  border-radius: 0;
 }
 
-/* 时钟组件 (右半部分) */
-.clock-widget {
-  /* 边框色保持 var(--sky) */
-  border: 1px solid var(--sky);
-
-  /* 样式重置：去左圆角 */
-  border-top-left-radius: 0;
-  border-bottom-left-radius: 0;
-
-  /* 左边框 sky 作为分割线，而不是 none */
-  border-left: 1px solid var(--sky);
-
-  /* 间距控制 */
-  margin-left: 0;
-  margin-right: 0;
-
-  padding-left: 8px;
-  padding-right: 10px;
-  background-color: var(--surface0);
-  border-top-right-radius: 8px;
-  border-bottom-right-radius: 8px;
+.container-center .wifi-widget .icon,
+.container-center .brightness-widget .icon {
+  color: var(--subtext1);
+  background: transparent;
+  font-family: "JetBrainsMono NF", "JetBrainsMono NFP", Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 900;
+  min-width: 18px; /* 防止 Nerd Font 图标右侧被裁切 */
+  padding: 0 2px 0 0; /* 只给右侧留裁切余量 */
+  margin: 0;
+  border: none;
+  border-radius: 0;
 }
 
-.clock-widget .label {
-  font-family: Arial; /* 时钟文字字体 */
-  font-size: 15px; /* 时钟文字字号 */
-  font-weight: bold; /* 时钟文字字重 */
+.container-center .wifi-widget:hover .icon,
+.container-center .brightness-widget:hover .icon,
+.container-center .wifi-widget:hover .label,
+.container-center .brightness-widget:hover .label {
+  color: var(--text);
+}
+
+/* ---------- Weather:  <span>{icon}</span> 24°C  ---------- */
+
+.container-center .pl-weather-l .label {
+  color: var(--pink);
+}
+
+.container-center .weather-widget .icon {
+  color: var(--base);
+  background: var(--pink);
+  font-family: "JetBrainsMono NF", "JetBrainsMono NFP", Arial, sans-serif;
+  font-size: 14px;
+  font-weight: 900;
+  padding: 2px 4px 2px 10px;
+  margin: 0;
+  border: none;
+  border-radius: 0;
+}
+
+.container-center .weather-widget .label {
+  color: var(--base);
+  background: var(--pink);
+  font-family: "JetBrainsMono NF", "JetBrainsMono NFP", Arial, sans-serif;
+  font-size: 15px;
+  font-weight: 900;
+  padding: 2px 9px 2px 0;
+  margin: 0;
+  border: none;
+  border-radius: 0;
+}
+
+.container-center .pl-weather-r .label {
+  color: var(--pink);
+  padding-right: 2px; /* 天气 -> 电源 的距离；更紧改为 1px，更松改为 4px */
+}
+
+/* ---------- Power:    ---------- */
+
+.container-center .pl-power-l .label {
+  color: var(--blue);
+}
+
+.container-center .power-menu-widget {
+  border: none !important;
+  background: transparent !important;
+}
+
+.container-center .power-menu-widget .label,
+.container-center .power-menu-widget .label.power-button {
+  color: var(--base) !important;
+  background: var(--blue) !important;
+  font-family: "JetBrainsMono NF", "JetBrainsMono NFP", Arial, sans-serif;
+  font-size: 17px;
+  font-weight: 900;
+
+  min-width: 24px; /* 电源主体最小宽度；觉得宽就改小，觉得窄就改大 */
+  padding: 2px 4px 2px 0px !important; /* 顺序：上 右 下 左；不要使用负 padding */
+
+  margin: 0 !important;
+  border: none;
+  border-radius: 0;
+}
+
+.container-center .pl-power-r .label {
+  color: var(--blue);
+  padding-right: 1px; /* 电源 -> 时钟 的距离；更紧改为 0，更松改为 3px */
+}
+
+/* ---------- Clock:  01:01  ---------- */
+
+.container-center .pl-clock-l .label {
+  color: var(--text);
+}
+
+.container-center .clock-widget .label {
+  color: var(--base);
+  background: var(--text);
+  font-family: Arial, "JetBrainsMono NF", sans-serif;
+  font-size: 15px;
+  font-weight: 900;
+  min-width: 58px;
+  padding: 2px 14px;
+  margin: 0;
+  border: none;
+  border-radius: 0;
+}
+
+.container-center .pl-clock-r .label {
+  color: var(--text);
+  padding-right: 0; /* 时钟 -> Cava 的距离；右侧已经接黑臂，通常保持 0 */
+}
+
+/* ---------- Right Arm: Cava ---------- */
+
+.container-center .cava-widget {
+  min-width: 56px; /* 右黑臂最小宽度；也可通过 cava.bars_number 调整 */
+  border: none;
+  background: transparent;
+}
+
+.container-center .cava-widget .widget-container {
+  min-height: 20px;
+  border: none;
+  border-radius: 0;
+  background: var(--surface0);
 }
 
 /* --- 媒体播放器 --- */
 .media-widget {
-  margin: 0 0 0 0px; /* 媒体组件左侧与前一个组件的间距 */
+  margin: 0 0 0 4px; /* 媒体组件左侧与前一个组件的间距 */
   padding: 0 12px; /* 媒体组件左右内边距 */
   border-radius: 8px; /* 媒体组件圆角 */
   background-color: var(--maroon); /* 媒体组件背景色 */
@@ -429,33 +644,6 @@
   font-family: Arial;
   font-size: 15px;
   font-weight: bold;
-}
-
-/* Power Menu (电源菜单) */
-
-/* --- Bar上的图标/文字按钮样式 --- */
-.power-menu-widget {
-  /* 调整内边距以防文字/图标裁剪 */
-  padding: 4px 12px; /* 电源按钮内部留白 */
-  margin-left: 4px; /* 电源按钮左侧组件间距 */
-  margin-right: 4px; /* 电源按钮右侧组件间距 */
-  border-color: var(--overlay0); /* 电源按钮默认边框颜色 */
-}
-
-.power-menu-widget:hover {
-  /* 鼠标悬浮时背景提亮，边框变成红色 */
-  background-color: var(--surface1);
-  border: 1px solid var(--red);
-}
-
-/* 针对 .label.power-button 进行样式控制 */
-.power-menu-widget .label.power-button {
-  color: var(--red);
-  font-size: 16px; /* 图标字体大小 */
-  font-family: "JetBrainsMono NF", Arial, sans-serif; /* 确保图标字体生效 */
-  /* 组件内部边界到内容的距离（内边距）。4 个数值遵循上、右、下、左（顺时针方向）的规则 */
-  padding: 0 4px 0 0;
-  margin: 0;
 }
 
 /* ==============================================================================
@@ -639,7 +827,177 @@
   color: var(--red);
 }
 
-/* --- 3. Disk Group (磁盘列表弹窗) --- */
+/* --- 3. WiFi Menu (WiFi 弹窗) --- */
+.wifi-menu {
+  min-width: 375px; /* WiFi 弹窗最小宽度 */
+  min-height: 375px; /* WiFi 弹窗最小高度，避免列表区域被压扁 */
+  max-height: 420px; /* WiFi 弹窗最大高度 */
+  padding: 10px; /* WiFi 弹窗内部留白 */
+  border: 1px solid var(--surface1); /* WiFi 弹窗边框颜色 */
+  border-radius: 8px; /* WiFi 弹窗圆角 */
+  background-color: var(--mantle); /* WiFi 弹窗背景色 */
+  font-family: "Segoe UI", "Microsoft YaHei UI", sans-serif;
+}
+
+.wifi-menu .header {
+  margin-bottom: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--surface1);
+  border-radius: 6px;
+  background-color: var(--surface0);
+}
+
+.wifi-menu .header .title {
+  color: var(--mauve);
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.wifi-menu .error-message {
+  color: var(--red);
+  background-color: var(--surface0);
+  border: 1px solid var(--red);
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin: 8px 0;
+  font-size: 13px;
+  font-weight: bold;
+}
+
+.wifi-menu .wifi-list {
+  min-height: 230px; /* 给 WiFi 列表足够高度 */
+  margin: 4px 0;
+  padding: 4px;
+  border-radius: 8px;
+  background-color: var(--base);
+}
+
+.wifi-menu .wifi-item {
+  min-height: 38px;
+  margin: 4px 0;
+  padding: 6px 10px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  background-color: transparent;
+}
+
+.wifi-menu .wifi-item:hover {
+  background-color: var(--surface0);
+  border: 1px solid var(--surface1);
+}
+
+.wifi-menu .wifi-item[active="true"] {
+  min-height: 64px;
+  background-color: var(--surface0);
+  border: 1px solid var(--blue);
+}
+
+/* WiFi 菜单里的锁/信号图标来自 Segoe Fluent Icons，不要用 Nerd Font */
+.wifi-menu .wifi-item .icon {
+  color: var(--blue);
+  font-family: "Segoe Fluent Icons", "Segoe MDL2 Assets", "Segoe UI Symbol";
+  font-size: 22px;
+  min-width: 28px;
+  margin-right: 10px;
+}
+
+.wifi-menu .wifi-item .name {
+  color: var(--text);
+  font-family: "Segoe UI", "Microsoft YaHei UI", sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  margin-right: 10px;
+}
+
+.wifi-menu .wifi-item .status {
+  color: var(--green);
+  font-family: "Segoe UI", "Microsoft YaHei UI", sans-serif;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.wifi-menu .wifi-item .strength {
+  color: var(--subtext0);
+  font-family: "Segoe UI", "Microsoft YaHei UI", sans-serif;
+  font-size: 12px;
+}
+
+.wifi-menu .wifi-item .controls-container {
+  padding-top: 8px;
+}
+
+.wifi-menu .wifi-item .password {
+  color: var(--text);
+  background-color: var(--base);
+  border: 1px solid var(--surface1);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-family: "Segoe UI", "Microsoft YaHei UI", sans-serif;
+  font-size: 13px;
+}
+
+.wifi-menu .wifi-item .connect {
+  color: var(--base);
+  background-color: var(--blue);
+  border-radius: 6px;
+  padding: 4px 20px;
+  font-family: "Segoe UI", "Microsoft YaHei UI", sans-serif;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.wifi-menu .wifi-item .connect:hover {
+  background-color: var(--sapphire);
+}
+
+.wifi-menu .wifi-item .connect:pressed {
+  background-color: var(--lavender);
+}
+
+.wifi-menu .footer {
+  margin-top: 8px;
+  padding: 10px 12px;
+  border-top: 1px solid var(--surface1);
+  border-radius: 6px;
+  background-color: var(--surface0);
+}
+
+.wifi-menu .footer .settings-button,
+.wifi-menu .footer .refresh-icon {
+  color: var(--subtext0);
+  background-color: var(--base);
+  border: 1px solid var(--surface1);
+  border-radius: 6px;
+  min-width: 28px;
+  min-height: 28px;
+  padding: 4px 8px;
+  font-size: 12px;
+}
+
+.wifi-menu .footer .refresh-icon {
+  font-family: "Segoe Fluent Icons", "Segoe MDL2 Assets", "Segoe UI Symbol";
+}
+
+.wifi-menu .footer .settings-button:hover,
+.wifi-menu .footer .refresh-icon:hover {
+  color: var(--text);
+  background-color: var(--surface1);
+}
+
+/* WiFi 菜单中的加载进度条 */
+.wifi-menu .progress-bar {
+  max-height: 4px;
+  border: none;
+  border-radius: 4px;
+  background-color: var(--surface1);
+}
+
+.wifi-menu .progress-bar::chunk {
+  border-radius: 4px;
+  background-color: var(--blue);
+}
+
+/* --- 4. Disk Group (磁盘列表弹窗) --- */
 .disk-group {
   padding: 10px;
   border: 1px solid var(--surface1);
@@ -705,7 +1063,7 @@
   background-color: var(--green);
 }
 
-/* --- 3. Weather Card (天气详情弹窗) --- */
+/* --- 5. Weather Card (天气详情弹窗) --- */
 .weather-card {
   padding: 10px; /* 天气详情弹窗内部留白 */
   border: 1px solid var(--surface1); /* 天气详情弹窗边框颜色 */
@@ -733,7 +1091,7 @@
   margin: 4px 0;
 }
 
-/* --- 3. Weather Card 高度修复 --- */
+/* --- Weather Card 高度修复 --- */
 .weather-card .hourly-container {
   margin-top: 10px;
   padding-top: 10px;
@@ -749,7 +1107,7 @@
   font-weight: bold;
 }
 
-/* --- 弹窗整体样式 --- */
+/* --- 6. Power Menu 弹窗整体样式 --- */
 .power-menu-popup {
   background-color: var(--mantle);
   border-radius: 12px; /* 稍微大一点的圆角 */
@@ -765,7 +1123,7 @@
   font-weight: bold;
 }
 
-/* --- 弹窗内按钮 --- */
+/* --- Power Menu 弹窗内按钮 --- */
 .power-menu-popup .button {
   width: 160px; /* 电源菜单按钮宽度 */
   height: 100px; /* 电源菜单按钮高度 */

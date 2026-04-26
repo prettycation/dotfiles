@@ -46,18 +46,35 @@ bars:
         - "glazewm_workspaces" # GlazeWM 工作区
         - "active_window" # 当前活动窗口标题
         - "systray" # 系统托盘
-      center: [
-        "weather", # 天气
-        "clock", # 时钟/日历
-        "power_menu", # 电源菜单
-        "media" # 媒体播放信息
-      ] # 中间组件
+
+      center: # 中间组件；黑色外壳 + 左右黑臂 + Powerline 主体；Powerline 分隔符使用 CustomWidget 独立承担
+        - "pl_outer_l" # 整组左侧黑色外壳箭头
+
+        - "wifi" # 左黑臂：WiFi，只显示图标
+        - "brightness" # 左黑臂：亮度，只显示图标
+
+        - "pl_weather_l" # 天气左侧 Powerline 分隔符
+        - "weather" # 天气
+        - "pl_weather_r" # 天气右侧 inverse divider
+
+        - "pl_power_l" # 电源菜单左侧 Powerline 分隔符
+        - "power_menu" # 电源菜单
+        - "pl_power_r" # 电源菜单右侧 Powerline 分隔符
+
+        - "pl_clock_l" # 时钟左侧 inverse divider
+        - "clock" # 时钟/日历
+        - "pl_clock_r" # 时钟右侧 Powerline 分隔符
+
+        - "cava" # 右黑臂：Cava 音频可视化
+        - "pl_outer_r" # 整组右侧黑色外壳箭头
+
       right: # 右侧组件，从左到右排列
         - "traffic" # 网络流量
         - "cpu" # CPU 使用率
         - "memory" # 内存使用率
         - "disk" # 磁盘使用率
         - "volume" # 音量
+        - "media" # 媒体播放信息
         - "notifications" # 通知数量
 
 widgets:
@@ -106,12 +123,106 @@ widgets:
       show_volume: false # 是否在托盘中显示系统音量图标；已有 volume 组件，所以关闭
       show_network: false # 是否在托盘中显示系统网络图标；已有 traffic 组件，所以关闭
 
+  # ------------------------------------------------------------------------------
+  # Center Powerline Dividers
+  # ------------------------------------------------------------------------------
+  # 这些 CustomWidget 只负责显示 Powerline 分隔符。
+  # 真实功能仍然由 weather / power_menu / clock 自己处理，避免破坏天气图标和电源菜单。
+
+  pl_weather_l:
+    type: "yasb.custom.CustomWidget" # 天气左侧 Powerline 分隔符
+    options:
+      class_name: "pl-weather-l" # 绑定 styles.css 中的 .pl-weather-l 样式
+      label: "" # 左箭头，连接透明背景与天气主体
+      tooltip: false # 不显示 tooltip
+      callbacks:
+        on_left: "do_nothing" # 禁用点击行为
+        on_middle: "do_nothing" # 禁用点击行为
+        on_right: "do_nothing" # 禁用点击行为
+
+  pl_weather_r:
+    type: "yasb.custom.CustomWidget" # 天气右侧 inverse divider
+    options:
+      class_name: "pl-weather-r" # 绑定 styles.css 中的 .pl-weather-r 样式
+      label: "" # inverse divider
+      tooltip: false # 不显示 tooltip
+      callbacks:
+        on_left: "do_nothing" # 禁用点击行为
+        on_middle: "do_nothing" # 禁用点击行为
+        on_right: "do_nothing" # 禁用点击行为
+
+  pl_power_l:
+    type: "yasb.custom.CustomWidget" # 电源菜单左侧 Powerline 分隔符
+    options:
+      class_name: "pl-power-l" # 绑定 styles.css 中的 .pl-power-l 样式
+      label: "" # 左箭头，连接透明背景与电源菜单主体
+      tooltip: false # 不显示 tooltip
+      callbacks:
+        on_left: "do_nothing" # 禁用点击行为
+        on_middle: "do_nothing" # 禁用点击行为
+        on_right: "do_nothing" # 禁用点击行为
+
+  pl_power_r:
+    type: "yasb.custom.CustomWidget" # 电源菜单右侧 Powerline 分隔符
+    options:
+      class_name: "pl-power-r" # 绑定 styles.css 中的 .pl-power-r 样式
+      label: "" # 右箭头，连接电源菜单主体与透明背景
+      tooltip: false # 不显示 tooltip
+      callbacks:
+        on_left: "do_nothing" # 禁用点击行为
+        on_middle: "do_nothing" # 禁用点击行为
+        on_right: "do_nothing" # 禁用点击行为
+
+  pl_clock_l:
+    type: "yasb.custom.CustomWidget" # 时钟左侧 inverse divider
+    options:
+      class_name: "pl-clock-l" # 绑定 styles.css 中的 .pl-clock-l 样式
+      label: "" # inverse divider
+      tooltip: false # 不显示 tooltip
+      callbacks:
+        on_left: "do_nothing" # 禁用点击行为
+        on_middle: "do_nothing" # 禁用点击行为
+        on_right: "do_nothing" # 禁用点击行为
+
+  pl_clock_r:
+    type: "yasb.custom.CustomWidget" # 时钟右侧 Powerline 分隔符
+    options:
+      class_name: "pl-clock-r" # 绑定 styles.css 中的 .pl-clock-r 样式
+      label: "" # 右箭头，连接时钟主体与透明背景
+      tooltip: false # 不显示 tooltip
+      callbacks:
+        on_left: "do_nothing" # 禁用点击行为
+        on_middle: "do_nothing" # 禁用点击行为
+        on_right: "do_nothing" # 禁用点击行为
+
+  pl_outer_l:
+    type: "yasb.custom.CustomWidget"
+    options:
+      class_name: "pl-outer-l"
+      label: ""
+      tooltip: false
+      callbacks:
+        on_left: "do_nothing"
+        on_middle: "do_nothing"
+        on_right: "do_nothing"
+
+  pl_outer_r:
+    type: "yasb.custom.CustomWidget"
+    options:
+      class_name: "pl-outer-r"
+      label: ""
+      tooltip: false
+      callbacks:
+        on_left: "do_nothing"
+        on_middle: "do_nothing"
+        on_right: "do_nothing"
+
   # 网速组件逻辑 (带弹窗菜单)
   traffic:
     type: "yasb.traffic.TrafficWidget" # 网络流量组件
     options:
       label: "<span>\udb83\udc9d</span>" # 网络流量图标
-      label_alt: "<span>\udb83\udc9d</span> \ueab4 {download_speed} | \ueab7 {upload_speed}" # 替代显示：下载速度 | 上传速度；图标使用你最初配置里的原始转义写法
+      label_alt: "<span>\udb83\udc9d</span> \ueab4 {download_speed} | \ueab7 {upload_speed}" # 替代显示：下载速度 | 上传速度
       update_interval: 1000 # 更新间隔，单位毫秒
       speed_unit: "bytes" # 速度单位显示方式
       hide_decimal: true # 是否隐藏小数位
@@ -224,10 +335,10 @@ widgets:
   weather:
     type: "yasb.weather.WeatherWidget" # 天气组件
     options:
-      label: "<span>{icon}</span> {temp}" # 默认显示天气图标和温度
-      label_alt: "{location}: {temp} ({min_temp}-{max_temp})" # 替代显示地区、当前温度和最低/最高温
+      label: "<span>{icon}</span> {temp}" # 默认显示天气图标和温度；保持官方结构，避免图标变成 cloudyNight 文本
+      label_alt: "<span>{icon}</span> {location}: {temp} ({min_temp}-{max_temp})" # 替代显示地区、当前温度和最低/最高温
       # Get your free API key from https://www.weatherapi.com/
-      api_key: {{ .weather_apikey | quote }} # WeatherAPI key；由模板变量注入
+      api_key: {{ .weather_apikey | quote }} # WeatherAPI key；由 chezmoi 模板变量注入
       update_interval: 600 # 天气更新间隔
       hide_decimal: true # 是否隐藏温度小数位
       units: "metric" # 温度单位；metric 为摄氏度
@@ -283,7 +394,7 @@ widgets:
   clock:
     type: "yasb.clock.ClockWidget" # 时钟组件
     options:
-      label: "{%H:%M:%S}" # 默认显示时分秒
+      label: "{%H:%M}" # 默认显示时分；Powerline 分隔符由 pl_clock_l / pl_clock_r 承担
       label_alt: "{%A, %d %B %Y}" # 替代显示星期、日期、月份、年份
       locale: "zh_CN" # 日期/月份/星期本地化语言
       update_interval: 1000 # 时钟更新间隔，单位毫秒
@@ -357,7 +468,7 @@ widgets:
   power_menu:
     type: "yasb.power_menu.PowerMenuWidget" # 电源菜单组件
     options:
-      label: "" # Bar 上的电源图标
+      label: "" # Bar 上的电源图标；Powerline 分隔符由 pl_power_l / pl_power_r 承担
       uptime: true # 是否在弹窗中显示系统运行时间
       blur: false # 电源菜单是否启用模糊
       blur_background: true # 弹窗打开时是否模糊背景
@@ -370,3 +481,68 @@ widgets:
         restart: ["", "Restart"] # 重启按钮
         hibernate: ["", "Hibernate"] # 休眠按钮
         cancel: ["\udb81\udf3a", "Cancel"] # 取消按钮
+  wifi:
+    type: "yasb.wifi.WifiWidget" # WiFi 组件；放在中心左黑臂，只显示图标
+    options:
+      label: "<span>󰖩</span>" # 默认只显示 WiFi 图标
+      label_alt: "<span>󰖩</span>" # 替代状态也只显示图标，避免显示 SSID
+      update_interval: 5000 # WiFi 状态更新间隔，单位毫秒
+      ethernet_label: "<span>{wifi_icon}</span>" # 有线网络时也只显示图标
+      ethernet_label_alt: "<span>{wifi_icon}</span>" # 有线网络替代状态也只显示图标
+      ethernet_icon: "\ueba9" # 有线网络图标
+      get_exact_wifi_strength: false # 不获取精确 WiFi 强度，避免额外位置权限需求
+      hide_if_ethernet: false # 有线网络时不隐藏
+      callbacks:
+        on_left: "toggle_menu" # 左键打开 WiFi 菜单
+        on_middle: "exec cmd.exe /c start ms-settings:network" # 中键打开网络设置
+        on_right: "do_nothing" # 右键不切换文字，保持只显示图标
+
+  brightness:
+    type: "yasb.brightness.BrightnessWidget" # 亮度组件；放在中心左黑臂，只显示图标
+    options:
+      label: "<span>󱩎</span>" # 默认只显示亮度图标
+      label_alt: "<span>󱩎</span>" # 替代状态也只显示图标
+      tooltip: false # 不显示 tooltip
+      scroll_step: 5 # 鼠标滚轮调整亮度的步进值
+      hide_unsupported: true # 当前设备不支持亮度控制时隐藏
+      brightness_toggle_level: [25, 50, 75, 100] # 点击循环亮度等级
+      brightness_icons:
+        - "\udb80\udcde" # 低亮度图标
+        - "\udb80\udcdd" # 中低亮度图标
+        - "\udb80\udcdf" # 中高亮度图标
+        - "\udb80\udce0" # 高亮度图标
+      brightness_menu:
+        blur: true # 亮度菜单是否启用模糊
+        round_corners: true # 亮度菜单是否启用圆角
+        round_corners_type: "normal" # 圆角类型
+        border_color: "system" # 菜单边框颜色
+        alignment: "center" # 菜单对齐方式
+        direction: "down" # 菜单打开方向
+        offset_top: 6 # 菜单垂直偏移
+        offset_left: 0 # 菜单水平偏移
+      callbacks:
+        on_left: "toggle_brightness_menu" # 左键打开/关闭亮度菜单
+        on_middle: "toggle_level_next" # 中键切换到下一个亮度等级
+        on_right: "toggle_level_prev" # 右键切换到上一个亮度等级
+
+  cava:
+    type: "yasb.cava.CavaWidget" # Cava 音频可视化组件；放在中心右黑臂
+    options:
+      bar_height: 12 # 柱状条高度
+      gradient: 1 # 启用渐变
+      reverse: 0 # 不反转频谱方向
+      sensitivity: 100 # 灵敏度
+      foreground: "#89b4fa" # 前景色
+      gradient_color_1: "#74c7ec" # 渐变色 1
+      gradient_color_2: "#89b4fa" # 渐变色 2
+      gradient_color_3: "#cba6f7" # 渐变色 3
+      bars_number: 8 # 柱状条数量；右黑臂宽度主要由这里和 bar_width 决定
+      bar_spacing: 2 # 柱状条间距
+      bar_width: 4 # 柱状条宽度
+      sleep_timer: 0 # 0 表示不休眠；hide_empty 不生效时可改为 2
+      hide_empty: true # 无音频时隐藏；官方说明该行为依赖 sleep_timer
+      container_padding:
+        top: 0
+        left: 0
+        bottom: 0
+        right: 0
