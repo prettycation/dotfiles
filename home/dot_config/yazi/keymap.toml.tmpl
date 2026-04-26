@@ -4,6 +4,11 @@
 {{- $hasDuckdb := lookPath "duckdb" -}}
 {{- $hasSudo := lookPath "sudo" -}}
 {{- $hasTrashy := lookPath "trash" -}}
+{{- $has7z := or (lookPath "7z") (lookPath "7zz") (lookPath "7za") -}}
+{{- $hasBsdtar := lookPath "bsdtar" -}}
+{{- $hasZip := or (lookPath "zip") $has7z $hasBsdtar -}}
+{{- $hasRar := lookPath "rar" -}}
+{{- $hasTar := or (lookPath "tar") $hasBsdtar -}}
 
 # A TOML linter such as https://taplo.tamasfe.dev/ can use this schema to validate your config.
 # If you encounter any issues, please make an issue at https://github.com/yazi-rs/schemas.
@@ -126,6 +131,33 @@ prepend_keymap = [
     "S",
     "a",
   ], run = "plugin sudo -- create", desc = "sudo create" },
+
+  # compress
+  { on = ["c", "a", "a"], run = "plugin compress", desc = "压缩选中文件" },
+  { on = ["c", "a", "l"], run = "plugin compress -l", desc = "压缩选中文件并设置压缩等级" },
+  { on = ["c", "a", "s"], run = "plugin compress -s", desc = "静默压缩选中文件" },
+
+  {{- if $hasZip }}
+  { on = ["c", "a", "z"], run = "plugin compress zip", desc = "压缩为 zip" },
+  { on = ["c", "a", "p"], run = "plugin compress '-p zip'", desc = "压缩为加密 zip" },
+  {{- end }}
+
+  {{- if $has7z }}
+  { on = ["c", "a", "7"], run = "plugin compress 7z", desc = "压缩为 7z" },
+  { on = ["c", "a", "h"], run = "plugin compress '-ph 7z'", desc = "压缩为加密 7z 并隐藏文件列表" },
+  {{- end }}
+
+  {{- if $hasRar }}
+  { on = ["c", "a", "r"], run = "plugin compress rar", desc = "压缩为 rar" },
+  { on = ["c", "a", "R"], run = "plugin compress '-p -l rar'", desc = "压缩为加密 rar 并设置压缩等级" },
+  {{- end }}
+
+  {{- if $hasTar }}
+  { on = ["c", "a", "t"], run = "plugin compress tar", desc = "打包为 tar" },
+  { on = ["c", "a", "g"], run = "plugin compress tar.gz", desc = "压缩为 tar.gz" },
+  { on = ["c", "a", "x"], run = "plugin compress tar.xz", desc = "压缩为 tar.xz" },
+  { on = ["c", "a", "b"], run = "plugin compress tar.bz2", desc = "压缩为 tar.bz2" },
+  {{- end }}
 
   # sudo delete
   { on = [

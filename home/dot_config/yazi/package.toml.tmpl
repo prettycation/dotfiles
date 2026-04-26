@@ -16,21 +16,24 @@ use = "yazi-rs/plugins:zoom"
 [[plugin.deps]]
 use = "cap153/tv"
 
-{{- if $hasStarship }}
+[[plugin.deps]]
+use = "KKV9/compress"
+
+{{ if $hasStarship }}
 [[plugin.deps]]
 use = "Rolv-Apneseth/starship"
-{{- end }}
+{{ end }}
 
 [[plugin.deps]]
 use = "mikavilpas/easyjump.yazi:easyjump"
 
-{{- if $hasSoffice }}
+{{ if $hasSoffice }}
 [[plugin.deps]]
 use = "prettycation/office"
 {{-   if eq .chezmoi.os "windows" }}
 rev = "fix/windows-compatibility"
 {{-   end }}
-{{- end }}
+{{ end }}
 
 [[plugin.deps]]
 use = "MasouShizuka/projects"
@@ -41,33 +44,31 @@ use = "DreamMaoMao/searchjump"
 [[plugin.deps]]
 use = "yazi-rs/plugins:full-border"
 
-{{- if $hasMediaInfo }}
+{{ if $hasMediaInfo }}
 [[plugin.deps]]
 use = "boydaihungst/mediainfo"
-{{- end }}
+{{ end }}
 
-{{- if $hasDuckDB }}
+{{ if $hasDuckDB }}
 [[plugin.deps]]
 use = "prettycation/duckdb"
 {{- end }}
 
-{{- if or $hasTrashy $hasRecycleBinCli }}
-
+{{ if or $hasTrashy $hasRecycleBinCli }}
 {{- $trashPlugin := "uhs-robert/recycle-bin" -}}
 {{- if $hasTrashy -}}
   {{- $trashPlugin = "prettycation/trashbox" -}}
-{{- end -}}
-
+{{ end }}
 [[plugin.deps]]
 use = {{ $trashPlugin | quote }}
-{{- end }}
+{{ end }}
 
-{{- if $hasSqlite3 }}
+{{ if $hasSqlite3 }}
 [[plugin.deps]]
 use = "AminurAlam/yazi-plugins:preview-sqlite"
 {{- end }}
 
-{{- if $hasSudo }}
+{{ if $hasSudo }}
 [[plugin.deps]]
 use = "prettycation/sudo"
 {{- end }}
