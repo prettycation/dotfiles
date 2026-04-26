@@ -2,12 +2,10 @@
 -- Inspired by https://github.com/wez/wezterm/discussions/628#discussioncomment-1874614 --
 ------------------------------------------------------------------------------------------
 
----@type Wezterm
 local wezterm = require('wezterm')
 local Cells = require('utils.cells')
 local OptsValidator = require('utils.opts-validator')
 local ustr = require('utils.str')
-local umath = require('utils.math')
 
 local nf = wezterm.nerdfonts
 local attr = Cells.attr
@@ -54,6 +52,9 @@ local EVENT_OPTS = OptsValidator:new({
 -- ===================
 
 local M = {}
+
+---Commit date part of release tag `20250209-182623-44866cc1`
+local PROGRESS_MIN_VERSION = 20250209
 
 local ICON_SCIRCLE_LEFT = nf.ple_left_half_circle_thick --[[  ]]
 local ICON_SCIRCLE_RIGHT = nf.ple_right_half_circle_thick --[[  ]]
@@ -108,11 +109,13 @@ local ICON_PROGRESS_PCT_FRAMES = {
    [8] = nf.md_circle_slice_8, --[[ 󰪥 ]]
 }
 
--- stylua: ignore
 local ICON_PROGRESS_IND_FRAMES = {
-   [1] = nf.fa_hourglass_start, --[[  ]]
-   [2] = nf.fa_hourglass_end,   --[[  ]]
-   [3] = nf.fa_hourglass_half,  --[[  ]]
+   [1] = '◜',
+   [2] = '◠',
+   [3] = '◝',
+   [4] = '◞',
+   [5] = '◡',
+   [6] = '◟',
 }
 
 local TITLE_INSET = {
@@ -309,7 +312,7 @@ end
 
 ---@param options Event.TabTitleOptions
 ---@param is_active boolean
----@param panes PaneInformation[] WezTerm https://wezfurlong.org/wezterm/config/lua/pane/index.html
+---@param panes PaneInformation[]
 ---@return UnseenOutputIcon|nil
 local function check_unseen_output(options, is_active, panes)
    if options.hide_active_tab_unseen and is_active then
@@ -352,9 +355,16 @@ end
 -- =================
 
 local progress_cells = Cells:new():add_segment(RS.progress):add_segment(RS.padding, ' ')
+local title_cells = Cells:new()
+   :add_segment(RS.scircle_left, ICON_SCIRCLE_LEFT)
+   :add_segment(RS.icon)
+   :add_segment(RS.title, nil, nil, attr(attr.intensity('Bold')))
+   :add_nested_segment(RS.progress)
+   :add_segment(RS.unseen_output)
+   :add_segment(RS.padding, ' ')
+   :add_segment(RS.scircle_right, ICON_SCIRCLE_RIGHT)
 
 ---@class Tab
----@field cells FormatCells
 ---@field title_locked boolean
 ---@field locked_title string
 ---@field has_icon boolean
@@ -363,19 +373,9 @@ local progress_cells = Cells:new():add_segment(RS.progress):add_segment(RS.paddi
 local Tab = {}
 Tab.__index = Tab
 
+---@return Tab
 function Tab:new()
-   local cells = Cells:new()
-      :add_segment(RS.scircle_left, ICON_SCIRCLE_LEFT)
-      :add_segment(RS.icon)
-      :add_segment(RS.title, nil, nil, attr(attr.intensity('Bold')))
-      :add_nested_segment(RS.progress)
-      :add_segment(RS.unseen_output)
-      :add_segment(RS.padding, ' ')
-      :add_segment(RS.scircle_right, ICON_SCIRCLE_RIGHT)
-
-   ---@type Tab
    local tab = {
-      cells = cells,
       title_locked = false,
       locked_title = '',
       has_icon = false,
@@ -387,7 +387,7 @@ function Tab:new()
 end
 
 ---@param event_opts Event.TabTitleOptions
----@param tab TabInformation WezTerm https://wezfurlong.org/wezterm/config/lua/MuxTab/index.html
+---@param tab TabInformation
 ---@param hover boolean
 ---@param max_width number
 function Tab:update_cells(event_opts, tab, hover, max_width)
@@ -412,14 +412,14 @@ function Tab:update_cells(event_opts, tab, hover, max_width)
    if prefix_icon then
       inset = inset + TITLE_INSET.increment
       self.has_icon = true
-      self.cells:update_segment_text(RS.icon, prefix_icon)
+      title_cells:update_segment_text(RS.icon, prefix_icon)
    end
 
    -- Unseen output icon
    if unseen_icon then
       inset = inset + TITLE_INSET.increment
       self.has_unseen = true
-      self.cells:update_segment_text(RS.unseen_output, unseen_icon)
+      title_cells:update_segment_text(RS.unseen_output, unseen_icon)
    end
 
    -- Progress icons - BEGIN
@@ -427,7 +427,7 @@ function Tab:update_cells(event_opts, tab, hover, max_width)
    self.has_progress = #progress > 0
 
    ---@type FormatItem[][]
-   local items = {}
+   local nested_items = {}
 
    if self.has_progress then
       for i, prog in ipairs(progress) do
@@ -437,14 +437,14 @@ function Tab:update_cells(event_opts, tab, hover, max_width)
             :update_segment_colors(RS.progress, colors[prog_colors])
             :update_segment_colors(RS.padding, colors['text_' .. tab_state])
          if i == #progress then
-            table.insert(items, progress_cells:render({ RS.progress }))
+            table.insert(nested_items, progress_cells:render({ RS.progress }))
          else
-            table.insert(items, progress_cells:render({ RS.progress, RS.padding }))
+            table.insert(nested_items, progress_cells:render({ RS.progress, RS.padding }))
          end
       end
    end
 
-   self.cells:update_nested_segment(RS.progress, items)
+   title_cells:update_nested_segment(RS.progress, nested_items)
    -- Progress icons - END
 
    if self.title_locked then
@@ -454,10 +454,10 @@ function Tab:update_cells(event_opts, tab, hover, max_width)
 
    local title = create_title(process_name, base_title, max_width, inset)
 
-   self.cells:update_segment_text(RS.title, title)
+   title_cells:update_segment_text(RS.title, title)
 
    -- stylua: ignore
-   self.cells
+   title_cells
       :update_segment_colors(RS.scircle_left,   colors['scircle_' .. tab_state])
       :update_segment_colors(RS.icon,           colors['text_' .. tab_state])
       :update_segment_colors(RS.title,          colors['text_' .. tab_state])
@@ -472,7 +472,7 @@ function Tab:update_and_lock_title(title)
    self.title_locked = true
 end
 
----@return FormatItem[] (ref: https://wezfurlong.org/wezterm/config/lua/wezterm/format.html)
+---@return FormatItem[]
 function Tab:render()
    local variant_idx = self.has_icon and 5 or 1
    if self.has_unseen then
@@ -481,12 +481,15 @@ function Tab:render()
    if self.has_progress then
       variant_idx = variant_idx + 2
    end
-   return self.cells:render(RV[variant_idx])
+   return title_cells:render(RV[variant_idx])
 end
 
 ---@type Tab[]
 local tab_list = {}
 
+---NOTE: 
+---Progress indicator is only available for WezTerm nightly versions `20250209-182623-44866cc1` and onwards.
+---If an older version is used, the `show_progress` options will be hard-set to `false`.
 ---@param opts? Event.TabTitleOptionsInput Default: {unseen_icon = 'circle', hide_active_tab_unseen = true, show_progress = true}
 M.setup = function(opts)
    local valid_opts, err = EVENT_OPTS:validate(opts or {})
@@ -497,13 +500,17 @@ M.setup = function(opts)
 
    ---@cast valid_opts Event.TabTitleOptions
 
+   if tonumber(wezterm.version:sub(1, 8)) < PROGRESS_MIN_VERSION then
+      valid_opts.show_progress = false
+   end
+
    -- CUSTOM EVENT
    -- Event listener to manually update the tab name
    -- Tab name will remain locked until the `reset-tab-title` is triggered
    wezterm.on('tabs.manual-update-tab-title', function(window, pane)
       local title = nil
 
-      if ustr.endst_with(wezterm.version, 'custom-build') then
+      if ustr.ends_with(wezterm.version, 'custom-build') then
          title = 'InputLine: Manual Tab Title'
       end
 
@@ -530,6 +537,7 @@ M.setup = function(opts)
    -- CUSTOM EVENT
    -- Event listener to unlock manually set tab name
    wezterm.on('tabs.reset-tab-title', function(window, _pane)
+      ---@cast window Window
       local tab = window:active_tab()
       local id = tab:tab_id()
       tab_list[id].title_locked = false
@@ -538,6 +546,7 @@ M.setup = function(opts)
    -- CUSTOM EVENT
    -- Event listener to manually update the tab name
    wezterm.on('tabs.toggle-tab-bar', function(window, _pane)
+      ---@cast window Window
       local effective_config = window:effective_config()
       window:set_config_overrides({
          enable_tab_bar = not effective_config.enable_tab_bar,
@@ -551,7 +560,8 @@ M.setup = function(opts)
          tab_list[tab.tab_id] = Tab:new()
       end
 
-      tab_list[tab.tab_id]:update_cells(valid_opts, tab, hover, umath.clamp(max_width, 5, 22))
+      -- `max_width` refers to the `tab_max_width` option set in `config/appearance.lua`
+      tab_list[tab.tab_id]:update_cells(valid_opts, tab, hover, max_width)
       return tab_list[tab.tab_id]:render()
    end)
 end
