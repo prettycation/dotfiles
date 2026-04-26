@@ -124,24 +124,12 @@ patch:
   # 你可以定义多个开关，多个开启状态的开关求并集，比如charset_filter开着，s2hk也开着，那么就会显示这两个集合的所有汉字
   # 优雅的地方在于s2hk开着，charset_filter关着 我们照样能使用 港繁能用到的所有字，是真正的本体，无关字会被过滤，而当都开着则是享受简体转换成繁体的后的结果
   # 这个设计真正的兼容了简繁转换与字符集过滤的矛盾，还能满足用户多种自定义需求，你可以在开关增加类别，并在charset下面新增option类去选择按照字区去过滤，等多种组合方式
-  charset:
+  "charset/+":
     - option: charset_filter
       base: aj #可以填入多个类别如aj
       addlist:
         - "诶濛硷氽尛躝〇冇吔咗囧屌鲶芶咲畑垅燐"
-      blacklist: [鹵, 彔, 䵽, 䌬, 罿]
-    - option: s2t
-      base: fa
-      addlist: []
-      blacklist: []
-    - option: s2hk
-      base: ha
-      addlist: []
-      blacklist: []
-    - option: s2tw
-      base: ta
-      addlist: []
-      blacklist: []
+      blacklist: [鹵, 彔, 䵽, 䌬, 罿, 繱, 総]
 
   #下面用于对/rq和N20250101这样的日期候选自定义（顺序、类型、候选个数）由你完全掌控，前面是对于公历后面默认携带农历
   # 通用日期时间格式化函数（供 /rq、/sj、/dt、N0101、N20150101 场景复用）
