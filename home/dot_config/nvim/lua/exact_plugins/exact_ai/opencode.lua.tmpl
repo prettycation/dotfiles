@@ -1,0 +1,178 @@
+{{- if lookPath "opencode" }}
+local function oc()
+  return require("opencode")
+end
+
+return {
+  {
+    "nickjvandyke/opencode.nvim",
+    version = "*",
+    lazy = true,
+    cond = not vim.g.vscode,
+
+    dependencies = {
+      {
+        "folke/snacks.nvim",
+        optional = true,
+        opts = {
+          input = {},
+          picker = {
+            actions = {
+              opencode_send = function(...)
+                return require("opencode").snacks_picker_send(...)
+              end,
+            },
+            win = {
+              input = {
+                keys = {
+                  ["<a-a>"] = { "opencode_send", mode = { "n", "i" } },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+
+    init = function()
+      ---@type opencode.Opts
+      vim.g.opencode_opts = {
+        -- 长规则放 ~/.config/opencode/AGENTS.md，不放这里。
+        -- 这里仅保留 Neovim 集成相关设置。
+
+        lsp = {
+          enabled = false,
+        },
+
+        events = {
+          enabled = true,
+          reload = true,
+          permissions = {
+            enabled = true,
+            idle_delay_ms = 800,
+            edits = {
+              enabled = true,
+            },
+          },
+        },
+
+        ask = {
+          prompt = "OpenCode: ",
+        },
+
+        select = {
+          prompt = "OpenCode Action: ",
+        },
+      }
+
+      pcall(function()
+        require("which-key").add({
+          { "<leader>a", group = "ai" },
+        })
+      end)
+    end,
+
+    keys = {
+      {
+        "<leader>aa",
+        function()
+          oc().ask("@this: ", { submit = false })
+        end,
+        mode = { "n", "x" },
+        desc = "OpenCode Ask with Context",
+      },
+      {
+        "<leader>aA",
+        function()
+          oc().ask("", { submit = false })
+        end,
+        mode = { "n", "x" },
+        desc = "OpenCode Ask",
+      },
+      {
+        "<leader>as",
+        function()
+          oc().select()
+        end,
+        mode = "n",
+        desc = "OpenCode Select",
+      },
+      {
+        "<leader>at",
+        function()
+          oc().toggle()
+        end,
+        mode = { "n", "t" },
+        desc = "OpenCode Toggle",
+      },
+      {
+        "<leader>an",
+        function()
+          oc().command("session.new")
+        end,
+        mode = "n",
+        desc = "OpenCode New Session",
+      },
+      {
+        "<leader>al",
+        function()
+          oc().command("session.list")
+        end,
+        mode = "n",
+        desc = "OpenCode List Sessions",
+      },
+      {
+        "<leader>ai",
+        function()
+          oc().command("session.interrupt")
+        end,
+        mode = "n",
+        desc = "OpenCode Interrupt",
+      },
+      {
+        "<leader>ac",
+        function()
+          oc().command("session.compact")
+        end,
+        mode = "n",
+        desc = "OpenCode Compact",
+      },
+      {
+        "<leader>au",
+        function()
+          oc().command("session.undo")
+        end,
+        mode = "n",
+        desc = "OpenCode Undo",
+      },
+      {
+        "<leader>aR",
+        function()
+          oc().command("session.redo")
+        end,
+        mode = "n",
+        desc = "OpenCode Redo",
+      },
+      {
+        "go",
+        function()
+          return oc().operator("@this ")
+        end,
+        mode = "n",
+        expr = true,
+        desc = "OpenCode Operator",
+      },
+      {
+        "goo",
+        function()
+          return oc().operator("@this ") .. "_"
+        end,
+        mode = "n",
+        expr = true,
+        desc = "OpenCode Line",
+      },
+    },
+  },
+}
+{{- end }}
+{{/* vim: set ft=lua.chezmoitemplate: */}}
