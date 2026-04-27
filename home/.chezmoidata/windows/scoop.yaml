@@ -68,6 +68,12 @@ scoop:
       source_base: ".chezmoitemplates/windows-apps/SpaceKey"
       target_base: "custom"
 
+    - name: "opencode"
+      scoop_app: "SST.opencode"
+      source_base: "dot_config/opencode"
+      target_base: ".config/opencode"
+      ignore_path: ".config/opencode"
+
     - name: "Starship"
       scoop_app: "Starship.Starship"
       source_base: "dot_config/starship.toml"
