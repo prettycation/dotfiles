@@ -1,0 +1,55 @@
+local h = require("snippets.helpers")
+local math_auto = h.math_auto
+
+return {
+  -- 〖希腊字母快捷键〗
+  math_auto("@a", "\\alpha"),
+  math_auto("@b", "\\beta"),
+  math_auto("@g", "\\gamma"),
+  math_auto("@G", "\\Gamma"),
+  math_auto("@d", "\\delta"),
+  math_auto("@D", "\\Delta"),
+  math_auto("@e", "\\epsilon"),
+  math_auto(":e", "\\varepsilon"),
+  math_auto("@z", "\\zeta"),
+  math_auto("@t", "\\theta"),
+  math_auto("@T", "\\Theta"),
+  math_auto(":t", "\\vartheta"),
+  math_auto("@i", "\\iota"),
+  math_auto("@k", "\\kappa"),
+  math_auto("@l", "\\lambda"),
+  math_auto("@L", "\\Lambda"),
+  math_auto("@s", "\\sigma"),
+  math_auto("@S", "\\Sigma"),
+  math_auto("@u", "\\upsilon"),
+  math_auto("@U", "\\Upsilon"),
+  math_auto("@o", "\\omega"),
+  math_auto("@O", "\\Omega"),
+  math_auto("ome", "\\omega"),
+  math_auto("Ome", "\\Omega"),
+
+  -- 〖箭头〗
+  math_auto("<->", "\\leftrightarrow "),
+  math_auto("->", "\\to"),
+  math_auto("!>", "\\mapsto"),
+  math_auto("=>", "\\implies"),
+  math_auto("=<", "\\impliedby"),
+
+  -- 〖集合与数学字体〗
+  math_auto("and", "\\cap"),
+  math_auto("orr", "\\cup"),
+  math_auto("inn", "\\in"),
+  math_auto("notin", "\\not\\in"),
+  math_auto("\\\\\\", "\\setminus"),
+  math_auto("sub=", "\\subseteq"),
+  math_auto("sup=", "\\supseteq"),
+  math_auto("eset", "\\emptyset"),
+  math_auto("set", "\\{ $0 \\}$1"),
+  math_auto("exists", "\\exists"),
+  math_auto("LL", "\\mathcal{L}"),
+  math_auto("HH", "\\mathcal{H}"),
+  math_auto("CC", "\\mathbb{C}"),
+  math_auto("RR", "\\mathbb{R}"),
+  math_auto("ZZ", "\\mathbb{Z}"),
+  math_auto("NN", "\\mathbb{N}"),
+}
