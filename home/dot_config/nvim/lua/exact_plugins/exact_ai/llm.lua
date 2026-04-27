@@ -2,7 +2,6 @@ return {
   {
     "Kurama622/llm.nvim",
     lazy = true,
-    cond = not vim.g.vscode,
     dependencies = {
       "nvim-lua/plenary.nvim",
       "MunifTanjim/nui.nvim",

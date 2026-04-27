@@ -2,6 +2,7 @@
 {{- $hasTaplo := lookPath "taplo" -}}
 {{- $hasTypstyle := lookPath "typstyle" -}}
 
+{{- if or $hasStylua $hasTaplo $hasTypstyle }}
 return {
   {
     "stevearc/conform.nvim",
@@ -27,4 +28,5 @@ return {
     end,
   },
 }
+{{- end }}
 {{/* vim: set ft=lua.chezmoitemplate: */}}

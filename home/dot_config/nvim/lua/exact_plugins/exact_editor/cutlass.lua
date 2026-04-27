@@ -3,7 +3,7 @@ return {
     "gbprod/cutlass.nvim",
     -- 在 vscode 中加载
     cond = true,
-    lazy = true,
+    event = "User FileReady",
     keys = {
       "d",
       "D",
