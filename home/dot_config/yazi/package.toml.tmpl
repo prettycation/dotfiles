@@ -54,11 +54,13 @@ use = "boydaihungst/mediainfo"
 use = "prettycation/duckdb"
 {{- end }}
 
-{{ if or $hasTrashy $hasRecycleBinCli }}
+{{- if or $hasTrashy $hasRecycleBinCli }}
+{{- $trashPlugin := "" -}}
+{{- if $hasRecycleBinCli -}}
 {{- $trashPlugin := "uhs-robert/recycle-bin" -}}
-{{- if $hasTrashy -}}
-  {{- $trashPlugin = "prettycation/trashbox" -}}
-{{ end }}
+{{- else if $hasTrashy -}}
+{{- $trashPlugin = "prettycation/trashbox" -}}
+{{- end }}
 [[plugin.deps]]
 use = {{ $trashPlugin | quote }}
 {{ end }}

@@ -51,11 +51,12 @@ prepend_keymap = [
   { on = ["P", "u"], run = "plugin projects 'load chezmoi'", desc = "加载 chezmoi 项目" },
 
   {{- if or $hasTrashy $hasRecycleBinCli }}
-
-  {{- $trashPlugin := "recycle-bin" -}}
-  {{- if $hasTrashy -}}
-    {{- $trashPlugin = "trashbox" -}}
-  {{- end -}}
+  {{- $trashPlugin := "" -}}
+  {{- if $hasRecycleBinCli -}}
+  {{- $trashPlugin = "recycle-bin" -}}
+  {{- else if $hasTrashy -}}
+  {{- $trashPlugin = "trashbox" -}}
+  {{- end }}
  
   # {{ $trashPlugin }}
   { on = ["R", "o"], run = "plugin {{ $trashPlugin }} -- open",      desc = "打开回收站" },

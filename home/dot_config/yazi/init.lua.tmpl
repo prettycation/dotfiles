@@ -28,12 +28,13 @@ require("duckdb"):setup({
 })
 {{- end }}
 
-{{ if or $hasTrashy $hasRecycleBinCli }}
-
-{{- $trashPlugin := "recycle-bin" -}}
-{{- if $hasTrashy -}}
-  {{- $trashPlugin = "trashbox" -}}
-{{- end -}}
+{{- if or $hasTrashy $hasRecycleBinCli }}
+{{- $trashPlugin := "" -}}
+{{- if $hasRecycleBinCli -}}
+{{- $trashPlugin = "recycle-bin" -}}
+{{- else if $hasTrashy -}}
+{{- $trashPlugin = "trashbox" -}}
+{{- end }}
 
 require({{ $trashPlugin | quote }}):setup()
 {{ end }}
