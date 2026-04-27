@@ -1,12 +1,4 @@
 return {
-  -- Snacks 快捷键禁用
-  {
-    "folke/snacks.nvim",
-    keys = {
-      { "<leader>gd", false },
-    },
-  },
-
   -- CodeDiff 配置
   {
     "esmuellert/codediff.nvim",

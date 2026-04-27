@@ -1,179 +1,192 @@
 return {
   {
     "folke/snacks.nvim",
-    cond = not vim.g.vscode,
-    opts = {
-      explorer = {
-          replace_netrw = false, -- 禁用自动打开 explorer
-      },
-
-      dashboard = {
-        -- dashboard 总宽度；terminal section 会按这个宽度布局
-        width = 72,
-
-        formats = {
-          file = function(item, ctx)
-            local fname = vim.fn.fnamemodify(item.file, ":~")
-
-            {{- if eq .chezmoi.os "windows" }}
-            -- Windows: 先统一成 /，再单独处理盘符或 ~
-            fname = fname:gsub("\\", "/")
-
-            local root, rest
-            if fname:sub(1, 1) == "~" then
-              root = "~"
-              rest = fname:gsub("^~/?", "", 1)
-            else
-              root = fname:match("^%a:") or ""
-              rest = fname:gsub("^%a:/?", "", 1)
-            end
-            {{- else }}
-            -- Unix-like: 统一成 /，再处理 ~ 或 /
-            fname = fname:gsub("\\", "/")
-
-            local root, rest
-            if fname:sub(1, 1) == "~" then
-              root = "~"
-              rest = fname:gsub("^~/?", "", 1)
-            else
-              root = "/"
-              rest = fname:gsub("^/+", "", 1)
-            end
-            {{- end }}
-
-            local parts = vim.split(rest, "/", { plain = true, trimempty = true })
-
-            if #parts == 0 then
-              return {
-                { fname, hl = "file" },
-              }
-            end
-
-            local file = parts[#parts]
-            local parent = #parts >= 2 and parts[#parts - 1] or nil
-
-            local short
-            if parent and parent ~= "" then
-              short = root .. "/…/" .. parent .. "/" .. file
-            else
-              short = root .. "/…/" .. file
-            end
-
-            -- 如果还太长，就进一步压缩成 根/.../文件名
-            local max = math.min((ctx.width or 60), 40)
-            if #short > max then
-              short = root .. "/…/" .. file
-            end
-
-            local dir, basename = short:match("^(.*)/(.+)$")
-            return dir and {
-              { dir .. "/", hl = "dir" },
-              { basename, hl = "file" },
-            } or {
-              { short, hl = "file" },
-            }
-          end,
-        },
-
-        -- preset.keys 不能嵌套分组表
-        preset = {
-          keys = {
-            { icon = " ", key = "f", desc = "Find File", action = ":lua Snacks.dashboard.pick('files')" },
-            { icon = " ", key = "g", desc = "Find Text", action = ":lua Snacks.dashboard.pick('live_grep')" },
-            { icon = " ", key = "s", desc = "Restore Session", section = "session" },
-            { icon = " ", key = "q", desc = "Quit", action = ":qa" },
-          },
-        },
-
-        sections = {
-          {
-            section = "terminal",
-
-            {{- if eq .chezmoi.os "windows" }}
-            cmd = {
-              "pwsh.exe",
-              "-NoLogo",
-              "-NoProfile",
-              "-Command",
-              "$OutputEncoding = [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new(); "
-                .. "Get-Content -Raw -Encoding UTF8 '"
-                .. (vim.fn.stdpath("config"):gsub("\\", "/"))
-                .. "/lua/plugins/preview/header.cat'",
-            },
-            {{- else }}
-            cmd = {
-              "sh",
-              "-c",
-              "cat \"$1\"",
-              "sh",
-              vim.fn.stdpath("config") .. "/lua/plugins/preview/header.cat",
-            },
-            {{- end }}
-
-            -- logo 7 行
-            height = 8,
-            padding = 1,
-            -- 静态 logo 开缓存，减少 terminal job 重跑带来的延迟
-            ttl = 60 * 60,
-          },
-
-          -- 组标题：Builtin Actions
-          { title = "Builtin Actions", icon = " ", padding = 0 },
-
-          -- preset.keys
-          { section = "keys", indent = 2, gap = 0, padding = {0, 0} },
-
-          -- 组标题：Recent Files
-          { title = "Recent Files", icon = " ", padding = {0, 1} },
-
-          -- recent_files
-          { section = "recent_files", indent = 2, padding = {0, 0}, limit = 3 },
-
-          -- 组标题：Maintenance Actions
-          { title = "Maintenance Actions", icon = "󱁤 ", padding = {0, 1} },
-
-          -- 维护类动作直接写成普通 items，不放进 preset.keys
-          {
-            icon = " ",
-            key = "c",
-            desc = "Config",
-            action = ":lua Snacks.dashboard.pick('files', { cwd = vim.fn.stdpath('config') })",
-            indent = 2,
-          },
-          {
-            icon = "󰒲 ",
-            key = "l",
-            desc = "Lazy",
-            action = ":Lazy",
-            indent = 2,
-          },
-          {
-            icon = " ",
-            key = "x",
-            desc = "Lazy Extras",
-            action = ":LazyExtras",
-            indent = 2,
-          },
-          {
-            icon = "󱁤 ",
-            key = "m",
-            desc = "Mason",
-            action = ":Mason",
-            indent = 2,
-            padding = 1,
-          },
-
-          { section = "startup" },
-        },
-      },
-
-      keys = {
-        { "<leader>fe", false },
-        { "<leader>fE", false },
-        { "<leader>E", false },
-        { "<leader>e", false },
-      },
+    optional = true,
+    keys = {
+      { "<leader>fe", false },
+      { "<leader>fE", false },
+      { "<leader>E", false },
+      { "<leader>e", false },
+      { "<leader>gd", false },
     },
+    opts = function(_, opts)
+      opts.explorer = opts.explorer or {}
+      opts.explorer.replace_netrw = false -- 禁用自动打开 explorer
+
+      {{- if lookPath "opencode" }}
+      -- 在 Snacks picker 里选中文件/搜索结果/候选项后，alt + a 发送给 OpenCode 作为上下文。
+      opts.input = opts.input or {}
+
+      opts.picker = opts.picker or {}
+      opts.picker.actions = opts.picker.actions or {}
+      opts.picker.actions.opencode_send = function(...)
+        return require("opencode").snacks_picker_send(...)
+      end
+
+      opts.picker.win = opts.picker.win or {}
+      opts.picker.win.input = opts.picker.win.input or {}
+      opts.picker.win.input.keys = opts.picker.win.input.keys or {}
+      opts.picker.win.input.keys["<a-a>"] = { "opencode_send", mode = { "n", "i" } }
+      {{- end }}
+
+      opts.dashboard = opts.dashboard or {}
+
+      -- dashboard 总宽度；terminal section 会按这个宽度布局
+      opts.dashboard.width = 72
+
+      opts.dashboard.formats = opts.dashboard.formats or {}
+      opts.dashboard.formats.file = function(item, ctx)
+        local fname = vim.fn.fnamemodify(item.file, ":~")
+
+        {{- if eq .chezmoi.os "windows" }}
+        -- Windows: 先统一成 /，再单独处理盘符或 ~
+        fname = fname:gsub("\\", "/")
+
+        local root, rest
+        if fname:sub(1, 1) == "~" then
+          root = "~"
+          rest = fname:gsub("^~/?", "", 1)
+        else
+          root = fname:match("^%a:") or ""
+          rest = fname:gsub("^%a:/?", "", 1)
+        end
+        {{- else }}
+        -- Unix-like: 统一成 /，再处理 ~ 或 /
+        fname = fname:gsub("\\", "/")
+
+        local root, rest
+        if fname:sub(1, 1) == "~" then
+          root = "~"
+          rest = fname:gsub("^~/?", "", 1)
+        else
+          root = "/"
+          rest = fname:gsub("^/+", "", 1)
+        end
+        {{- end }}
+
+        local parts = vim.split(rest, "/", { plain = true, trimempty = true })
+
+        if #parts == 0 then
+          return {
+            { fname, hl = "file" },
+          }
+        end
+
+        local file = parts[#parts]
+        local parent = #parts >= 2 and parts[#parts - 1] or nil
+
+        local short
+        if parent and parent ~= "" then
+          short = root .. "/…/" .. parent .. "/" .. file
+        else
+          short = root .. "/…/" .. file
+        end
+
+        -- 如果还太长，就进一步压缩成 根/.../文件名
+        local max = math.min((ctx.width or 60), 40)
+        if #short > max then
+          short = root .. "/…/" .. file
+        end
+
+        local dir, basename = short:match("^(.*)/(.+)$")
+        return dir and {
+          { dir .. "/", hl = "dir" },
+          { basename, hl = "file" },
+        } or {
+          { short, hl = "file" },
+        }
+      end
+
+      -- preset.keys 不能嵌套分组表
+      opts.dashboard.preset = opts.dashboard.preset or {}
+      opts.dashboard.preset.keys = {
+        { icon = " ", key = "f", desc = "Find File", action = ":lua Snacks.dashboard.pick('files')" },
+        { icon = " ", key = "g", desc = "Find Text", action = ":lua Snacks.dashboard.pick('live_grep')" },
+        { icon = " ", key = "s", desc = "Restore Session", section = "session" },
+        { icon = " ", key = "q", desc = "Quit", action = ":qa" },
+      }
+
+      opts.dashboard.sections = {
+        {
+          section = "terminal",
+
+          {{- if eq .chezmoi.os "windows" }}
+          cmd = {
+            "pwsh.exe",
+            "-NoLogo",
+            "-NoProfile",
+            "-Command",
+            "$OutputEncoding = [Console]::OutputEncoding = [System.Text.UTF8Encoding]::new(); "
+              .. "Get-Content -Raw -Encoding UTF8 '"
+              .. (vim.fn.stdpath("config"):gsub("\\", "/"))
+              .. "/lua/plugins/preview/header.cat'",
+          },
+          {{- else }}
+          cmd = {
+            "sh",
+            "-c",
+            "cat \"$1\"",
+            "sh",
+            vim.fn.stdpath("config") .. "/lua/plugins/preview/header.cat",
+          },
+          {{- end }}
+
+          -- logo 7 行
+          height = 8,
+          padding = 1,
+          -- 静态 logo 开缓存，减少 terminal job 重跑带来的延迟
+          ttl = 60 * 60,
+        },
+
+        -- 组标题：Builtin Actions
+        { title = "Builtin Actions", icon = " ", padding = 0 },
+
+        -- preset.keys
+        { section = "keys", indent = 2, gap = 0, padding = { 0, 0 } },
+
+        -- 组标题：Recent Files
+        { title = "Recent Files", icon = " ", padding = { 0, 1 } },
+
+        -- recent_files
+        { section = "recent_files", indent = 2, padding = { 0, 0 }, limit = 3 },
+
+        -- 组标题：Maintenance Actions
+        { title = "Maintenance Actions", icon = "󱁤 ", padding = { 0, 1 } },
+
+        -- 维护类动作直接写成普通 items，不放进 preset.keys
+        {
+          icon = " ",
+          key = "c",
+          desc = "Config",
+          action = ":lua Snacks.dashboard.pick('files', { cwd = vim.fn.stdpath('config') })",
+          indent = 2,
+        },
+        {
+          icon = "󰒲 ",
+          key = "l",
+          desc = "Lazy",
+          action = ":Lazy",
+          indent = 2,
+        },
+        {
+          icon = " ",
+          key = "x",
+          desc = "Lazy Extras",
+          action = ":LazyExtras",
+          indent = 2,
+        },
+        {
+          icon = "󱁤 ",
+          key = "m",
+          desc = "Mason",
+          action = ":Mason",
+          indent = 2,
+          padding = 1,
+        },
+
+        { section = "startup" },
+      }
+    end,
   },
 }
 {{/* vim: set ft=lua.chezmoitemplate: */}}

@@ -1,0 +1,21 @@
+return {
+  {
+    "folke/which-key.nvim",
+    optional = true,
+    opts = function(_, opts)
+      opts.spec = opts.spec or {}
+
+      {{ if lookPath "opencode"}}
+      -- AI
+      table.insert(opts.spec, { "<leader>a", group = "ai" })
+      {{ end }}
+
+      -- Toggle / Translate
+      table.insert(opts.spec, { "<leader>t", group = "toggle/translate" })
+
+      -- Runner
+      table.insert(opts.spec, { "<leader>r", group = "run", icon = " " })
+    end,
+  },
+}
+{{/* vim: set ft=lua.chezmoitemplate: */}}
