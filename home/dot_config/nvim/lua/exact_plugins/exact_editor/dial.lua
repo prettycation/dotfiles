@@ -3,57 +3,61 @@ return {
     "monaqa/dial.nvim",
     -- 在 vscode 中加载
     cond = true,
-    keys = {
-      {
-        "<C-a>",
-        function()
-          require("dial.map").manipulate("increment", "normal")
-        end,
-        desc = "Dial Increment",
-      },
-      {
-        "<C-x>",
-        function()
-          require("dial.map").manipulate("decrement", "normal")
-        end,
-        desc = "Dial Decrement",
-      },
-      {
-        "<C-a>",
-        function()
-          require("dial.map").manipulate("increment", "visual")
-        end,
-        mode = "v",
-        desc = "Dial Increment",
-      },
-      {
-        "<C-x>",
-        function()
-          require("dial.map").manipulate("decrement", "visual")
-        end,
-        mode = "v",
-        desc = "Dial Decrement",
-      },
-      {
-        "g<C-a>",
-        function()
-          require("dial.map").manipulate("increment", "gvisual")
-        end,
-        mode = "v",
-        desc = "Dial Increment (gvisual)",
-      },
-      {
-        "g<C-x>",
-        function()
-          require("dial.map").manipulate("decrement", "gvisual")
-        end,
-        mode = "v",
-        desc = "Dial Decrement (gvisual)",
-      },
-    },
-    opts = function()
+    optional = true,
+
+    keys = function()
+      return {
+        {
+          "<C-a>",
+          function()
+            require("dial.map").manipulate("increment", "normal")
+          end,
+          desc = "Dial Increment",
+        },
+        {
+          "<C-x>",
+          function()
+            require("dial.map").manipulate("decrement", "normal")
+          end,
+          desc = "Dial Decrement",
+        },
+        {
+          "<C-a>",
+          function()
+            require("dial.map").manipulate("increment", "visual")
+          end,
+          mode = "v",
+          desc = "Dial Increment",
+        },
+        {
+          "<C-x>",
+          function()
+            require("dial.map").manipulate("decrement", "visual")
+          end,
+          mode = "v",
+          desc = "Dial Decrement",
+        },
+        {
+          "g<C-a>",
+          function()
+            require("dial.map").manipulate("increment", "gvisual")
+          end,
+          mode = "v",
+          desc = "Dial Increment (gvisual)",
+        },
+        {
+          "g<C-x>",
+          function()
+            require("dial.map").manipulate("decrement", "gvisual")
+          end,
+          mode = "v",
+          desc = "Dial Decrement (gvisual)",
+        },
+      }
+    end,
+
+    opts = function(_, opts)
       local augend = require("dial.augend")
-      local config = require("dial.config")
 
       local function cycle(elements, word)
         return augend.constant.new({
@@ -63,200 +67,174 @@ return {
         })
       end
 
-      config.augends:register_group({
-        default = {
-          -- numbers
-          augend.integer.alias.decimal,
-          augend.integer.alias.hex,
+      opts.dials_by_ft = opts.dials_by_ft or {}
 
-          -- dates
-          augend.date.alias["%Y-%m-%d"],
-          augend.date.alias["%Y/%m/%d"],
-          augend.date.alias["%m/%d/%Y"],
+      opts.dials_by_ft.lua = "lua"
+      opts.dials_by_ft.markdown = "markdown"
+      opts.dials_by_ft.yaml = "yaml"
+      opts.dials_by_ft.yml = "yaml"
+      opts.dials_by_ft.toml = "toml"
+      opts.dials_by_ft.sh = "sh"
+      opts.dials_by_ft.zsh = "zsh"
+      opts.dials_by_ft.bash = "bash"
 
-          -- booleans / toggles
-          augend.constant.alias.bool,
-          cycle({ "on", "off" }),
-          cycle({ "yes", "no" }),
-          cycle({ "enable", "disable" }),
-          cycle({ "enabled", "disabled" }),
-          cycle({ "show", "hide" }),
-          cycle({ "visible", "hidden" }),
-          cycle({ "light", "dark" }),
+      opts.groups = opts.groups or {}
 
-          -- env / mode / channel
-          cycle({ "dev", "staging", "prod" }),
-          cycle({ "debug", "release" }),
-          cycle({ "stable", "nightly" }),
+      opts.groups.default = {
+        -- numbers
+        augend.integer.alias.decimal,
+        augend.integer.alias.hex,
 
-          -- layout / position
-          cycle({ "horizontal", "vertical" }),
-          cycle({ "row", "column" }),
-          cycle({ "left", "center", "right" }),
-          cycle({ "top", "bottom" }),
-          cycle({ "up", "down" }),
-          cycle({ "in", "out" }),
-          cycle({ "asc", "desc" }),
-          cycle({ "start", "center", "end" }),
+        -- dates
+        augend.date.alias["%Y-%m-%d"],
+        augend.date.alias["%Y/%m/%d"],
+        augend.date.alias["%m/%d/%Y"],
 
-          -- markdown checkbox
-          cycle({ "[ ]", "[x]" }, false),
+        -- booleans / toggles
+        augend.constant.alias.bool,
+        cycle({ "on", "off" }),
+        cycle({ "yes", "no" }),
+        cycle({ "enable", "disable" }),
+        cycle({ "enabled", "disabled" }),
+        cycle({ "show", "hide" }),
+        cycle({ "visible", "hidden" }),
+        cycle({ "light", "dark" }),
 
-          -- colors
-          augend.hexcolor.new({
-            case = "lower",
-          }),
+        -- env / mode / channel
+        cycle({ "dev", "staging", "prod" }),
+        cycle({ "debug", "release" }),
+        cycle({ "stable", "nightly" }),
 
-          -- flavor
-          cycle({ "latte", "frappe", "macchiato", "mocha" }),
+        -- layout / position
+        cycle({ "horizontal", "vertical" }),
+        cycle({ "row", "column" }),
+        cycle({ "left", "center", "right" }),
+        cycle({ "top", "bottom" }),
+        cycle({ "up", "down" }),
+        cycle({ "in", "out" }),
+        cycle({ "asc", "desc" }),
+        cycle({ "start", "center", "end" }),
 
-          -- Font weight or style
-          cycle({ "light", "normal", "bold" }),
-          cycle({ "solid", "outline" }),
+        -- markdown checkbox
+        cycle({ "[ ]", "[x]" }, false),
 
-          -- semver (语义化版本控制)
-          augend.semver.alias.semver,
-        },
+        -- colors
+        augend.hexcolor.new({
+          case = "lower",
+        }),
 
-        lua = {
-          augend.integer.alias.decimal,
-          augend.integer.alias.hex,
-          augend.constant.alias.bool,
+        -- flavor
+        cycle({ "latte", "frappe", "macchiato", "mocha" }),
 
-          cycle({ '"on"', '"off"' }, false),
-          cycle({ '"yes"', '"no"' }, false),
-          cycle({ '"light"', '"dark"' }, false),
-          cycle({ '"horizontal"', '"vertical"' }, false),
-          cycle({ '"left"', '"center"', '"right"' }, false),
-          cycle({ '"top"', '"bottom"' }, false),
-          cycle({ '"dev"', '"staging"', '"prod"' }, false),
-          cycle({ '"debug"', '"release"' }, false),
-          cycle({ '"stable"', '"nightly"' }, false),
+        -- Font weight or style
+        cycle({ "light", "normal", "bold" }),
+        cycle({ "solid", "outline" }),
 
-          augend.hexcolor.new({
-            case = "lower",
-          }),
-          augend.semver.alias.semver,
-        },
+        -- semver (语义化版本控制)
+        augend.semver.alias.semver,
+      }
 
-        markdown = {
-          augend.date.alias["%Y-%m-%d"],
-          augend.date.alias["%Y/%m/%d"],
-          cycle({ "[ ]", "[x]" }, false),
-          cycle({ "TODO", "DOING", "DONE" }),
-          cycle({ "low", "medium", "high" }),
-        },
+      opts.groups.lua = {
+        augend.integer.alias.decimal,
+        augend.integer.alias.hex,
+        augend.constant.alias.bool,
 
-        yaml = {
-          augend.integer.alias.decimal,
-          augend.integer.alias.hex,
-          augend.date.alias["%Y-%m-%d"],
-          augend.constant.alias.bool,
+        cycle({ '"on"', '"off"' }, false),
+        cycle({ '"yes"', '"no"' }, false),
+        cycle({ '"light"', '"dark"' }, false),
+        cycle({ '"horizontal"', '"vertical"' }, false),
+        cycle({ '"left"', '"center"', '"right"' }, false),
+        cycle({ '"top"', '"bottom"' }, false),
+        cycle({ '"dev"', '"staging"', '"prod"' }, false),
+        cycle({ '"debug"', '"release"' }, false),
+        cycle({ '"stable"', '"nightly"' }, false),
 
-          cycle({ "on", "off" }),
-          cycle({ "yes", "no" }),
-          cycle({ "enable", "disable" }),
-          cycle({ "enabled", "disabled" }),
-          cycle({ "light", "dark" }),
-          cycle({ "dev", "staging", "prod" }),
-          cycle({ "debug", "release" }),
-          cycle({ "stable", "nightly" }),
-          cycle({ "horizontal", "vertical" }),
-          cycle({ "left", "center", "right" }),
-          cycle({ "top", "bottom" }),
-          cycle({ "show", "hide" }),
+        augend.hexcolor.new({
+          case = "lower",
+        }),
+        augend.semver.alias.semver,
+      }
 
-          augend.hexcolor.new({
-            case = "lower",
-          }),
-          augend.semver.alias.semver,
-        },
+      opts.groups.markdown = {
+        augend.date.alias["%Y-%m-%d"],
+        augend.date.alias["%Y/%m/%d"],
+        cycle({ "[ ]", "[x]" }, false),
+        cycle({ "TODO", "DOING", "DONE" }),
+        cycle({ "low", "medium", "high" }),
+      }
 
-        toml = {
-          augend.integer.alias.decimal,
-          augend.integer.alias.hex,
-          augend.date.alias["%Y-%m-%d"],
-          augend.constant.alias.bool,
+      opts.groups.yaml = {
+        augend.integer.alias.decimal,
+        augend.integer.alias.hex,
+        augend.date.alias["%Y-%m-%d"],
+        augend.constant.alias.bool,
 
-          cycle({ "on", "off" }),
-          cycle({ "yes", "no" }),
-          cycle({ "enable", "disable" }),
-          cycle({ "enabled", "disabled" }),
-          cycle({ "light", "dark" }),
-          cycle({ "dev", "staging", "prod" }),
-          cycle({ "debug", "release" }),
-          cycle({ "stable", "nightly" }),
-          cycle({ "horizontal", "vertical" }),
-          cycle({ "left", "center", "right" }),
-          cycle({ "top", "bottom" }),
-          cycle({ "show", "hide" }),
+        cycle({ "on", "off" }),
+        cycle({ "yes", "no" }),
+        cycle({ "enable", "disable" }),
+        cycle({ "enabled", "disabled" }),
+        cycle({ "light", "dark" }),
+        cycle({ "dev", "staging", "prod" }),
+        cycle({ "debug", "release" }),
+        cycle({ "stable", "nightly" }),
+        cycle({ "horizontal", "vertical" }),
+        cycle({ "left", "center", "right" }),
+        cycle({ "top", "bottom" }),
+        cycle({ "show", "hide" }),
 
-          augend.hexcolor.new({
-            case = "lower",
-          }),
-          augend.semver.alias.semver,
-        },
+        augend.hexcolor.new({
+          case = "lower",
+        }),
+        augend.semver.alias.semver,
+      }
 
-        sh = {
-          augend.integer.alias.decimal,
-          augend.integer.alias.hex,
+      opts.groups.toml = {
+        augend.integer.alias.decimal,
+        augend.integer.alias.hex,
+        augend.date.alias["%Y-%m-%d"],
+        augend.constant.alias.bool,
 
-          cycle({ "true", "false" }),
-          cycle({ "on", "off" }),
-          cycle({ "yes", "no" }),
-          cycle({ "enable", "disable" }),
-          cycle({ "enabled", "disabled" }),
-          cycle({ "light", "dark" }),
-          cycle({ "dev", "staging", "prod" }),
-          cycle({ "debug", "release" }),
-          cycle({ "stable", "nightly" }),
+        cycle({ "on", "off" }),
+        cycle({ "yes", "no" }),
+        cycle({ "enable", "disable" }),
+        cycle({ "enabled", "disabled" }),
+        cycle({ "light", "dark" }),
+        cycle({ "dev", "staging", "prod" }),
+        cycle({ "debug", "release" }),
+        cycle({ "stable", "nightly" }),
+        cycle({ "horizontal", "vertical" }),
+        cycle({ "left", "center", "right" }),
+        cycle({ "top", "bottom" }),
+        cycle({ "show", "hide" }),
 
-          augend.hexcolor.new({
-            case = "lower",
-          }),
-          augend.semver.alias.semver,
-        },
+        augend.hexcolor.new({
+          case = "lower",
+        }),
+        augend.semver.alias.semver,
+      }
 
-        zsh = {
-          augend.integer.alias.decimal,
-          augend.integer.alias.hex,
+      opts.groups.sh = {
+        augend.integer.alias.decimal,
+        augend.integer.alias.hex,
 
-          cycle({ "true", "false" }),
-          cycle({ "on", "off" }),
-          cycle({ "yes", "no" }),
-          cycle({ "enable", "disable" }),
-          cycle({ "enabled", "disabled" }),
-          cycle({ "light", "dark" }),
-          cycle({ "dev", "staging", "prod" }),
-          cycle({ "debug", "release" }),
-          cycle({ "stable", "nightly" }),
+        cycle({ "true", "false" }),
+        cycle({ "on", "off" }),
+        cycle({ "yes", "no" }),
+        cycle({ "enable", "disable" }),
+        cycle({ "enabled", "disabled" }),
+        cycle({ "light", "dark" }),
+        cycle({ "dev", "staging", "prod" }),
+        cycle({ "debug", "release" }),
+        cycle({ "stable", "nightly" }),
 
-          augend.hexcolor.new({
-            case = "lower",
-          }),
-          augend.semver.alias.semver,
-        },
+        augend.hexcolor.new({
+          case = "lower",
+        }),
+        augend.semver.alias.semver,
+      }
 
-        bash = {
-          augend.integer.alias.decimal,
-          augend.integer.alias.hex,
-
-          cycle({ "true", "false" }),
-          cycle({ "on", "off" }),
-          cycle({ "yes", "no" }),
-          cycle({ "enable", "disable" }),
-          cycle({ "enabled", "disabled" }),
-          cycle({ "light", "dark" }),
-          cycle({ "dev", "staging", "prod" }),
-          cycle({ "debug", "release" }),
-          cycle({ "stable", "nightly" }),
-
-          augend.hexcolor.new({
-            case = "lower",
-          }),
-          augend.semver.alias.semver,
-        },
-      })
+      opts.groups.zsh = vim.deepcopy(opts.groups.sh)
+      opts.groups.bash = vim.deepcopy(opts.groups.sh)
     end,
   },
 }

@@ -15,8 +15,8 @@ return {
 
   {
     "LazyVim/LazyVim",
-    opts = {
-      colorscheme = "catppuccin-nvim",
-    },
+    opts = function(_, opts)
+      opts.colorscheme = "catppuccin-nvim"
+    end,
   },
 }

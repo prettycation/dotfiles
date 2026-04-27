@@ -4,7 +4,6 @@ return {
     -- 在 vscode 中加载
     cond = true,
     dependencies = { "folke/flash.nvim" },
-    event = "VeryLazy",
     keys = {
       {
         "f",
@@ -114,15 +113,21 @@ return {
 
   {
     "folke/flash.nvim",
+    optional = true,
     keys = {
       { "s", mode = { "n", "x", "o" }, false },
       { "S", mode = { "n", "x", "o" }, false },
     },
-    opts = {
-      labels = "fgrtvbdecjhuynmki;",
-      label = { uppercase = false },
-      modes = { char = { enabled = false } },
-    },
+    opts = function(_, opts)
+      opts.labels = "fgrtvbdecjhuynmki;"
+
+      opts.label = opts.label or {}
+      opts.label.uppercase = false
+
+      opts.modes = opts.modes or {}
+      opts.modes.char = opts.modes.char or {}
+      opts.modes.char.enabled = false
+    end,
     init = function()
       local function set_flash_highlights()
         local name = vim.g.colors_name or ""
