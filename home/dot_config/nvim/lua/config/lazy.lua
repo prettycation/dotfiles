@@ -1,5 +1,5 @@
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
-if not (vim.uv or vim.loop).fs_stat(lazypath) then
+if not vim.uv.fs_stat(lazypath) then
   local lazyrepo = "https://github.com/folke/lazy.nvim.git"
   local out = vim.fn.system({ "git", "clone", "--filter=blob:none", "--branch=stable", lazyrepo, lazypath })
   if vim.v.shell_error ~= 0 then
@@ -24,15 +24,6 @@ require("lazy").setup({
 
     -- import/override with your plugins
     { import = "plugins" },
-    { import = "plugins.lsp", cond = not vim.g.vscode },
-    { import = "plugins.lang", cond = not vim.g.vscode },
-    { import = "plugins.ai", cond = not vim.g.vscode },
-    { import = "plugins.git", cond = not vim.g.vscode },
-    { import = "plugins.coding", cond = not vim.g.vscode },
-    { import = "plugins.editor" },
-    { import = "plugins.completion", cond = not vim.g.vscode },
-    { import = "plugins.preview", cond = not vim.g.vscode },
-    { import = "plugins.formatting", cond = not vim.g.vscode },
   },
   defaults = {
     -- By default, only LazyVim plugins will be lazy-loaded. Your custom plugins will load during startup.
