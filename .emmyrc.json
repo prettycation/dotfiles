@@ -1,5 +1,3 @@
-{{- $hasemmylua_ls := lookPath "emmylua_ls" -}}
-{{ if $hasemmylua_ls }}
 {
   "$schema": "https://raw.githubusercontent.com/EmmyLuaLs/emmylua-analyzer-rust/refs/heads/main/crates/emmylua_code_analysis/resources/schema.json",
   "completion": {
@@ -9,9 +7,7 @@
   },
   "diagnostics": {
     "globals": ["vim"],
-    "disable": [
-      "type-not-found",
-    ],
+    "disable": ["type-not-found"],
     "severity": {
       "missing-parameter": "hint",
       "deprecated": "hint"
@@ -32,17 +28,12 @@
     ]
   },
   "workspace": {
-    "workspaceRoots": ["."],
+    "workspaceRoots": ["home/dot_config/nvim"],
     "library": [
       "$VIMRUNTIME",
       "$HOME/.local/share/nvim/lazy",
       "$HOME/.local/share/nvim/lazy/luacats-luv/library"
     ],
-    "ignoreGlobs": [
-      "**/*_spec.lua",
-      "**/test/**",
-      "**/tests/**"
-    ]
+    "ignoreGlobs": ["**/*_spec.lua", "**/test/**", "**/tests/**"]
   }
 }
-{{ end }}
