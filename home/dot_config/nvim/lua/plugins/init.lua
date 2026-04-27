@@ -2,6 +2,10 @@ local is_vscode = vim.g.vscode
 
 local imports = {
 
+  -- Disabled plugins
+  { "hrsh7th/nvim-cmp", enabled = false },
+  { "nvim-neo-tree/neo-tree.nvim", enabled = false },
+
   -- Custom plugin specs
   { import = "plugins" },
   { import = "plugins.lsp", cond = not is_vscode },
