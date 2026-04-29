@@ -54,10 +54,10 @@ use = "boydaihungst/mediainfo"
 use = "prettycation/duckdb"
 {{- end }}
 
-{{- if or $hasTrashy $hasRecycleBinCli }}
+{{ if or $hasTrashy $hasRecycleBinCli }}
 {{- $trashPlugin := "" -}}
 {{- if $hasRecycleBinCli -}}
-{{- $trashPlugin := "uhs-robert/recycle-bin" -}}
+{{- $trashPlugin = "uhs-robert/recycle-bin" -}}
 {{- else if $hasTrashy -}}
 {{- $trashPlugin = "prettycation/trashbox" -}}
 {{- end }}
