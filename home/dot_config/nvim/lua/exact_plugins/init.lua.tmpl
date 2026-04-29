@@ -1,0 +1,35 @@
+{{- $hasStylua := lookPath "stylua" -}}
+{{- $hasTaplo := lookPath "taplo" -}}
+{{- $hasTypstyle := lookPath "typstyle" -}}
+{{- $hasCode := lookPath "code" -}}
+
+{{- $cond := "" }}
+
+{{- if $hasCode -}}
+local is_vscode = vim.g.vscode
+{{- $cond = ", cond = not is_vscode"}}
+{{- end }}
+
+local imports = {
+
+  -- Disabled plugins
+  { "hrsh7th/nvim-cmp", enabled = false },
+  { "nvim-neo-tree/neo-tree.nvim", enabled = false },
+
+  -- Custom plugin specs
+  { import = "plugins" },
+  { import = "plugins.lsp"{{ $cond }} },
+  { import = "plugins.lang"{{ $cond }} },
+  { import = "plugins.ai"{{ $cond }} },
+  { import = "plugins.git"{{ $cond }} },
+  { import = "plugins.coding"{{ $cond }} },
+  { import = "plugins.editor" },
+  { import = "plugins.completion"{{ $cond }} },
+  { import = "plugins.preview"{{ $cond }} },
+  {{- if or $hasStylua $hasTaplo $hasTypstyle }}
+  { import = "plugins.formatting"{{ $cond }} },
+  {{- end }}
+}
+
+return imports
+{{/* vim: set filetype=lua.chezmoitmpl: */}}

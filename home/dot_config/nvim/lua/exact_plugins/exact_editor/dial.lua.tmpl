@@ -1,8 +1,14 @@
+{{- $hasCode := lookPath "code" -}}
+
+{{- $cond := "" -}}
+
+{{- if $hasCode }}
+{{- $cond = "-- 在 vscode 中加载\n\t\tcond = true,\n\t\t"}}
+{{- end }}
 return {
   {
     "monaqa/dial.nvim",
-    -- 在 vscode 中加载
-    cond = true,
+    {{ $cond -}}
     optional = true,
 
     keys = function()
@@ -238,3 +244,4 @@ return {
     end,
   },
 }
+{{/* vim: set filetype=lua.chezmoitmpl: */}}

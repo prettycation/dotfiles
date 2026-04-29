@@ -1,8 +1,14 @@
+{{- $hasCode := lookPath "code" -}}
+
+{{- $cond := "" -}}
+
+{{- if $hasCode }}
+{{- $cond = "-- 在 vscode 中加载\n\t\tcond = true,\n\t\t"}}
+{{- end }}
 return {
   {
     "gbprod/cutlass.nvim",
-    -- 在 vscode 中加载
-    cond = true,
+    {{ $cond -}}
     event = "User FileReady",
     keys = {
       "d",
@@ -34,3 +40,4 @@ return {
     },
   },
 }
+{{/* vim: set filetype=lua.chezmoitmpl: */}}

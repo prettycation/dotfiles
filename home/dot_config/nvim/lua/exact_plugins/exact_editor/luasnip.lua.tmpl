@@ -1,7 +1,14 @@
+{{- $hasCode := lookPath "code" -}}
+
+{{- $cond := "" -}}
+
+{{- if $hasCode }}
+{{- $cond = "cond = not vim.g.vscode,\n\t\t"}}
+{{- end }}
 return {
   {
     "L3MON4D3/LuaSnip",
-    cond = not vim.g.vscode,
+    {{ $cond -}}
     version = "v2.*",
     build = "make install_jsregexp",
     dependencies = {
@@ -26,3 +33,4 @@ return {
     end,
   },
 }
+{{/* vim: set filetype=lua.chezmoitmpl: */}}
