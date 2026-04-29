@@ -7,8 +7,7 @@ return {
   {
     "nickjvandyke/opencode.nvim",
     version = "*",
-    lazy = true,
-    cond = not vim.g.vscode,
+    event = "User FileReady",
 
     init = function()
       ---@type opencode.Opts

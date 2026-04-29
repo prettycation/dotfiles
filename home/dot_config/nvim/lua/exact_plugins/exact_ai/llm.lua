@@ -1,7 +1,6 @@
 return {
   {
     "Kurama622/llm.nvim",
-    lazy = true,
     dependencies = {
       "nvim-lua/plenary.nvim",
       "MunifTanjim/nui.nvim",
