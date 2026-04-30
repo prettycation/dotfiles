@@ -65,6 +65,11 @@ input_path = '~/.config/matugen/templates/colors.css'
 output_path = '~/.config/swayosd/colors.css'
 post_hook = 'pkill swayosd && swayosd-server &'
 
+[templates.hyprlock]
+input_path = '~/.config/matugen/templates/hyprland-colors.conf'
+output_path = '~/.cache/matugen/hypr/colors.conf'
+pre_hook = 'mkdir -p ~/.cache/matugen/hypr/'
+
 [templates.obs]
 input_path = '~/.config/matugen/templates/obs-matugen.obt'
 output_path = '~/.config/obs-studio/themes/matugen.obt'
