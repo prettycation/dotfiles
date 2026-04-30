@@ -122,6 +122,8 @@ REQUIRED_COMMANDS=(
   sound-theme-freedesktop
   # 锁屏
   hyprlock
+  # 壁纸选择器等 gtk 主题
+  adw-gtk-theme
 )
 
 check_dependencies() {
