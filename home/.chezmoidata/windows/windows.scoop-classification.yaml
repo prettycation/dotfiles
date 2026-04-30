@@ -307,6 +307,7 @@ scoopClassification:
           - jdx.mise
         margin:
           - uv-portable-cn
+          - emmylua-ls
         Ylemir_Scoop-Bucket:
           - envx
 
@@ -326,6 +327,8 @@ scoopClassification:
           - pandoc
           - ffmpeg
           - resvg
+          - chafa
+          - trashy
 
     terminal-cli:
       title: 终端增强 CLI
@@ -413,7 +416,7 @@ scoopClassification:
         extras:
           - glazewm
 
-    desktop-beautify-gui:
+    desktop-beautify-cli/gui:
       title: 桌面美化与外壳增强
       description: 桌面外观、美化与系统壳层增强工具
       selection: optional
@@ -426,6 +429,8 @@ scoopClassification:
           - nilesoft-shell
           - tacky-borders
           - windhawk
+        lemon:
+          - cava
 
     launcher-clipboard-gui:
       title: 启动器与剪贴板
@@ -711,7 +716,7 @@ scoopClassification:
           - MilkShift.GoofCord
           - HuLaSpark.HuLa
 
-    work-time-gui/cli:
+    work-time-cli/gui:
       title: 应用使用统计
       description: 工作、日常时长/频率统计应用
       selection: optional
@@ -722,6 +727,7 @@ scoopClassification:
           - 1History.1History
           - WINBIGFOX.TimeScribe
           - debugtheworldbot.keyStats
+          - wm94i.Work-Review
 
     device-connectivity-gui:
       title: 设备互联
@@ -755,6 +761,9 @@ scoopClassification:
       ascii-image-converter:
         selection: optional
         notes: ASCII art
+      chafa:
+        selection: optional
+        notes: ASCII art
       ffmpeg:
         notes: yazi 依赖
       jq:
@@ -774,6 +783,8 @@ scoopClassification:
       imagemagick:
         notes: yazi 依赖
       duckdb:
+        notes: yazi 插件依赖
+      trashy:
         notes: yazi 插件依赖
 
     extras:
@@ -796,6 +807,8 @@ scoopClassification:
       AnInsomniacy.MotrixNext:
         requiresAdmin: true
       agalwood.Motrix:
+        selection: optional
+      WINBIGFOX.TimeScribe:
         selection: optional
 
     nonportable:
@@ -835,6 +848,8 @@ scoopClassification:
         installMode: manual
         selection: optional
         notes: rime-ls 依赖, 已绑定, 无需手动安装
+      emmylua-ls:
+        notes: nvim 内 emmylua lsp 依赖
 
     dorado:
       texlive-full:
@@ -845,6 +860,8 @@ scoopClassification:
       latexsnipper:
         selection: optional
         installMode: manual
+      cava:
+        notes: yasb widget 依赖
 
     ZhangTianrong_scoop-bucket:
       emeditor-pro:
