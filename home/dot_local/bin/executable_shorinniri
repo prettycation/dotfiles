@@ -1,4 +1,5 @@
 #!/bin/bash
+
 set -u
 
 # ==========================================
@@ -34,14 +35,12 @@ step() { echo -e "\n${C_CYA}>>> $1${C_DEF}"; }
 # 2. 路径变量
 # ==========================================
 # 只读取这些系统模板/资源目录；本脚本不会把 TEMPLATE_DIR 整体同步到家目录。
-TEMPLATE_DIR="/usr/share/shorin-niri"
 WALLPAPER_SRC_DIR="/usr/share/shorin-niri-wallpapers"
 
 # Shorin/Matugen 相关用户路径。
 USER_BIN_DIR="$HOME/.local/bin"
 ENV_DIR="$HOME/.config/environment.d"
 MATUGEN_STRATEGY_DIR="$HOME/.cache/matugen-strategy"
-NIRI_DMS_DIR="$HOME/.config/niri/dms"
 
 # ==========================================
 # 3. sudo 探针与保活
@@ -233,9 +232,6 @@ fix_script_permissions() {
 # 只补缺失的辅助文件，不从模板覆盖用户现有配置。
 prepare_niri_runtime_files() {
   step "$(_t "Preparing Niri runtime files" "准备 Niri 运行时辅助文件")"
-
-  mkdir -p "$NIRI_DMS_DIR"
-  touch "$NIRI_DMS_DIR/colors.kdl"
 
   if [[ ! -f "$HOME/.config/niri/output.kdl" && -f "$HOME/.config/niri/output-example.kdl" ]]; then
     cp "$HOME/.config/niri/output-example.kdl" "$HOME/.config/niri/output.kdl"
