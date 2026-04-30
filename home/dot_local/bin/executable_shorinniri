@@ -113,12 +113,15 @@ REQUIRED_COMMANDS=(
   jq
   magick
   powerprofilesctl
+  # 时钟/日历/取色器
   gnome-clocks
   gnome-calendar
   hyprpicker
   wl-clipboard
   pipewire
   sound-theme-freedesktop
+  # 锁屏
+  hyprlock
 )
 
 check_dependencies() {
