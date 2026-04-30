@@ -3,7 +3,12 @@
 {{- $hasMediaInfo := lookPath "mediainfo" -}}
 {{- $hasDuckDB := lookPath "duckdb" -}}
 {{- $hasRecycleBinCli := lookPath "trash-list" -}}
-{{- $hasTrashy := lookPath "trash" -}}
+{{- $hasTrashy := false -}}
+{{- if eq .chezmoi.os "windows" -}}
+{{-   $hasTrashy = lookPath "trash" -}}
+{{- else -}}
+{{-   $hasTrashy = lookPath "trashy" -}}
+{{- end -}}
 {{- $hasSqlite3 := lookPath "sqlite3" -}}
 {{- $hasSudo := lookPath "sudo" -}}
 

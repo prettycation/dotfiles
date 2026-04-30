@@ -1,9 +1,14 @@
 {{- $hasTv := lookPath "tv" -}}
 {{- $hasRecycleBinCli := lookPath "trash-list" -}}
+{{- $hasTrashy := false -}}
+{{- if eq .chezmoi.os "windows" -}}
+{{-   $hasTrashy = lookPath "trash" -}}
+{{- else -}}
+{{-   $hasTrashy = lookPath "trashy" -}}
+{{- end -}}
 {{- $hasMediainfo := lookPath "mediainfo" -}}
 {{- $hasDuckdb := lookPath "duckdb" -}}
 {{- $hasSudo := lookPath "sudo" -}}
-{{- $hasTrashy := lookPath "trash" -}}
 {{- $has7z := or (lookPath "7z") (lookPath "7zz") (lookPath "7za") -}}
 {{- $hasBsdtar := lookPath "bsdtar" -}}
 {{- $hasZip := or (lookPath "zip") $has7z $hasBsdtar -}}

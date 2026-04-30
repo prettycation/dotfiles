@@ -29,7 +29,4 @@ Space & s::^s
         Send "{Esc}"
 }
 
-; 禁用 Alt+D (for STranslate)
-!d::return
-
 #HotIf
