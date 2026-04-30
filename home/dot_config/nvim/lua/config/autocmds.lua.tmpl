@@ -8,7 +8,7 @@
 -- e.g. vim.api.nvim_del_augroup_by_name("lazyvim_wrap_spell")
 
 vim.api.nvim_create_autocmd("FileType", {
-  pattern = { "markdown", "typst", "txt" },
+  pattern = { "markdown", "typst", "text", "gitcommit" },
 
   callback = function()
     -- 禁用拼写检查

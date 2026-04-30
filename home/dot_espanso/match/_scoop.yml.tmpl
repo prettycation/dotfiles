@@ -10,7 +10,7 @@ matches:
     replace: "scoop uninstall $|$"
 
   - trigger: "s.cl"
-    replace: "scoop cleanup *"
+    replace: "scoop cleanup -a"
 
   - trigger: "s.ck"
     replace: "scoop checkup"
@@ -34,7 +34,7 @@ matches:
     replace: "scoop cache show"
 
   - trigger: "s.ccr"
-    replace: "scoop cache rm *"
+    replace: "scoop cache rm -a"
 
   - trigger: "s.if"
     replace: "scoop info $|$"

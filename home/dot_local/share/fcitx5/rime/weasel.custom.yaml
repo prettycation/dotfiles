@@ -119,6 +119,9 @@ patch:
       vim_mode: true
     Flow.Launcher.exe:
       ascii_mode: true
+    Obsidian.exe:
+      ascii_mode: true
+      vim_mode: true
 
   # style/layout 是样式参数层，使用扁平路径确保配置读取的确定性和性能,不支持嵌套结构
   # ---- 选中配色方案 ----
