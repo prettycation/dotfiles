@@ -1,0 +1,19 @@
+{{- if and (eq .chezmoi.os "windows") (lookPath "nvim") -}}
+{{- $pluginDir := joinPath .chezmoi.sourceDir "dot_config" "nvim" "lua" "plugins" -}}
+# plugins hash: {{ output "powershell.exe" "-NoProfile" "-ExecutionPolicy" "Bypass" "-Command" (printf "$root = %q; if (Test-Path $root) { Get-ChildItem -LiteralPath $root -Recurse -File | Sort-Object FullName | ForEach-Object { $rel = $_.FullName.Substring($root.Length).TrimStart([IO.Path]::DirectorySeparatorChar, [IO.Path]::AltDirectorySeparatorChar).Replace([char]92, '/'); $h = (Get-FileHash -Algorithm SHA256 -LiteralPath $_.FullName).Hash; \"$rel $h\" } | Out-String } else { 'missing' }" $pluginDir) | sha256sum }}
+
+$ErrorActionPreference = "Stop"
+$sw = [System.Diagnostics.Stopwatch]::StartNew()
+
+Write-Host "Generating Neovim compiled plugin specs..." -ForegroundColor Cyan
+
+& nvim --headless '+lua require("utils.plugin_compiler").run()' '+qa'
+
+if ($LASTEXITCODE -ne 0) {
+  exit $LASTEXITCODE
+}
+
+$sw.Stop()
+Write-Host ("Done. elapsed={0:n2}s" -f $sw.Elapsed.TotalSeconds) -ForegroundColor Magenta
+{{- end -}}
+{{/* vim: set ft=ps1.chezmoitmpl: */}}

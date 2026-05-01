@@ -1,0 +1,20 @@
+{{- if and (ne .chezmoi.os "windows") (lookPath "nvim") (lookPath "python3") -}}
+{{- $pluginDir := joinPath .chezmoi.sourceDir "dot_config" "nvim" "lua" "plugins" -}}
+{{- $compilerFile := joinPath .chezmoi.sourceDir "dot_config" "nvim" "lua" "exact_utils" "plugin_compiler.lua" -}}
+#!/usr/bin/env bash
+set -euo pipefail
+
+# plugins hash: {{ output "python3" "-c" (printf "import hashlib, pathlib\nroots = [pathlib.Path(%q)]\nextra = pathlib.Path(%q)\nh = hashlib.sha256()\nfor root in roots:\n    if root.exists():\n        for p in sorted(x for x in root.rglob('*') if x.is_file()):\n            rel = p.relative_to(root).as_posix().encode()\n            h.update(b'plugins/'); h.update(rel); h.update(b'\\0')\n            h.update(hashlib.sha256(p.read_bytes()).digest())\n    else:\n        h.update(b'missing-plugins')\nif extra.exists():\n    h.update(b'compiler\\0')\n    h.update(hashlib.sha256(extra.read_bytes()).digest())\nelse:\n    h.update(b'missing-compiler')\nprint(h.hexdigest())" $pluginDir $compilerFile) | trim }}
+
+start_ts="$(date +%s)"
+
+printf '\033[36mGenerating Neovim compiled plugin specs...\033[0m\n'
+
+nvim --headless +'lua require("exact_utils.plugin_compiler").run()' +qa
+
+end_ts="$(date +%s)"
+elapsed="$((end_ts - start_ts))"
+
+printf '\033[35mDone. elapsed=%ss\033[0m\n' "$elapsed"
+{{- end -}}
+{{/* vim: set ft=sh.chezmoitmpl: */}}

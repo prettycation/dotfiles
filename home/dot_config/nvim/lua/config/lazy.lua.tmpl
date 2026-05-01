@@ -1,3 +1,5 @@
+{{- $compiled := joinPath .chezmoi.homeDir ".config" "nvim" "lua" "plugins" "compiled.lua" -}}
+-- vim: set ft=lua.chezmoitmpl :
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 if not vim.uv.fs_stat(lazypath) then
   local lazyrepo = "https://github.com/folke/lazy.nvim.git"
@@ -23,7 +25,11 @@ require("lazy").setup({
     { import = "lazyvim.plugins.extras.coding.yanky", cond = not vim.g.vscode },
 
     -- import/override with your plugins
+    {{- if stat $compiled }}
+    { import = "plugins.compiled" },
+    {{- else }}
     { import = "plugins.init" },
+    {{- end }}
   },
   defaults = {
     -- By default, only LazyVim plugins will be lazy-loaded. Your custom plugins will load during startup.
