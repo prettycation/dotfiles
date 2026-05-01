@@ -14,11 +14,11 @@ bars:
 
     alignment:
       position: "top" # bar 位置：top 或 bottom
-      center: false # 是否按居中逻辑计算布局；当前使用左右布局，保持 false
+      align: "center" # v2.0.0 用 align 替代旧字段 center；width=100% 时视觉上仍占满屏幕
 
     blur_effect:
       enabled: false # 是否启用 bar 背景模糊
-      acrylic: false # 是否使用 Acrylic 效果
+      # v2.0.0 已移除 acrylic 字段；acrylic: false
       dark_mode: true # 模糊背景是否使用深色模式
       round_corners: false # bar 背景是否使用圆角
       border_color: "None" # 必须是字符串
@@ -39,7 +39,7 @@ bars:
       right: 6 # bar 右侧留白
 
     animation:
-      enabled: false # 是否启用 bar 动画
+      enabled: false # 是否启用 bar 动画; bar 自身动画仍可保留；被移除的是 widget 里的旧 animation 字段
 
     widgets:
       left: # 左侧组件，从左到右排列
@@ -82,7 +82,7 @@ widgets:
     type: "glazewm.workspaces.GlazewmWorkspacesWidget" # GlazeWM 工作区组件
     options:
       offline_label: "GlazeWM OFFLINE" # GlazeWM 未连接时显示的文字
-      hide_empty_workspaces: true # 隐藏空工作区
+      # v2.0.0 已移除 hide_empty_workspaces；如果仍想弱化空工作区，请在 CSS 中调整 .ws-btn.empty。
       hide_if_offline: true # GlazeWM 离线时隐藏该组件
       monitor_exclusive: true # 只显示当前显示器对应的工作区
       enable_scroll_switching: true # 允许鼠标滚轮切换工作区
@@ -96,7 +96,7 @@ widgets:
         hide_label: false # 是否隐藏工作区数字标签
         hide_duplicates: true # 相同应用图标是否去重
         hide_floating: false # 是否隐藏浮动窗口的应用图标
-      animation: false # 禁用工作区切换动画
+      # v2.0.0 已移除 widget 级 animation；动画应放在 CSS transition / animation 中。
 
   active_window:
     type: "yasb.active_window.ActiveWindowWidget" # 活动窗口组件
@@ -252,11 +252,7 @@ widgets:
       callbacks:
         on_left: "toggle_label" # 左键切换显示模式
         on_right: "exec cmd /c Taskmgr" # 右键打开任务管理器
-      container_padding:
-        top: 0 # 组件容器顶部内边距
-        left: 0 # 组件容器左侧内边距
-        bottom: 0 # 组件容器底部内边距
-        right: 0 # 组件容器右侧内边距
+      # v2.0.0 已移除 container_padding；CPU 间距见 styles.css 的 .cpu-widget。
 
   memory:
     type: "yasb.memory.MemoryWidget" # 内存组件
@@ -451,19 +447,11 @@ widgets:
       label_alt: "{count} notifications" # 替代显示英文通知数量
       hide_empty: true # 没有通知时隐藏组件
       tooltip: false # 是否显示 tooltip
-      container_padding:
-        top: 0 # 通知组件内部顶部 padding
-        left: 10 # 通知组件内部左侧 padding
-        bottom: 0 # 通知组件内部底部 padding
-        right: 12 # 通知组件内部右侧 padding
+      # v2.0.0 已移除 container_padding；见 styles.css 的 .notification-widget。
       callbacks:
         on_left: "toggle_notification" # 左键打开/关闭通知中心
         on_right: "toggle_label" # 右键切换 label / label_alt
-      label_shadow:
-        enabled: true # 是否启用文字阴影
-        color: "black" # 阴影颜色
-        radius: 3 # 阴影模糊半径
-        offset: [1, 1] # 阴影偏移 [x, y]
+      # v2.0.0 已移除 label_shadow；见 styles.css 的 .notification-widget。
 
   power_menu:
     type: "yasb.power_menu.PowerMenuWidget" # 电源菜单组件
@@ -504,7 +492,7 @@ widgets:
       label_alt: "<span>󱩎</span>" # 替代状态也只显示图标
       tooltip: false # 不显示 tooltip
       scroll_step: 5 # 鼠标滚轮调整亮度的步进值
-      hide_unsupported: true # 当前设备不支持亮度控制时隐藏
+      # v2.0.0 已移除 hide_unsupported；不支持亮度控制的设备如需隐藏，可以用 chezmoi 条件决定是否加入 center widgets。
       brightness_toggle_level: [25, 50, 75, 100] # 点击循环亮度等级
       brightness_icons:
         - "\udb80\udcde" # 低亮度图标
@@ -541,8 +529,4 @@ widgets:
       bar_width: 4 # 柱状条宽度
       sleep_timer: 0 # 0 表示不休眠；hide_empty 不生效时可改为 2
       hide_empty: true # 无音频时隐藏；官方说明该行为依赖 sleep_timer
-      container_padding:
-        top: 0
-        left: 0
-        bottom: 0
-        right: 0
+      # v2.0.0 已移除 container_padding；Cava 黑臂长度见 styles.css 的 .cava-widget .widget-container。
