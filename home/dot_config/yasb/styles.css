@@ -121,6 +121,10 @@
   font-family: Arial;
   font-size: 14px;
   font-weight: bold;
+  /* YASB v2: config.yaml widgets.glazewm_workspaces.options.animation 已移除；动画需使用 CSS transition。 */
+  transition:
+    background-color 0.18s ease,
+    color 0.18s ease;
 }
 
 .glazewm-workspaces .ws-btn.populated,
@@ -130,6 +134,7 @@
 
 .glazewm-workspaces .ws-btn.empty {
   color: var(--overlay1);
+  /* YASB v2: config.yaml 中 hide_empty_workspaces 已移除；隐藏空工作区就是默认行为 */
 }
 
 /* 聚焦工作区：清理非活动工作区的残余高亮，背景只交给按钮本体 */
@@ -628,7 +633,8 @@
 }
 
 .notification-widget .widget-container {
-  padding: 0 10px;
+  padding: 0 12px 0 10px;
+  /* YASB v2: 迁移自 config.yaml container_padding: top 0 / right 12 / bottom 0 / left 10。 */
   border-radius: 6px;
   background-color: var(--surface0);
 }
@@ -644,6 +650,8 @@
   font-family: Arial;
   font-size: 15px;
   font-weight: bold;
+  text-shadow: 1px 1px 3px black;
+  /* YASB v2: 迁移自 config.yaml label_shadow: offset [1, 1], radius 3, color black。 */
 }
 
 /* ==============================================================================
