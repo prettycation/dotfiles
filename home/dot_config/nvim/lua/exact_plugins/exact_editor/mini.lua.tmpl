@@ -1,0 +1,26 @@
+{{- $hasCode := lookPath "code" -}}
+
+{{- $cond := "" -}}
+
+{{- if $hasCode }}
+{{- $cond = "-- 在 vscode 中加载\n\t\tcond = true,\n\t\t"}}
+{{- end }}
+return {
+  {
+    "nvim-mini/mini.pairs",
+    optional = true,
+    {{ $cond -}}
+    event = function()
+      return { "InsertEnter" }
+    end,
+  },
+  {
+    "nvim-mini/mini.ai",
+    optional = true,
+    {{ $cond -}}
+    event = function()
+      return { "User FileReady" }
+    end,
+  },
+}
+{{/* vim: set filetype=lua.chezmoitmpl: */}}
