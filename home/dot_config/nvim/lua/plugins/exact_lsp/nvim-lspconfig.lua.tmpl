@@ -2,6 +2,7 @@
 {{- $hasTinymist := lookPath "tinymist" -}}
 {{- $hasTypstyle := lookPath "typstyle" -}}
 {{- $hasRimeLs := lookPath "rime-ls" -}}
+{{- $hasTaplo := lookPath "taplo" -}}
 
 return {
   {
@@ -166,6 +167,17 @@ return {
         -- paging_characters = { ",", ".", "-", "=" },
       },
     }
+    {{- end }}
+
+    {{- if $hasTaplo }}
+    -- Taplo
+
+    -- 系统里已有 taplo 时，不让 mason-lspconfig 安装 taplo。
+    -- LazyVim 的 TOML extra 会设置 opts.servers.taplo = {}，
+    -- 这里在最终 opts 上覆盖 mason=false 和 cmd。
+    opts.servers.taplo = vim.tbl_deep_extend("force", opts.servers.taplo or {}, {
+      mason = false,
+    })
     {{- end }}
     end,
   },

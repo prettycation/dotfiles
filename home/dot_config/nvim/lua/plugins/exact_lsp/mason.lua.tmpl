@@ -1,0 +1,24 @@
+{{- $hasStylua := lookPath "stylua" -}}
+
+{{- if $hasStylua }}
+return {
+  {
+    "mason-org/mason.nvim",
+    optional = true,
+    opts = function(_, opts)
+      opts.ensure_installed = opts.ensure_installed or {}
+
+      -- {{- if $hasStylua }}
+      -- 系统里已有 stylua 时，移除 LazyVim mason.nvim 默认 ensure_installed 里的 stylua。
+      opts.ensure_installed = vim.tbl_filter(function(name)
+        return name ~= "stylua"
+      end, opts.ensure_installed)
+      -- {{- end }}
+
+      -- 系统 PATH 优先，Mason bin 作为补充。
+      opts.PATH = "append"
+    end,
+  },
+}
+{{- end }}
+{{/* vim: set ft=lua.chezmoitemplate: */}}
