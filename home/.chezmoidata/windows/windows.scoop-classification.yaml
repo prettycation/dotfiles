@@ -340,6 +340,7 @@ scoopClassification:
         main:
           - fastfetch
           - fzf
+          - btop
         abyss:
           - chrisant996.Clink
           - Clement.bottom

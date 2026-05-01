@@ -1,0 +1,330 @@
+{{- $isWindows := eq .chezmoi.os "windows" -}}
+
+{{- if $isWindows -}}
+#? Config file for btop4win v. 1.0.5
+{{- else -}}
+#? Config file for btop v. 1.4.5
+{{- end }}
+
+# 使用的主题名称。
+# Linux 用户主题通常放在 ~/.config/btop/themes。
+# Windows 主题文件应放在 btop4win.exe 同目录的 themes 文件夹中。
+color_theme = "catppuccin_mocha"
+
+# 是否显示主题背景；如果想使用终端透明背景，请关闭。
+theme_background = {{ if $isWindows }}True{{ else }}true{{ end }}
+
+# 是否使用 24-bit 真彩色；关闭时会转换为 256 色。
+truecolor = {{ if $isWindows }}True{{ else }}true{{ end }}
+
+# 是否强制 TTY 模式；会强制使用 16 色、TTY 主题和兼容字符。
+force_tty = {{ if $isWindows }}False{{ else }}false{{ end }}
+
+# 布局预设。Preset 0 始终表示显示全部区域。最多支持 9 个预设。
+# 格式："box_name:P:G,box_name:P:G"
+# P 表示位置变体，0 或 1；G 表示该区域使用的图形符号。
+# 多个预设之间使用空格分隔。
+presets = "cpu:1:default,proc:0:default cpu:0:default,mem:0:default,net:0:default cpu:0:block,net:0:tty"
+
+# 启用 Vim 键位：h/j/k/l/g/G。
+# 开启后，原来的 h 帮助改为 H，原来的 k 结束进程改为 K。
+vim_keys = {{ if $isWindows }}True{{ else }}true{{ end }}
+
+{{- if $isWindows }}
+
+# 启用 Libre Hardware Monitor，用于 CPU 温度、准确 CPU 频率和 GPU 监控。
+# 需要将相关 DLL 放在 btop4win.exe 同目录；通常需要管理员权限。
+enable_ohmr = True
+
+# 是否在 CPU 和内存区域中显示 GPU 状态。
+show_gpu = True
+
+# 多 GPU 时显示哪一个；Auto 表示自动选择。
+selected_gpu = "Auto"
+
+# 手动覆盖 GPU 总显存，单位 MiB；0 表示不覆盖。
+gpu_mem_override = 0
+
+{{- end }}
+
+# 是否使用圆角边框；TTY 模式下会被忽略。
+rounded_corners = {{ if $isWindows }}False{{ else }}true{{ end }}
+
+{{- if not $isWindows }}
+
+# 使用终端同步输出序列以减少闪烁；需要终端支持。
+terminal_sync = true
+
+{{- end }}
+
+# 默认图形符号：braille、block 或 tty。
+# braille 分辨率最高，block 更通用，tty 兼容性最好。
+# Windows 终端兼容性优先时使用 tty；Linux 默认使用 braille。
+graph_symbol = "{{ if $isWindows }}tty{{ else }}braille{{ end }}"
+
+# CPU 区域图形符号；default 表示跟随 graph_symbol。
+graph_symbol_cpu = "default"
+
+# 内存区域图形符号；default 表示跟随 graph_symbol。
+graph_symbol_mem = "default"
+
+# 网络区域图形符号；default 表示跟随 graph_symbol。
+graph_symbol_net = "default"
+
+# 进程区域图形符号；default 表示跟随 graph_symbol。
+graph_symbol_proc = "default"
+
+# 手动指定显示哪些区域。
+# Linux 可用值：cpu mem net proc，以及 gpu0 到 gpu5。
+# Windows 可用值：cpu mem net proc。
+shown_boxes = "cpu mem net proc"
+
+# 刷新间隔，单位毫秒。
+# Windows 沿用原配置 1500ms；Linux 使用官方默认 2000ms。
+update_ms = {{ if $isWindows }}1500{{ else }}2000{{ end }}
+
+# 进程排序方式。
+# 可用值："pid" "program" "arguments" "threads" "user" "memory" "cpu lazy" "cpu direct"
+# "cpu lazy" 更容易跟踪顶部进程；"cpu direct" 会直接按当前 CPU 占用排序。
+proc_sorting = "cpu lazy"
+
+{{- if $isWindows }}
+
+# 是否在进程区域显示 Windows 服务，而不是普通进程。
+proc_services = False
+
+# Windows 服务排序方式。
+# 可用值："service" "caption" "status" "memory" "cpu lazy" "cpu direct"
+services_sorting = "cpu lazy"
+
+{{- end }}
+
+# 是否反向排序。
+proc_reversed = {{ if $isWindows }}False{{ else }}false{{ end }}
+
+# 是否以树形结构显示进程。
+proc_tree = {{ if $isWindows }}True{{ else }}true{{ end }}
+
+# 是否在进程列表中使用 CPU 图形颜色。
+proc_colors = {{ if $isWindows }}True{{ else }}true{{ end }}
+
+# 是否在进程列表中使用暗色渐变。
+proc_gradient = {{ if $isWindows }}True{{ else }}true{{ end }}
+
+# 进程 CPU 占用是否按其所在核心计算；关闭表示按总 CPU 能力计算。
+proc_per_core = {{ if $isWindows }}False{{ else }}false{{ end }}
+
+# 是否以字节显示进程内存，而不是百分比。
+proc_mem_bytes = {{ if $isWindows }}True{{ else }}true{{ end }}
+
+{{- if not $isWindows }}
+
+# 是否为每个进程显示 CPU 小图。
+proc_cpu_graphs = true
+
+# 进程详情是否使用 /proc/[pid]/smaps 获取更精确内存信息。
+# 该方式较慢，但更准确。
+proc_info_smaps = false
+
+{{- end }}
+
+# 是否将进程区域显示在屏幕左侧。
+proc_left = {{ if $isWindows }}False{{ else }}false{{ end }}
+
+{{- if not $isWindows }}
+
+# 是否过滤 Linux 内核线程，行为类似 htop。
+proc_filter_kernel = false
+
+# 打开进程详情时，进程列表是否跟随当前选中的进程。
+proc_follow_detailed = true
+
+# 树形视图中是否始终把子进程资源累计到父进程。
+proc_aggregate = false
+
+# 暂停时是否保留已退出进程的 CPU 和内存用量。
+keep_dead_proc_usage = false
+
+{{- end }}
+
+# CPU 图上半部分显示的指标。
+# Windows 使用 total；Linux 使用 Auto。
+cpu_graph_upper = "{{ if $isWindows }}total{{ else }}Auto{{ end }}"
+
+# CPU 图下半部分显示的指标。
+# Windows 显示 gpu；Linux 使用 Auto。
+cpu_graph_lower = "{{ if $isWindows }}gpu{{ else }}Auto{{ end }}"
+
+# 是否反转 CPU 图下半部分。
+cpu_invert_lower = {{ if $isWindows }}True{{ else }}true{{ end }}
+
+# 是否完全禁用 CPU 图下半部分。
+cpu_single_graph = {{ if $isWindows }}False{{ else }}false{{ end }}
+
+# 是否将 CPU 区域显示在屏幕底部。
+cpu_bottom = {{ if $isWindows }}False{{ else }}false{{ end }}
+
+{{- if $isWindows }}
+
+# 是否使用全宽 CPU 区域。
+cpu_wide = True
+
+{{- end }}
+
+# 是否在 CPU 区域显示系统运行时间。
+show_uptime = {{ if $isWindows }}True{{ else }}true{{ end }}
+
+{{- if not $isWindows }}
+
+# 是否显示 CPU 当前功耗，单位瓦特。
+# 可能需要 make setcap、make setuid 或 sudo。
+show_cpu_watts = true
+
+{{- end }}
+
+# 是否显示 CPU 温度。
+check_temp = {{ if $isWindows }}True{{ else }}true{{ end }}
+
+# CPU 温度传感器。
+# Windows 留空表示通过选项菜单选择或自动处理；Linux 使用 Auto。
+cpu_sensor = {{ if $isWindows }}{{ else }}"Auto"{{ end }}
+
+# 如果 check_temp 开启且找到传感器，是否显示每个核心的温度。
+show_coretemp = {{ if $isWindows }}True{{ else }}true{{ end }}
+
+{{- if not $isWindows }}
+
+# 自定义 CPU 核心与温度传感器映射；某些 CPU 可能需要。
+cpu_core_map = ""
+
+{{- end }}
+
+# 温度单位，可用值："celsius" "fahrenheit" "kelvin" "rankine"。
+temp_scale = "celsius"
+
+# 容量单位是否使用 10 进制；关闭表示使用 KiB=1024。
+base_10_sizes = {{ if $isWindows }}False{{ else }}false{{ end }}
+
+{{- if not $isWindows }}
+
+# 是否显示 CPU 频率。
+show_cpu_freq = true
+
+# CPU 频率计算方式，可用值："first" "range" "lowest" "highest" "average"。
+freq_mode = "first"
+
+{{- end }}
+
+# 屏幕顶部时钟格式，遵循 strftime；空字符串表示关闭。
+# 特殊格式：/host = 主机名，/user = 用户名，/uptime = 系统运行时间。
+clock_format = "%X"
+
+# 打开菜单时是否继续在后台刷新主界面。
+# 如果菜单闪烁明显，可关闭。
+background_update = {{ if $isWindows }}True{{ else }}true{{ end }}
+
+# 自定义 CPU 型号名称；空字符串表示关闭。
+custom_cpu_name = ""
+
+# 磁盘过滤器，应填写完整挂载点路径；多个值用空格分隔。
+# Linux：仅显示匹配过滤器的磁盘；以 exclude= 开头表示只显示不匹配的磁盘。
+# Windows：以 exclude= 开头表示排除过滤，否则表示仅包含匹配项。
+disks_filter = ""
+
+# 内存区域是否用图形代替仪表。
+mem_graphs = {{ if $isWindows }}True{{ else }}true{{ end }}
+
+# 是否将内存区域显示在网络区域下方。
+mem_below_net = {{ if $isWindows }}False{{ else }}false{{ end }}
+
+{{- if $isWindows }}
+
+# 是否在内存区域显示页面内存。
+show_page = True
+
+{{- else }}
+
+# 是否把 ZFS ARC 计入 cached 和 available 内存。
+zfs_arc_cached = true
+
+# 是否在内存区域显示 swap。
+show_swap = true
+
+# 是否将 swap 显示为磁盘；会忽略上面的 show_swap，并插入到第一个磁盘后。
+swap_disk = true
+
+{{- end }}
+
+# 是否分割内存区域并显示磁盘信息。
+show_disks = {{ if $isWindows }}True{{ else }}true{{ end }}
+
+# 是否只显示物理磁盘；关闭会包含网络磁盘、RAM 磁盘等。
+only_physical = {{ if $isWindows }}True{{ else }}true{{ end }}
+
+{{- if not $isWindows }}
+
+# 是否从 /etc/fstab 读取磁盘列表；这会禁用 only_physical。
+use_fstab = true
+
+# 是否隐藏所有 ZFS datasets，只显示 ZFS pools。
+zfs_hide_datasets = false
+
+{{- end }}
+
+# 是否为特权用户显示可用磁盘空间。
+disk_free_priv = {{ if $isWindows }}False{{ else }}false{{ end }}
+
+# 是否在常规磁盘视图中显示 IO 活跃度百分比。
+show_io_stat = {{ if $isWindows }}True{{ else }}true{{ end }}
+
+# 是否启用磁盘 IO 模式，显示更大的读写速度图。
+io_mode = {{ if $isWindows }}False{{ else }}false{{ end }}
+
+# IO 模式下是否合并读写图。
+io_graph_combined = {{ if $isWindows }}False{{ else }}false{{ end }}
+
+# 设置 IO 图速度上限，单位 MiB/s。
+# Windows 格式示例："C:\100 D:\20 G:\1"。
+# Linux 格式示例："/:100 /home:50"。
+io_graph_speeds = ""
+
+# 网络下载图固定上限，单位 Mebibits；仅当 net_auto 关闭时生效。
+net_download = 100
+
+# 网络上传图固定上限，单位 Mebibits；仅当 net_auto 关闭时生效。
+net_upload = 100
+
+# 是否启用网络图自动缩放；会忽略上面的固定值。
+net_auto = {{ if $isWindows }}True{{ else }}true{{ end }}
+
+# 是否同步下载和上传的自动缩放比例，以当前较高者为准。
+# Windows 沿用原配置关闭；Linux 沿用官方默认开启。
+net_sync = {{ if $isWindows }}False{{ else }}true{{ end }}
+
+# 启动时使用的网络接口；空字符串表示自动。
+net_iface = ""
+
+{{- if not $isWindows }}
+
+# 比特率是否使用 10 进制。
+# true 表示 Kbps/Mbps；false 表示 Kibps/Mibps；Auto 表示跟随 base_10_sizes。
+base_10_bitrate = "Auto"
+
+{{- end }}
+
+# 如果存在电池，是否在右上角显示电池信息。
+show_battery = {{ if $isWindows }}True{{ else }}true{{ end }}
+
+{{- if not $isWindows }}
+
+# 多电池时选择哪一个；Auto 表示自动选择。
+selected_battery = "Auto"
+
+# 是否在电量旁边显示电池功率。
+show_battery_watts = true
+
+{{- end }}
+
+# 日志等级，可用值："ERROR" "WARNING" "INFO" "DEBUG"。
+# 设置的等级会包含更严重的等级，例如 DEBUG 会显示全部日志。
+log_level = "WARNING"

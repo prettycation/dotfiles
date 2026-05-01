@@ -270,7 +270,6 @@
           "pandoc",
           "ffmpeg",
           "resvg",
-          "chafa",
           "trashy"
         ]
       },
@@ -291,10 +290,6 @@
           },
           "resvg": {
             "notes": "yazi 依赖"
-          },
-          "chafa": {
-            "selection": "optional",
-            "notes": "ASCII art"
           },
           "trashy": {
             "notes": "yazi 插件依赖"
@@ -319,7 +314,8 @@
         ],
         "main": [
           "fastfetch",
-          "fzf"
+          "fzf",
+          "btop"
         ]
       },
       "packageOptions": {

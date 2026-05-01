@@ -15,7 +15,13 @@ scoop:
       #   - "*.log"           # 排除所有以 .log 结尾的文件
       #   - "cache/*"         # 排除 cache 目录下的所有文件
       #   - "temp_config.lua" # 排除特定文件名的文件
-      # target_encoding: utf-8/utf8(默认)/utf16/utf-16/utf16le/utf-16le/ansi/gbk/cp936 # 目标文件的字符编码, 源文件必须为 tmpl 才能生效
+      # target_encoding: utf-8/utf8(默认)/utf-8-bom/utf8-bom/utf16/utf-16/utf16le/utf-16le/ansi/gbk/cp936 # 目标文件的字符编码, 源文件必须为 tmpl 才能生效
+
+    - name: "btop"
+      scoop_app: "btop"
+      source_base: "dot_config/btop"
+      current_path: ""
+      ignore_path: ".config/btop"
 
     - name: "diny"
       scoop_app: "dinoDanic.diny"
