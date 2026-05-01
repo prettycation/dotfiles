@@ -853,9 +853,6 @@
   border-bottom: 1px solid var(--surface1);
   border-radius: 6px;
   background-color: var(--surface0);
-}
-
-.wifi-menu .header .title {
   color: var(--mauve);
   font-size: 16px;
   font-weight: bold;
@@ -873,16 +870,18 @@
 }
 
 .wifi-menu .wifi-list {
-  min-height: 230px; /* 给 WiFi 列表足够高度 */
   margin: 4px 0;
   padding: 4px;
   border-radius: 8px;
   background-color: var(--base);
 }
 
+/* 不能只让 active 项变高，否则 active 的边框和按钮会覆盖后续网络。
+   所有条目统一预留 controls-container 的高度。 */
 .wifi-menu .wifi-item {
-  min-height: 38px;
-  margin: 4px 0;
+  min-height: 78px;
+  max-height: 78px;
+  margin: 3px 0;
   padding: 6px 10px;
   border: 1px solid transparent;
   border-radius: 8px;
@@ -894,18 +893,33 @@
   border: 1px solid var(--surface1);
 }
 
+.wifi-menu .wifi-item[active="true"],
 .wifi-menu .wifi-item[active="true"] {
-  min-height: 64px;
+  min-height: 78px;
+  max-height: 78px;
   background-color: var(--surface0);
   border: 1px solid var(--blue);
 }
 
-/* WiFi 菜单里的锁/信号图标来自 Segoe Fluent Icons，不要用 Nerd Font */
+/* ：源码里存在 details-container / right-container，
+   虽然文档没有列出，但它们是 v2.0.0 WiFiItem 的实际结构。 */
+.wifi-menu .wifi-item .details-container {
+  min-height: 32px;
+  max-height: 32px;
+}
+
+.wifi-menu .wifi-item .controls-container {
+  min-height: 34px;
+  max-height: 34px;
+  padding-top: 8px;
+}
+
 .wifi-menu .wifi-item .icon {
   color: var(--blue);
   font-family: "Segoe Fluent Icons", "Segoe MDL2 Assets", "Segoe UI Symbol";
   font-size: 22px;
-  min-width: 28px;
+  min-width: 30px;
+  max-width: 30px;
   margin-right: 10px;
 }
 
@@ -914,7 +928,14 @@
   font-family: "Segoe UI", "Microsoft YaHei UI", sans-serif;
   font-size: 14px;
   font-weight: 600;
-  margin-right: 10px;
+  min-width: 0;
+  max-width: 280px;
+  margin-right: 12px;
+}
+
+.wifi-menu .wifi-item .right-container {
+  min-width: 135px;
+  max-width: 135px;
 }
 
 .wifi-menu .wifi-item .status {
@@ -922,16 +943,16 @@
   font-family: "Segoe UI", "Microsoft YaHei UI", sans-serif;
   font-size: 12px;
   font-weight: bold;
+  min-width: 135px;
+  max-width: 135px;
 }
 
 .wifi-menu .wifi-item .strength {
   color: var(--subtext0);
   font-family: "Segoe UI", "Microsoft YaHei UI", sans-serif;
   font-size: 12px;
-}
-
-.wifi-menu .wifi-item .controls-container {
-  padding-top: 8px;
+  min-width: 135px;
+  max-width: 135px;
 }
 
 .wifi-menu .wifi-item .password {
@@ -940,6 +961,7 @@
   border: 1px solid var(--surface1);
   border-radius: 6px;
   padding: 4px 8px;
+  min-width: 150px;
   font-family: "Segoe UI", "Microsoft YaHei UI", sans-serif;
   font-size: 13px;
 }
@@ -949,6 +971,8 @@
   background-color: var(--blue);
   border-radius: 6px;
   padding: 4px 20px;
+  min-width: 96px;
+  min-height: 26px;
   font-family: "Segoe UI", "Microsoft YaHei UI", sans-serif;
   font-size: 12px;
   font-weight: bold;

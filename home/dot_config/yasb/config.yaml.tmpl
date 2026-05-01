@@ -484,6 +484,22 @@ widgets:
         on_left: "toggle_menu" # 左键打开 WiFi 菜单
         on_middle: "exec cmd.exe /c start ms-settings:network" # 中键打开网络设置
         on_right: "do_nothing" # 右键不切换文字，保持只显示图标
+      menu_config:
+        blur: true # 是否启用弹窗背景模糊效果
+        round_corners: true # 是否启用弹窗圆角
+        round_corners_type: "normal" # 圆角类型；normal 表示使用标准圆角
+        border_color: "System" # 弹窗边框颜色；System 表示跟随系统主题
+
+        # 弹窗水平对齐方式。
+        # center 表示以 WiFi widget 的中心作为弹窗锚点，
+        alignment: "center"
+
+        # 弹窗展开方向。
+        direction: "down"
+
+        # 弹窗与状态栏之间的垂直间距。
+        # 数值越大，弹窗离状态栏越远。
+        offset_top: 6
 
   brightness:
     type: "yasb.brightness.BrightnessWidget" # 亮度组件；放在中心左黑臂，只显示图标
