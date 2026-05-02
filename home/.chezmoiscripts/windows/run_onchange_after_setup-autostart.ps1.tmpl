@@ -1,0 +1,764 @@
+{{- if eq .chezmoi.os "windows" -}}
+param(
+    [switch]$ElevatedChild,
+    [string]$TargetUser,
+    [string]$TargetProfilePath,
+    [string]$LogPath
+)
+
+$ErrorActionPreference = "Stop"
+
+<#
+.SYNOPSIS
+Universal Startup Task Manager - 一个声明式的 Windows 任务计划管理脚本。
+
+.DESCRIPTION
+此脚本通过读取一个简单的 PowerShell 列表 ($Tasks)，自动在 Windows 任务计划程序中
+创建、更新或同步所有指定的开机自启动任务。
+它能够为每个任务独立配置是否需要免UAC的管理员权限，并包含了多项健壮性检查。
+
+.NOTES
+Requires: PowerShell with Administrator privileges.
+
+.USAGE
+由 chezmoi apply 自动运行。
+
+此脚本是 run_onchange_after_ 脚本：
+- after: 等 Documents/Scripts 下的普通文件同步完成后再注册任务；
+- onchange: 仅当本脚本内容或下方受控脚本 hash 变化后才重新注册任务。
+
+普通非管理员 chezmoi apply 时：
+- 父进程先清空本次主日志；
+- 父进程会生成一个临时 elevated wrapper；
+- 通过 UAC 拉起管理员 PowerShell；
+- 父进程会把 chezmoi 临时脚本复制成 UTF-8 BOM 版本，避免 Windows PowerShell 5.1 解析中文时炸 parser；
+- wrapper 再执行这个 UTF-8 BOM child script；
+- wrapper 捕获 child 的 stdout/stderr 到临时文件；
+- child 退出后，wrapper 再把临时日志合并进主日志；
+- wrapper/child 临时文件会在运行结束后清理。
+
+.LOGGING
+日志文件会写入 XDG state 目录：
+
+  $XDG_STATE_HOME\chezmoi\logs\setup-autostart.log
+
+如果未设置 XDG_STATE_HOME，则回退到：
+
+  $HOME\.local\state\chezmoi\logs\setup-autostart.log
+
+每次脚本运行开始时会先清空上一次的 setup-autostart.log，
+因此该日志只保留最近一次 autostart 同步过程。
+
+临时 wrapper / child 文件会写入 XDG runtime/cache 目录：
+
+  $XDG_RUNTIME_DIR\chezmoi\
+
+如果未设置 XDG_RUNTIME_DIR，则回退到：
+
+  $XDG_CACHE_HOME\chezmoi\tmp\
+
+如果未设置 XDG_CACHE_HOME，则最终回退到：
+
+  $HOME\.cache\chezmoi\tmp\
+
+wrapper / child 临时文件会在本次运行结束后自动清理。
+#>
+
+# ==================================================================================
+# --- [onchange 触发区：受控脚本内容 hash] ---
+# ==================================================================================
+# 对 startup.ps1.tmpl 使用 includeTemplate，而不是 include：
+# - include: 读取模板源文件内容；
+# - includeTemplate: 读取模板渲染后的结果。
+# startup.ps1.tmpl 使用 lookPath，所以这里必须 hash 渲染结果。
+
+# Documents/Scripts/NuisanceWindow-manager.ps1 sha256: {{ include "Documents/Scripts/NuisanceWindow-manager.ps1" | sha256sum }}
+# Documents/Scripts/startup-admin.ps1 sha256: {{ include "Documents/Scripts/startup-admin.ps1" | sha256sum }}
+# Documents/Scripts/startup.ps1.tmpl rendered sha256: {{ includeTemplate "Documents/Scripts/startup.ps1" | sha256sum }}
+
+# ==================================================================================
+# --- [配置区域 (Your Configuration Area)] ---
+# ==================================================================================
+# 在这里定义开机自启的任务。
+
+# 格式 (Format):
+# @{
+#   Name        = "任务的唯一名称 (会显示在任务计划程序里)"
+#   Script      = "Documents\Scripts 下的 PowerShell 脚本文件名"
+#   Admin       = $true   # 如果需要免UAC的管理员权限
+#               = $false  # 如果只需要普通用户权限
+#   Interactive = $true   # (可选) 是否仅在用户已登录的交互式会话中运行（会加 /IT）
+#               = $false  # 适合纯后台任务
+#   Hidden      = $true   # (可选) 使用 -WindowStyle Hidden
+#   Delay       = "0000:30" # (可选) 登录后延迟多久再启动，格式为 mmmm:ss
+#   Enabled     = $true   # (可选) 设置为 $false 可以暂时禁用这个任务的创建
+# }
+
+$Tasks = @(
+    @{
+        Name        = "Startup - Nuisance Window Manager (Admin)"
+        Script      = "NuisanceWindow-manager.ps1"
+        Admin       = $true
+        Interactive = $true
+        Hidden      = $false
+        Enabled     = $true
+    },
+    @{
+        Name        = "Startup - Desktop Environment (Apps)"
+        Script      = "startup.ps1"
+        Admin       = $false
+        Interactive = $true
+        Hidden      = $false
+        Enabled     = $true
+    },
+    @{
+        Name        = "Startup-admin - Desktop Environment (Apps)"
+        Script      = "startup-admin.ps1"
+        Admin       = $true
+        Interactive = $true
+        Hidden      = $true
+        Delay       = "0000:30"
+        Enabled     = $true
+    }
+
+    # 〖示例〗如果要添加一个新的普通任务:
+    # ,@{
+    #     Name        = "Startup - My New App"
+    #     Script      = "my-new-app.ps1"
+    #     Admin       = $false
+    #     Interactive = $true
+    #     Hidden      = $false
+    #     Delay       = "0000:05"
+    #     Enabled     = $true
+    # }
+)
+
+# ==================================================================================
+# --- [基础工具函数 (Utility Functions)] ---
+# ==================================================================================
+
+function Test-IsAdministrator {
+    # 1. 权限检查 (Administrator Check)
+    # 确保脚本是以管理员身份运行的，否则无法创建任务计划。
+    $identity = [System.Security.Principal.WindowsIdentity]::GetCurrent()
+    $principal = [System.Security.Principal.WindowsPrincipal]::new($identity)
+
+    return $principal.IsInRole([System.Security.Principal.WindowsBuiltInRole]::Administrator)
+}
+
+function Get-CurrentUserName {
+    # 2. 获取当前用户信息 (Get Current User)
+    # 使用 .NET 类，这是最可靠的方法，兼容直接运行和通过 sudo/gsudo 运行的场景。
+    return [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
+}
+
+function Test-IsAbsolutePath {
+    param(
+        [string]$Path
+    )
+
+    if ([string]::IsNullOrWhiteSpace($Path)) {
+        return $false
+    }
+
+    return [System.IO.Path]::IsPathRooted($Path)
+}
+
+function Get-TargetProfilePath {
+    if (-not [string]::IsNullOrWhiteSpace($TargetProfilePath)) {
+        return $TargetProfilePath
+    }
+
+    if (-not [string]::IsNullOrWhiteSpace($env:USERPROFILE)) {
+        return $env:USERPROFILE
+    }
+
+    return $HOME
+}
+
+function Get-XdgStateHome {
+    param(
+        [Parameter(Mandatory)]
+        [string]$ProfilePath
+    )
+
+    if (Test-IsAbsolutePath -Path $env:XDG_STATE_HOME) {
+        return $env:XDG_STATE_HOME
+    }
+
+    return Join-Path $ProfilePath ".local\state"
+}
+
+function Get-XdgCacheHome {
+    param(
+        [Parameter(Mandatory)]
+        [string]$ProfilePath
+    )
+
+    if (Test-IsAbsolutePath -Path $env:XDG_CACHE_HOME) {
+        return $env:XDG_CACHE_HOME
+    }
+
+    return Join-Path $ProfilePath ".cache"
+}
+
+function Get-ChezmoiLogRoot {
+    $profilePath = Get-TargetProfilePath
+    $stateHome = Get-XdgStateHome -ProfilePath $profilePath
+
+    return Join-Path $stateHome "chezmoi\logs"
+}
+
+function Get-ChezmoiTempRoot {
+    $profilePath = Get-TargetProfilePath
+
+    if (Test-IsAbsolutePath -Path $env:XDG_RUNTIME_DIR) {
+        $root = Join-Path $env:XDG_RUNTIME_DIR "chezmoi"
+    } else {
+        $cacheHome = Get-XdgCacheHome -ProfilePath $profilePath
+        $root = Join-Path $cacheHome "chezmoi\tmp"
+    }
+
+    if (-not (Test-Path $root -PathType Container)) {
+        New-Item -Path $root -ItemType Directory -Force | Out-Null
+    }
+
+    return $root
+}
+
+function Initialize-LogPath {
+    param(
+        [string]$Path,
+        [switch]$Clear
+    )
+
+    if ([string]::IsNullOrWhiteSpace($Path)) {
+        $root = Get-ChezmoiLogRoot
+        $Path = Join-Path $root "setup-autostart.log"
+    } else {
+        $root = Split-Path -Parent $Path
+    }
+
+    if (-not (Test-Path $root -PathType Container)) {
+        New-Item -Path $root -ItemType Directory -Force | Out-Null
+    }
+
+    if ($Clear) {
+        if (Test-Path $Path -PathType Leaf) {
+            Clear-Content -LiteralPath $Path -ErrorAction SilentlyContinue
+        } else {
+            New-Item -Path $Path -ItemType File -Force | Out-Null
+        }
+    }
+
+    return $Path
+}
+
+function ConvertTo-PSLiteral {
+    param(
+        [Parameter(Mandatory)]
+        [AllowEmptyString()]
+        [string]$Value
+    )
+
+    return "'" + $Value.Replace("'", "''") + "'"
+}
+
+function Write-LogLine {
+    param(
+        [Parameter(Mandatory)]
+        [string]$Path,
+
+        [Parameter(Mandatory)]
+        [string]$Message
+    )
+
+    "[{0}] {1}" -f (Get-Date -Format o), $Message |
+        Out-File -FilePath $Path -Append -Encoding utf8
+}
+
+function Remove-GeneratedFile {
+    param(
+        [string[]]$Path
+    )
+
+    foreach ($item in $Path) {
+        if ([string]::IsNullOrWhiteSpace($item)) {
+            continue
+        }
+
+        Remove-Item -LiteralPath $item -Force -ErrorAction SilentlyContinue
+    }
+}
+
+function Remove-OldGeneratedFiles {
+    param(
+        [Parameter(Mandatory)]
+        [string]$Root,
+
+        [int]$OlderThanDays = 7
+    )
+
+    if (-not (Test-Path $Root -PathType Container)) {
+        return
+    }
+
+    $cutoff = (Get-Date).AddDays(-$OlderThanDays)
+
+    Get-ChildItem -Path $Root -Filter "chezmoi-setup-autostart-*" -File -ErrorAction SilentlyContinue |
+        Where-Object { $_.LastWriteTime -lt $cutoff } |
+        Remove-Item -Force -ErrorAction SilentlyContinue
+}
+
+# ==================================================================================
+# --- [非管理员自动提权 (UAC Elevation)] ---
+# ==================================================================================
+
+if (-not (Test-IsAdministrator)) {
+    $targetUser = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
+    $targetProfile = Get-TargetProfilePath
+    $logPath = Initialize-LogPath -Path $LogPath -Clear
+    $tempRoot = Get-ChezmoiTempRoot
+
+    Remove-OldGeneratedFiles -Root $tempRoot -OlderThanDays 7
+
+    Write-LogLine -Path $logPath -Message "=== setup-autostart parent started ==="
+    Write-LogLine -Path $logPath -Message "parent identity: $targetUser"
+    Write-LogLine -Path $logPath -Message "target profile: $targetProfile"
+    Write-LogLine -Path $logPath -Message "script path: $PSCommandPath"
+    Write-LogLine -Path $logPath -Message "temp root: $tempRoot"
+
+    Write-Warning "当前不是管理员权限，正在请求 UAC 提权以创建/更新计划任务..."
+    Write-Warning "日志路径: $logPath"
+
+    if ([string]::IsNullOrWhiteSpace($PSCommandPath) -or -not (Test-Path $PSCommandPath -PathType Leaf)) {
+        Write-LogLine -Path $logPath -Message "ERROR: PSCommandPath is empty or missing."
+        Write-Warning "无法定位当前脚本路径，计划任务同步失败。"
+        exit 1
+    }
+
+    $id = [guid]::NewGuid().ToString("N")
+    $wrapperPath = Join-Path $tempRoot "chezmoi-setup-autostart-elevated-$id.ps1"
+    $childScriptPath = Join-Path $tempRoot "chezmoi-setup-autostart-child-$id.ps1"
+    $childStdoutPath = Join-Path $tempRoot "chezmoi-setup-autostart-child-$id.stdout.log"
+    $childStderrPath = Join-Path $tempRoot "chezmoi-setup-autostart-child-$id.stderr.log"
+
+    # chezmoi 生成的临时脚本可能是 UTF-8 without BOM。
+    # Windows PowerShell 5.1 重新读取时可能按 ANSI 解析，从而把中文字符串/注释读坏。
+    # 因此复制一份 UTF-8 BOM 版本给 elevated child 执行。
+    $scriptText = [System.IO.File]::ReadAllText($PSCommandPath, [System.Text.Encoding]::UTF8)
+    $utf8Bom = [System.Text.UTF8Encoding]::new($true)
+    [System.IO.File]::WriteAllText($childScriptPath, $scriptText, $utf8Bom)
+
+    $scriptPathLiteral = ConvertTo-PSLiteral -Value $childScriptPath
+    $targetUserLiteral = ConvertTo-PSLiteral -Value $targetUser
+    $targetProfileLiteral = ConvertTo-PSLiteral -Value $targetProfile
+    $mainLogPathLiteral = ConvertTo-PSLiteral -Value $logPath
+    $childStdoutLiteral = ConvertTo-PSLiteral -Value $childStdoutPath
+    $childStderrLiteral = ConvertTo-PSLiteral -Value $childStderrPath
+
+    $wrapper = @(
+        '$ErrorActionPreference = "Stop"'
+        '$scriptPath = ' + $scriptPathLiteral
+        '$targetUser = ' + $targetUserLiteral
+        '$targetProfile = ' + $targetProfileLiteral
+        '$mainLogPath = ' + $mainLogPathLiteral
+        '$childStdoutPath = ' + $childStdoutLiteral
+        '$childStderrPath = ' + $childStderrLiteral
+        '$script:ExitCode = 1'
+        ''
+        'function Write-LogLine {'
+        '    param('
+        '        [Parameter(Mandatory)]'
+        '        [string]$Path,'
+        '        [Parameter(Mandatory)]'
+        '        [string]$Message'
+        '    )'
+        ''
+        '    "[{0}] {1}" -f (Get-Date -Format o), $Message |'
+        '        Out-File -FilePath $Path -Append -Encoding utf8'
+        '}'
+        ''
+        'function Append-FileToLog {'
+        '    param('
+        '        [Parameter(Mandatory)]'
+        '        [string]$SourcePath,'
+        '        [Parameter(Mandatory)]'
+        '        [string]$DestinationPath,'
+        '        [Parameter(Mandatory)]'
+        '        [string]$Title'
+        '    )'
+        ''
+        '    Write-LogLine -Path $DestinationPath -Message "----- $Title begin -----"'
+        ''
+        '    if (Test-Path $SourcePath -PathType Leaf) {'
+        '        $content = Get-Content -Path $SourcePath -ErrorAction SilentlyContinue'
+        ''
+        '        if ($null -ne $content) {'
+        '            $content | Out-File -FilePath $DestinationPath -Append -Encoding utf8'
+        '        }'
+        '    } else {'
+        '        Write-LogLine -Path $DestinationPath -Message "$Title file not found: $SourcePath"'
+        '    }'
+        ''
+        '    Write-LogLine -Path $DestinationPath -Message "----- $Title end -----"'
+        '}'
+        ''
+        'function Remove-GeneratedFile {'
+        '    param('
+        '        [string[]]$Path'
+        '    )'
+        ''
+        '    foreach ($item in $Path) {'
+        '        if ([string]::IsNullOrWhiteSpace($item)) {'
+        '            continue'
+        '        }'
+        ''
+        '        Remove-Item -LiteralPath $item -Force -ErrorAction SilentlyContinue'
+        '    }'
+        '}'
+        ''
+        'try {'
+        '    Write-LogLine -Path $mainLogPath -Message "=== setup-autostart elevated wrapper started ==="'
+        '    Write-LogLine -Path $mainLogPath -Message "elevated identity: $([System.Security.Principal.WindowsIdentity]::GetCurrent().Name)"'
+        '    Write-LogLine -Path $mainLogPath -Message "target user: $targetUser"'
+        '    Write-LogLine -Path $mainLogPath -Message "target profile: $targetProfile"'
+        '    Write-LogLine -Path $mainLogPath -Message "child script path: $scriptPath"'
+        '    Write-LogLine -Path $mainLogPath -Message "child stdout path: $childStdoutPath"'
+        '    Write-LogLine -Path $mainLogPath -Message "child stderr path: $childStderrPath"'
+        ''
+        '    if (-not (Test-Path $scriptPath -PathType Leaf)) {'
+        '        throw "script path does not exist: $scriptPath"'
+        '    }'
+        ''
+        '    $childArgs = @('
+        '        "-NoProfile",'
+        '        "-ExecutionPolicy", "Bypass",'
+        '        "-File", $scriptPath,'
+        '        "-ElevatedChild",'
+        '        "-TargetUser", $targetUser,'
+        '        "-TargetProfilePath", $targetProfile,'
+        '        "-LogPath", $mainLogPath'
+        '    )'
+        ''
+        '    & powershell.exe @childArgs > $childStdoutPath 2> $childStderrPath'
+        '    $exitCode = $LASTEXITCODE'
+        ''
+        '    if ($null -eq $exitCode) {'
+        '        $exitCode = 0'
+        '    }'
+        ''
+        '    Write-LogLine -Path $mainLogPath -Message "child exit code: $exitCode"'
+        '    Append-FileToLog -SourcePath $childStdoutPath -DestinationPath $mainLogPath -Title "child stdout"'
+        '    Append-FileToLog -SourcePath $childStderrPath -DestinationPath $mainLogPath -Title "child stderr"'
+        '    Write-LogLine -Path $mainLogPath -Message "=== setup-autostart elevated wrapper finished with exit code $exitCode ==="'
+        ''
+        '    $script:ExitCode = $exitCode'
+        '} catch {'
+        '    Write-LogLine -Path $mainLogPath -Message "WRAPPER ERROR: $($_.Exception.Message)"'
+        '    ($_ | Out-String) | Out-File -FilePath $mainLogPath -Append -Encoding utf8'
+        '    $script:ExitCode = 1'
+        '} finally {'
+        '    Remove-GeneratedFile -Path @('
+        '        $scriptPath,'
+        '        $childStdoutPath,'
+        '        $childStderrPath'
+        '    )'
+        '}'
+        ''
+        'exit $script:ExitCode'
+    )
+
+    $wrapper | Set-Content -Path $wrapperPath -Encoding utf8
+
+    Write-LogLine -Path $logPath -Message "wrapper path: $wrapperPath"
+    Write-LogLine -Path $logPath -Message "child script path: $childScriptPath"
+    Write-LogLine -Path $logPath -Message "child stdout path: $childStdoutPath"
+    Write-LogLine -Path $logPath -Message "child stderr path: $childStderrPath"
+
+    $script:ParentExitCode = 1
+
+    try {
+        $parentStartParams = @{
+            FilePath = "powershell.exe"
+            ArgumentList = @(
+                "-NoProfile",
+                "-ExecutionPolicy", "Bypass",
+                "-File", $wrapperPath
+            )
+            Verb = "RunAs"
+            Wait = $true
+            PassThru = $true
+        }
+
+        $process = Start-Process @parentStartParams
+
+        if ($null -ne $process -and $process.ExitCode -ne 0) {
+            Write-Warning "管理员子进程退出码为 $($process.ExitCode)，计划任务可能未同步完成。"
+            Write-Warning "请查看日志: $logPath"
+            $script:ParentExitCode = $process.ExitCode
+        } else {
+            Write-LogLine -Path $logPath -Message "parent finished successfully."
+            $script:ParentExitCode = 0
+        }
+    } catch {
+        Write-LogLine -Path $logPath -Message "PARENT ERROR: $($_.Exception.Message)"
+        Write-Warning "UAC 提权被取消或失败，计划任务同步失败：$($_.Exception.Message)"
+        $script:ParentExitCode = 1
+    } finally {
+        Remove-GeneratedFile -Path @(
+            $wrapperPath,
+            $childScriptPath,
+            $childStdoutPath,
+            $childStderrPath
+        )
+    }
+
+    exit $script:ParentExitCode
+}
+
+# ==================================================================================
+# --- [核心逻辑 (Core Script Logic)] ---
+# ==================================================================================
+
+function Get-TaskScriptPath {
+    param(
+        [Parameter(Mandatory)]
+        [hashtable]$Task
+    )
+
+    if (-not $Task.ContainsKey("Script") -or [string]::IsNullOrWhiteSpace([string]$Task.Script)) {
+        throw "Task '$($Task.Name)' is missing Script."
+    }
+
+    $scriptRoot = Join-Path (Get-TargetProfilePath) "Documents\Scripts"
+
+    return Join-Path $scriptRoot ([string]$Task.Script)
+}
+
+function New-PowerShellTaskCommand {
+    param(
+        [Parameter(Mandatory)]
+        [string]$ScriptPath,
+
+        [bool]$Hidden = $false
+    )
+
+    $arguments = @(
+        "-NoProfile",
+        "-ExecutionPolicy", "Bypass"
+    )
+
+    if ($Hidden) {
+        $arguments += @("-WindowStyle", "Hidden")
+    }
+
+    $quotedScriptPath = '"' + $ScriptPath.Replace('"', '""') + '"'
+    $arguments += @("-File", $quotedScriptPath)
+
+    return "powershell.exe $($arguments -join ' ')"
+}
+
+function Test-ConflictingShortcuts {
+    param(
+        [Parameter(Mandatory)]
+        [string]$TaskName,
+
+        [Parameter(Mandatory)]
+        [string]$StartupFolderPath,
+
+        [Parameter(Mandatory)]
+        $WshShell
+    )
+
+    # b. 检测旧的快捷方式冲突 (Check for conflicting shortcuts in startup folder)
+    return Get-ChildItem -Path $StartupFolderPath -Filter "*.lnk" -Recurse -ErrorAction SilentlyContinue |
+        Where-Object {
+            try {
+                $shortcut = $WshShell.CreateShortcut($_.FullName)
+                $shortcut.TargetPath -like "*$TaskName*" -or $shortcut.Arguments -like "*$TaskName*"
+            } catch {
+                $false
+            }
+        }
+}
+
+function Register-StartupTask {
+    param(
+        [Parameter(Mandatory)]
+        [hashtable]$Task,
+
+        [Parameter(Mandatory)]
+        [string]$CurrentUser,
+
+        [Parameter(Mandatory)]
+        [string]$StartupFolderPath,
+
+        [Parameter(Mandatory)]
+        $WshShell
+    )
+
+    $TaskName = [string]$Task.Name
+
+    if ([string]::IsNullOrWhiteSpace($TaskName)) {
+        throw "Task name is empty."
+    }
+
+    if ($Task.ContainsKey("Enabled") -and -not [bool]$Task.Enabled) {
+        Write-Host ""
+        Write-Host "Skipping disabled task: '$TaskName'..." -ForegroundColor Gray
+        return
+    }
+
+    $IsAdmin = [bool]$Task.Admin
+    $IsInteractive = if ($Task.ContainsKey("Interactive")) { [bool]$Task.Interactive } else { $true }
+    $Hidden = if ($Task.ContainsKey("Hidden")) { [bool]$Task.Hidden } else { $false }
+    $Delay = if ($Task.ContainsKey("Delay")) { [string]$Task.Delay } else { $null }
+
+    Write-Host ""
+    Write-Host "Processing Task: '$TaskName'..." -ForegroundColor Cyan
+
+    # a. 路径存在性检查 (Path Existence Check for script files)
+    # 检查计划任务实际调用的 PowerShell 脚本是否已经由 chezmoi 同步到位。
+    $scriptPath = Get-TaskScriptPath -Task $Task
+
+    if (-not (Test-Path $scriptPath -PathType Leaf)) {
+        throw "Script file not found at path: '$scriptPath'"
+    }
+
+    $CommandToRun = New-PowerShellTaskCommand -ScriptPath $scriptPath -Hidden $Hidden
+
+    # b. 检测旧的快捷方式冲突 (Check for conflicting shortcuts in startup folder)
+    $conflictingFiles = Test-ConflictingShortcuts -TaskName $TaskName -StartupFolderPath $StartupFolderPath -WshShell $WshShell
+
+    if ($conflictingFiles) {
+        Write-Warning " -> WARNING: Found a potentially conflicting shortcut in the startup folder: $($conflictingFiles.Name -join ', ')"
+    }
+
+    # c. 创建或更新任务计划 (Create/Update Scheduled Task)
+    try {
+        # schtasks.exe 参数详解:
+        # /Create /F : 创建或强制覆盖
+        # /TN  : 任务的名称
+        # /TR  : 要执行的命令
+        # /SC ONLOGON : 触发器 - 在指定用户登录时
+        # /RU  : 以哪个用户身份运行
+        # /RL HIGHEST : (管理员模式) 以最高权限运行，用于跳过UAC
+        # /IT : 仅在用户已登录的交互式会话中运行，适合桌面程序 / 托盘程序 / 键鼠 Hook 类程序
+
+        $schtasksArgs = @(
+            "/Create",
+            "/F",
+            "/TN", $TaskName,
+            "/TR", $CommandToRun,
+            "/SC", "ONLOGON",
+            "/RU", $CurrentUser
+        )
+
+        if ($IsAdmin) {
+            Write-Host " -> Mode: Admin (Highest Privileges, Skip UAC)"
+            $schtasksArgs += @("/RL", "HIGHEST")
+        } else {
+            Write-Host " -> Mode: Standard User"
+        }
+
+        if ($IsInteractive) {
+            Write-Host " -> Session: Interactive (/IT)"
+            $schtasksArgs += "/IT"
+        } else {
+            Write-Host " -> Session: Background (non-interactive)"
+        }
+
+        if ($Hidden) {
+            Write-Host " -> Window: Hidden"
+        }
+
+        if (-not [string]::IsNullOrWhiteSpace($Delay)) {
+            if ($Delay -notmatch "^\d{4}:\d{2}$") {
+                throw "Invalid Delay format for task '$TaskName': '$Delay'. Expected format is mmmm:ss (example: 0000:30)"
+            }
+
+            Write-Host " -> Delay: $Delay"
+            $schtasksArgs += @("/DELAY", $Delay)
+        }
+
+        $output = & schtasks.exe @schtasksArgs 2>&1
+        $exitCode = $LASTEXITCODE
+
+        if ($exitCode -ne 0) {
+            throw "schtasks.exe exited with code $exitCode`n$output"
+        }
+
+        Write-Host " -> Command: $CommandToRun"
+        Write-Host " -> SUCCESS: Task '$TaskName' has been created/updated successfully." -ForegroundColor Green
+    } catch {
+        throw "FAILED while creating task '$TaskName': $($_.Exception.Message)"
+    }
+}
+
+# ==================================================================================
+# --- [执行入口 (Entry Point)] ---
+# ==================================================================================
+
+if ($ElevatedChild) {
+    $LogPath = Initialize-LogPath -Path $LogPath
+    Write-LogLine -Path $LogPath -Message "=== setup-autostart elevated child entered ==="
+    Write-LogLine -Path $LogPath -Message "elevated child identity: $(Get-CurrentUserName)"
+    Write-LogLine -Path $LogPath -Message "target user: $TargetUser"
+    Write-LogLine -Path $LogPath -Message "target profile: $(Get-TargetProfilePath)"
+} else {
+    $LogPath = Initialize-LogPath -Path $LogPath -Clear
+    Write-LogLine -Path $LogPath -Message "=== setup-autostart direct admin run started ==="
+    Write-LogLine -Path $LogPath -Message "identity: $(Get-CurrentUserName)"
+    Write-LogLine -Path $LogPath -Message "target profile: $(Get-TargetProfilePath)"
+}
+
+# 1. 权限检查 (Administrator Check)
+# 确保脚本是以管理员身份运行的，否则无法创建任务计划。
+if (-not (Test-IsAdministrator)) {
+    Write-Warning "此脚本需要管理员权限来创建/更新任务计划。"
+    exit 1
+}
+
+# 2. 获取当前用户信息 (Get Current User)
+# 使用 .NET 类，这是最可靠的方法，兼容直接运行和通过 sudo/gsudo 运行的场景。
+#
+# 注意：
+# 如果是通过 UAC wrapper 进入的 elevated child，任务目标用户必须使用父进程传进来的 TargetUser。
+# 否则在某些提权场景下可能会把任务注册给错误的管理员账户。
+$CurrentUser = if (-not [string]::IsNullOrWhiteSpace($TargetUser)) {
+    $TargetUser
+} else {
+    Get-CurrentUserName
+}
+
+$TargetProfile = Get-TargetProfilePath
+$ScriptRoot = Join-Path $TargetProfile "Documents\Scripts"
+$StartupFolderPath = [Environment]::GetFolderPath("Startup")
+$WshShell = New-Object -ComObject WScript.Shell
+
+Write-Host ""
+Write-Host " Starting Task Synchronization"
+Write-Host " Elevated identity: $(Get-CurrentUserName)"
+Write-Host " Scheduled task target user: $CurrentUser"
+Write-Host " Target profile: $TargetProfile"
+Write-Host " Script root: $ScriptRoot"
+Write-Host " Log path: $LogPath"
+
+Write-LogLine -Path $LogPath -Message "Starting Task Synchronization"
+Write-LogLine -Path $LogPath -Message "elevated identity: $(Get-CurrentUserName)"
+Write-LogLine -Path $LogPath -Message "scheduled task target user: $CurrentUser"
+Write-LogLine -Path $LogPath -Message "target profile: $TargetProfile"
+Write-LogLine -Path $LogPath -Message "script root: $ScriptRoot"
+
+# 3. 遍历并处理任务列表 (Process Task List)
+foreach ($Task in $Tasks) {
+    Register-StartupTask -Task $Task -CurrentUser $CurrentUser -StartupFolderPath $StartupFolderPath -WshShell $WshShell
+}
+
+Write-Host ""
+Write-Host " Task Synchronization Complete."
+
+Write-LogLine -Path $LogPath -Message "Task Synchronization Complete."
+{{- end -}}
+{{/* vim: set ft=ps1.tmpl: */}}
