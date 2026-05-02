@@ -43,35 +43,35 @@ scoop:
 
     - name: "ExplorerTabUtility"
       scoop_app: "w4po.ExplorerTabUtility"
-      source_base: ".chezmoitemplates/windows-apps/ExplorerTabUtility"
+      source_base: ".chezmoitemplates/windows/windows-apps/ExplorerTabUtility"
       target_base: "AppData/Roaming/ExplorerTabUtility"
       # 不写 ignore_path，因为它在 templates 里，本来就不会被 Chezmoi 默认映射
 
     - name: "flow-launcher"
       scoop_app: "flow-launcher"
-      source_base: ".chezmoitemplates/windows-apps/flow-launcher"
+      source_base: ".chezmoitemplates/windows/windows-apps/flow-launcher"
       target_base: "UserData"
 
     - name: "InputTip"
       scoop_app: "abgox.InputTip-zip"
-      source_base: ".chezmoitemplates/windows-apps/InputTip-zip/InputTip.ini.tmpl"
+      source_base: ".chezmoitemplates/windows/windows-apps/InputTip-zip/InputTip.ini.tmpl"
       target_base: "InputTip.ini"
       # 单目录 target_base 可留空，单文件需指定
       target_encoding: "ansi"
 
     - name: "mousemaster"
       scoop_app: "mousemaster"
-      source_base: ".chezmoitemplates/windows-apps/mousemaster/mousemaster.properties"
+      source_base: ".chezmoitemplates/windows/windows-apps/mousemaster/mousemaster.properties"
       target_base: "mousemaster.properties"
 
     - name: "nilesoft-shell"
       scoop_app: "nilesoft-shell"
-      source_base: ".chezmoitemplates/windows-apps/nilesoft-shell/imports/theme.nss"
+      source_base: ".chezmoitemplates/windows/windows-apps/nilesoft-shell/imports/theme.nss"
       current_path: "imports/theme.nss"
 
     - name: "SpaceKey"
       scoop_app: "abgox.SpaceKey"
-      source_base: ".chezmoitemplates/windows-apps/SpaceKey"
+      source_base: ".chezmoitemplates/windows/windows-apps/SpaceKey"
       target_base: "custom"
 
     - name: "opencode"
@@ -94,12 +94,12 @@ scoop:
 
     - name: "windows-terminal-portbale"
       scoop_app: "windows-terminal"
-      source_base: ".chezmoitemplates/windows-apps/windows-terminal/settings.json"
+      source_base: ".chezmoitemplates/windows/windows-apps/windows-terminal/settings.json"
       target_base: "settings/settings.json"
 
     - name: "windhawk" # 每次配置变更需要修改 SettingsChangeTime 的值与之前相异
       scoop_app: "windhawk"
-      source_base: ".chezmoitemplates/windows-apps/windhawk/Engine/Mods"
+      source_base: ".chezmoitemplates/windows/windows-apps/windhawk/Engine/Mods"
       target_base: "AppData/Engine/Mods"
       target_encoding: "utf-16le"
 
