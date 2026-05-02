@@ -1,23 +1,80 @@
 {{- $hasFd := lookPath "fd" -}}
 {{- $hasPoetry := lookPath "poetry" -}}
-{{- $hasUv := lookPath "uv" -}}
 {{- $hasConda := lookPath "conda" -}}
 {{- $isWindows := eq .chezmoi.os "windows" -}}
+
+{{- $condaRoot := "" -}}
+{{- if $hasConda -}}
+  {{- if $isWindows -}}
+    {{- $condaRoot = trimSuffix `\Scripts\conda.exe` $hasConda -}}
+  {{- else -}}
+    {{- $condaRoot = trimSuffix `/bin/conda` $hasConda -}}
+  {{- end -}}
+{{- end -}}
+
+{{- $poetryVirtualenvsPath := "" -}}
+{{- if $hasPoetry -}}
+  {{- $poetryCacheDir := trim (output $hasPoetry "config" "cache-dir") -}}
+  {{- $poetryVirtualenvsPath = trim (output $hasPoetry "config" "virtualenvs.path") -}}
+  {{- $poetryVirtualenvsPath = replace "{cache-dir}" $poetryCacheDir $poetryVirtualenvsPath -}}
+{{- end -}}
 
 return {
   {
     "linux-cultist/venv-selector.nvim",
     cmd = { "VenvSelect", "VenvSelectCached" },
+    optional = true,
     opts = function(_, opts)
       -- 基础配置
-      opts.options = opts.options or {}
-      opts.options.debug = false
-      opts.options.notify_user_on_venv_activation = true
+      opts.options = vim.tbl_deep_extend("force", opts.options or {}, {
+        debug = false,
+        notify_user_on_venv_activation = true,
+        override_notify = false,
+      })
 
       -- 环境名称显示逻辑 (通用)
       opts.options.on_telescope_result_callback = function(filename)
         -- 统一路径分隔符，防止 Windows 反斜杠干扰
         filename = filename:gsub("\\", "/")
+
+        -- 文件是否存在
+        local function exists(path)
+          local uv = vim.uv or vim.loop
+          return uv.fs_stat(path) ~= nil
+        end
+
+        -- 拼接路径
+        local function join_path(...)
+          if vim.fs and vim.fs.joinpath then
+            return vim.fs.joinpath(...)
+          end
+          return table.concat({ ... }, "/")
+        end
+
+        -- 根据项目根目录中的标记文件判断 .venv 来源
+        local function detect_project_env_type(project_path)
+          if exists(join_path(project_path, "uv.lock")) then
+            return "uv"
+          end
+
+          if exists(join_path(project_path, "poetry.lock")) then
+            return "poetry"
+          end
+
+          if exists(join_path(project_path, "pdm.lock")) then
+            return "pdm"
+          end
+
+          if exists(join_path(project_path, "pixi.lock")) then
+            return "pixi"
+          end
+
+          if exists(join_path(project_path, "pyproject.toml")) then
+            return "pyproject"
+          end
+
+          return nil
+        end
 
         -- 获取 python 所在的目录
         local parent_path = vim.fn.fnamemodify(filename, ":h")
@@ -28,11 +85,17 @@ return {
           local grand_parent_path = vim.fn.fnamemodify(parent_path, ":h")
           local env_name = vim.fn.fnamemodify(grand_parent_path, ":t")
 
-          -- UV 逻辑: .venv 目录下显示项目名
+          -- 项目内 .venv 根据锁文件判断生态
           if env_name == ".venv" then
             local project_path = vim.fn.fnamemodify(grand_parent_path, ":h")
             local project_name = vim.fn.fnamemodify(project_path, ":t")
-            return project_name .. " (uv)"
+            local env_type = detect_project_env_type(project_path)
+
+            if env_type then
+              return project_name .. " (" .. env_type .. ")"
+            end
+
+            return project_name .. " (.venv)"
           end
 
           return env_name -- 返回 Poetry 的 "project-hash" 或普通 venv 名字
@@ -43,65 +106,72 @@ return {
       end
 
       -- 1. 只有 fd 在 PATH 中时，才生成基于 fd 的自定义搜索命令；
-      -- 2. 只有 poetry / uv / conda 在 PATH 中时，才生成对应生态的搜索项；
+      -- 2. 只有 poetry / conda 在 PATH 中时，才生成对应生态的搜索项；
       -- 3. 如果 fd 不存在，就不覆盖插件默认搜索策略，避免生成无效命令。
+      -- 4. 不再单独搜索 uv python dir；uv 管理的 Python runtime 不是项目虚拟环境。
       {{- if $hasFd }}
-      opts.search = {
+      local custom_search = {
         {{- if $isWindows }}
 
-        {{- if $hasConda }}
+        {{-  if $hasPoetry }}
+        -- Windows 下搜索 Poetry 虚拟环境
+        poetry = {
+          command = [[fd -u -F python.exe "{{ $poetryVirtualenvsPath }}" --max-depth 3 --absolute-path --color never -E Lib]],
+        },
+        {{-  end }}
+
+        {{-  if $hasConda }}
         anaconda_envs = {
-          command = "fd -u -F python.exe E:\\anaconda\\envs --max-depth 2 --full-path --color never -E Lib",
+          command = [[fd -u -F python.exe "{{ joinPath $condaRoot "envs" }}" --max-depth 2 --absolute-path --color never -E Lib]],
           type = "anaconda",
         },
         anaconda_base = {
-          command = "fd -u -F python.exe E:\\anaconda --max-depth 1 --full-path --color never -E Lib",
+          command = [[fd -u -F python.exe "{{ $condaRoot }}" --max-depth 1 --absolute-path --color never -E Lib]],
           type = "anaconda",
         },
-        {{- end }}
+        {{-  end }}
 
         -- Windows 默认的 .venv 搜索
         cwd = {
-          command = "fd -u -F python.exe --max-depth 3 --color never",
+          command = [[fd -u -F python.exe --max-depth 3 --absolute-path --color never -E .git -E Lib]],
         },
 
-        {{- else }}
+        {{-  else }}
 
         -- 1. 搜索当前工作目录下的 .venv (通用)
         cwd = {
-          command = "fd -H -F python --max-depth 3 --color never -E .git",
+          command = [[fd -u "^python$" --max-depth 3 --absolute-path --color never -E .git]],
         },
 
-        {{- if $hasPoetry }}
+        {{-  if $hasPoetry }}
         -- 2. 搜索 Poetry 虚拟环境
         poetry = {
-          command = "fd -u -F python {{ if eq .chezmoi.os "darwin" }}~/Library/Caches/pypoetry/virtualenvs{{ else }}~/.cache/pypoetry/virtualenvs{{ end }} --max-depth 2 --color never",
+          command = [[fd -u "^python$" "{{ $poetryVirtualenvsPath }}" --max-depth 3 --absolute-path --color never]],
         },
-        {{- end }}
+        {{-  end }}
 
-        {{- if $hasUv }}
-        -- 3. 搜索 UV 环境
-        uv = {
-          command = "fd -u -F python ~/.local/share/uv/python --max-depth 2 --color never",
-        },
-        {{- end }}
+        -- 3. 不再单独搜索 UV 环境
+        -- uv 管理的项目虚拟环境通常是项目内 .venv，应由 cwd / workspace 搜索项发现。
+        -- .venv 是否显示为 uv，由项目根目录中的 uv.lock 判断。
 
         -- 4. 搜索系统默认虚拟环境存放点
         vms = {
-          command = "fd -u -F python ~/.virtualenvs --max-depth 2 --color never",
+          command = [[fd -u "^python$" ~/.virtualenvs --max-depth 2 --absolute-path --color never]],
         },
 
-        {{- if $hasConda }}
+        {{-   if $hasConda }}
         -- 5. 如果 Linux/Mac 也装了 Conda (可选)
         conda = {
-          command = "fd -u -F python ~/anaconda3/envs --max-depth 2 --color never",
+          command = [[fd -u "^python$" "{{ joinPath $condaRoot "envs" }}" --max-depth 2 --absolute-path --color never]],
         },
         {{- end }}
 
-        {{- end }}
+      {{- end }}
       }
+
+      opts.search = vim.tbl_deep_extend("force", opts.search or {}, custom_search)
       {{- end }}
     end,
   },
 }
-{{/* vim: set ft=lua.chezmoitemplate: */}}
+{{/* vim: set ft=lua.chezmoitmpl: */}}
