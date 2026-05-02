@@ -1,0 +1,135 @@
+{{ includeTemplate "windows/powershell/uac-self-elevate.ps1.tmpl" (dict "TaskName" "remove-wsb" "Mode" "terminal") }}
+
+# ==================================================================================
+# --- [Registry policy cleanup / configuration] ---
+# ==================================================================================
+
+# 在这里声明需要写入的注册表策略。
+
+# 格式:
+# @{
+#     Comment = "说明"
+#     Path    = "注册表路径"
+#     Name    = "属性名"
+#     Type    = "DWord"
+#     Value   = 0
+# }
+
+# 添加新的策略时，只需要继续往 $RegistryValues 里加 hashtable，
+# 不需要修改后面的执行逻辑。
+# ==================================================================================
+
+$RegistryValues = @(
+  @{
+    Comment = "Disable Windows Search Box dynamic content"
+    Path    = "HKLM:\SOFTWARE\Policies\Microsoft\Windows\Windows Search"
+    Name    = "EnableDynamicContentInWSB"
+    Type    = "DWord"
+    Value   = 0
+  }
+
+  # 示例:
+  # ,@{
+  #     Comment = "Disable something else"
+  #     Path    = "HKLM:\SOFTWARE\Policies\Vendor\Product"
+  #     Name    = "SomePolicy"
+  #     Type    = "DWord"
+  #     Value   = 0
+  # }
+)
+
+function Write-Step
+{
+  param(
+    [Parameter(Mandatory)]
+    [string]$Message
+  )
+
+  [Console]::Out.WriteLine($Message)
+}
+
+function Write-StepError
+{
+  param(
+    [Parameter(Mandatory)]
+    [string]$Message
+  )
+
+  [Console]::Error.WriteLine($Message)
+}
+
+function Set-RegistryValue
+{
+  param(
+    [Parameter(Mandatory)]
+    [hashtable]$Entry
+  )
+
+  foreach ($key in @("Path", "Name", "Type", "Value"))
+  {
+    if (-not $Entry.ContainsKey($key))
+    {
+      throw "Registry entry is missing required key: $key"
+    }
+  }
+
+  $comment = if ($Entry.ContainsKey("Comment"))
+  { [string]$Entry.Comment 
+  } else
+  { [string]$Entry.Name 
+  }
+  $path = [string]$Entry.Path
+  $name = [string]$Entry.Name
+  $type = [string]$Entry.Type
+  $value = $Entry.Value
+
+  Write-Step ("# {0}" -f $comment)
+
+  if (-not (Test-Path -LiteralPath $path))
+  {
+    Write-Step ("create key: {0}" -f $path)
+    $null = New-Item -Path $path -Force
+  }
+
+  $current = Get-ItemProperty -LiteralPath $path -Name $name -ErrorAction SilentlyContinue
+
+  if ($null -ne $current -and $current.PSObject.Properties.Name -contains $name)
+  {
+    $currentValue = $current.$name
+
+    if ($currentValue -eq $value)
+    {
+      Write-Step ("skip: {0}\{1} already equals {2}" -f $path, $name, $value)
+      return
+    }
+  }
+
+  $null = New-ItemProperty `
+    -Path $path `
+    -Name $name `
+    -PropertyType $type `
+    -Value $value `
+    -Force
+
+  Write-Step ("set: {0}\{1} = {2} ({3})" -f $path, $name, $value, $type)
+}
+
+$failed = 0
+
+foreach ($entry in $RegistryValues)
+{
+  try
+  {
+    Set-RegistryValue -Entry $entry
+  } catch
+  {
+    $failed++
+    Write-StepError ("failed: {0}" -f $_.Exception.Message)
+  }
+}
+
+if ($failed -gt 0)
+{
+  throw ("{0} registry operation(s) failed." -f $failed)
+}
+{{/* vim: set ft=ps1.chezmoitmpl: */}}

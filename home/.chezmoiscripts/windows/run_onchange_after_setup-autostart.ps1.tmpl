@@ -1,12 +1,5 @@
 {{- if eq .chezmoi.os "windows" -}}
-param(
-    [switch]$ElevatedChild,
-    [string]$TargetUser,
-    [string]$TargetProfilePath,
-    [string]$LogPath
-)
-
-$ErrorActionPreference = "Stop"
+{{ includeTemplate "windows/powershell/uac-self-elevate.ps1.tmpl" (dict "TaskName" "setup-autostart" "Mode" "log" "LogName" "setup-autostart") }}
 
 <#
 .SYNOPSIS
@@ -51,15 +44,15 @@ Requires: PowerShell with Administrator privileges.
 
 临时 wrapper / child 文件会写入 XDG runtime/cache 目录：
 
-  $XDG_RUNTIME_DIR\chezmoi\
+  $XDG_RUNTIME_DIR\chezmoi\setup-autostart\
 
 如果未设置 XDG_RUNTIME_DIR，则回退到：
 
-  $XDG_CACHE_HOME\chezmoi\tmp\
+  $XDG_CACHE_HOME\chezmoi\tmp\setup-autostart\
 
 如果未设置 XDG_CACHE_HOME，则最终回退到：
 
-  $HOME\.cache\chezmoi\tmp\
+  $HOME\.cache\chezmoi\tmp\setup-autostart\
 
 wrapper / child 临时文件会在本次运行结束后自动清理。
 #>
@@ -67,20 +60,21 @@ wrapper / child 临时文件会在本次运行结束后自动清理。
 # ==================================================================================
 # --- [onchange 触发区：受控脚本内容 hash] ---
 # ==================================================================================
-# 对 startup.ps1.tmpl 使用 includeTemplate，而不是 include：
+# 对 .tmpl 文件使用 includeTemplate，而不是 include：
 # - include: 读取模板源文件内容；
 # - includeTemplate: 读取模板渲染后的结果。
-# startup.ps1.tmpl 使用 lookPath，所以这里必须 hash 渲染结果。
+# startup.ps1.tmpl / startup-admin.ps1.tmpl 使用 lookPath，
+# 所以这里必须 hash 渲染结果。
 
 # Documents/Scripts/NuisanceWindow-manager.ps1 sha256: {{ include "Documents/Scripts/NuisanceWindow-manager.ps1" | sha256sum }}
-# Documents/Scripts/startup-admin.ps1.tmpl sha256: {{ includeTemplate "Documents/Scripts/startup-admin.ps1.tmpl" . | sha256sum }}
+# Documents/Scripts/startup-admin.ps1.tmpl rendered sha256: {{ includeTemplate "Documents/Scripts/startup-admin.ps1.tmpl" . | sha256sum }}
 # Documents/Scripts/startup.ps1.tmpl rendered sha256: {{ includeTemplate "Documents/Scripts/startup.ps1.tmpl" . | sha256sum }}
 
 # ==================================================================================
 # --- [配置区域 (Your Configuration Area)] ---
 # ==================================================================================
 # 在这里定义开机自启的任务。
-
+#
 # 格式 (Format):
 # @{
 #   Name        = "任务的唯一名称 (会显示在任务计划程序里)"
@@ -134,392 +128,14 @@ $Tasks = @(
 )
 
 # ==================================================================================
-# --- [基础工具函数 (Utility Functions)] ---
+# --- [核心逻辑 (Core Script Logic)] ---
 # ==================================================================================
-
-function Test-IsAdministrator {
-    # 1. 权限检查 (Administrator Check)
-    # 确保脚本是以管理员身份运行的，否则无法创建任务计划。
-    $identity = [System.Security.Principal.WindowsIdentity]::GetCurrent()
-    $principal = [System.Security.Principal.WindowsPrincipal]::new($identity)
-
-    return $principal.IsInRole([System.Security.Principal.WindowsBuiltInRole]::Administrator)
-}
 
 function Get-CurrentUserName {
     # 2. 获取当前用户信息 (Get Current User)
     # 使用 .NET 类，这是最可靠的方法，兼容直接运行和通过 sudo/gsudo 运行的场景。
     return [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
 }
-
-function Test-IsAbsolutePath {
-    param(
-        [string]$Path
-    )
-
-    if ([string]::IsNullOrWhiteSpace($Path)) {
-        return $false
-    }
-
-    return [System.IO.Path]::IsPathRooted($Path)
-}
-
-function Get-TargetProfilePath {
-    if (-not [string]::IsNullOrWhiteSpace($TargetProfilePath)) {
-        return $TargetProfilePath
-    }
-
-    if (-not [string]::IsNullOrWhiteSpace($env:USERPROFILE)) {
-        return $env:USERPROFILE
-    }
-
-    return $HOME
-}
-
-function Get-XdgStateHome {
-    param(
-        [Parameter(Mandatory)]
-        [string]$ProfilePath
-    )
-
-    if (Test-IsAbsolutePath -Path $env:XDG_STATE_HOME) {
-        return $env:XDG_STATE_HOME
-    }
-
-    return Join-Path $ProfilePath ".local\state"
-}
-
-function Get-XdgCacheHome {
-    param(
-        [Parameter(Mandatory)]
-        [string]$ProfilePath
-    )
-
-    if (Test-IsAbsolutePath -Path $env:XDG_CACHE_HOME) {
-        return $env:XDG_CACHE_HOME
-    }
-
-    return Join-Path $ProfilePath ".cache"
-}
-
-function Get-ChezmoiLogRoot {
-    $profilePath = Get-TargetProfilePath
-    $stateHome = Get-XdgStateHome -ProfilePath $profilePath
-
-    return Join-Path $stateHome "chezmoi\logs"
-}
-
-function Get-ChezmoiTempRoot {
-    $profilePath = Get-TargetProfilePath
-
-    if (Test-IsAbsolutePath -Path $env:XDG_RUNTIME_DIR) {
-        $root = Join-Path $env:XDG_RUNTIME_DIR "chezmoi"
-    } else {
-        $cacheHome = Get-XdgCacheHome -ProfilePath $profilePath
-        $root = Join-Path $cacheHome "chezmoi\tmp"
-    }
-
-    if (-not (Test-Path $root -PathType Container)) {
-        New-Item -Path $root -ItemType Directory -Force | Out-Null
-    }
-
-    return $root
-}
-
-function Initialize-LogPath {
-    param(
-        [string]$Path,
-        [switch]$Clear
-    )
-
-    if ([string]::IsNullOrWhiteSpace($Path)) {
-        $root = Get-ChezmoiLogRoot
-        $Path = Join-Path $root "setup-autostart.log"
-    } else {
-        $root = Split-Path -Parent $Path
-    }
-
-    if (-not (Test-Path $root -PathType Container)) {
-        New-Item -Path $root -ItemType Directory -Force | Out-Null
-    }
-
-    if ($Clear) {
-        if (Test-Path $Path -PathType Leaf) {
-            Clear-Content -LiteralPath $Path -ErrorAction SilentlyContinue
-        } else {
-            New-Item -Path $Path -ItemType File -Force | Out-Null
-        }
-    }
-
-    return $Path
-}
-
-function ConvertTo-PSLiteral {
-    param(
-        [Parameter(Mandatory)]
-        [AllowEmptyString()]
-        [string]$Value
-    )
-
-    return "'" + $Value.Replace("'", "''") + "'"
-}
-
-function Write-LogLine {
-    param(
-        [Parameter(Mandatory)]
-        [string]$Path,
-
-        [Parameter(Mandatory)]
-        [string]$Message
-    )
-
-    "[{0}] {1}" -f (Get-Date -Format o), $Message |
-        Out-File -FilePath $Path -Append -Encoding utf8
-}
-
-function Remove-GeneratedFile {
-    param(
-        [string[]]$Path
-    )
-
-    foreach ($item in $Path) {
-        if ([string]::IsNullOrWhiteSpace($item)) {
-            continue
-        }
-
-        Remove-Item -LiteralPath $item -Force -ErrorAction SilentlyContinue
-    }
-}
-
-function Remove-OldGeneratedFiles {
-    param(
-        [Parameter(Mandatory)]
-        [string]$Root,
-
-        [int]$OlderThanDays = 7
-    )
-
-    if (-not (Test-Path $Root -PathType Container)) {
-        return
-    }
-
-    $cutoff = (Get-Date).AddDays(-$OlderThanDays)
-
-    Get-ChildItem -Path $Root -Filter "chezmoi-setup-autostart-*" -File -ErrorAction SilentlyContinue |
-        Where-Object { $_.LastWriteTime -lt $cutoff } |
-        Remove-Item -Force -ErrorAction SilentlyContinue
-}
-
-# ==================================================================================
-# --- [非管理员自动提权 (UAC Elevation)] ---
-# ==================================================================================
-
-if (-not (Test-IsAdministrator)) {
-    $targetUser = [System.Security.Principal.WindowsIdentity]::GetCurrent().Name
-    $targetProfile = Get-TargetProfilePath
-    $logPath = Initialize-LogPath -Path $LogPath -Clear
-    $tempRoot = Get-ChezmoiTempRoot
-
-    Remove-OldGeneratedFiles -Root $tempRoot -OlderThanDays 7
-
-    Write-LogLine -Path $logPath -Message "=== setup-autostart parent started ==="
-    Write-LogLine -Path $logPath -Message "parent identity: $targetUser"
-    Write-LogLine -Path $logPath -Message "target profile: $targetProfile"
-    Write-LogLine -Path $logPath -Message "script path: $PSCommandPath"
-    Write-LogLine -Path $logPath -Message "temp root: $tempRoot"
-
-    Write-Warning "当前不是管理员权限，正在请求 UAC 提权以创建/更新计划任务..."
-    Write-Warning "日志路径: $logPath"
-
-    if ([string]::IsNullOrWhiteSpace($PSCommandPath) -or -not (Test-Path $PSCommandPath -PathType Leaf)) {
-        Write-LogLine -Path $logPath -Message "ERROR: PSCommandPath is empty or missing."
-        Write-Warning "无法定位当前脚本路径，计划任务同步失败。"
-        exit 1
-    }
-
-    $id = [guid]::NewGuid().ToString("N")
-    $wrapperPath = Join-Path $tempRoot "chezmoi-setup-autostart-elevated-$id.ps1"
-    $childScriptPath = Join-Path $tempRoot "chezmoi-setup-autostart-child-$id.ps1"
-    $childStdoutPath = Join-Path $tempRoot "chezmoi-setup-autostart-child-$id.stdout.log"
-    $childStderrPath = Join-Path $tempRoot "chezmoi-setup-autostart-child-$id.stderr.log"
-
-    # chezmoi 生成的临时脚本可能是 UTF-8 without BOM。
-    # Windows PowerShell 5.1 重新读取时可能按 ANSI 解析，从而把中文字符串/注释读坏。
-    # 因此复制一份 UTF-8 BOM 版本给 elevated child 执行。
-    $scriptText = [System.IO.File]::ReadAllText($PSCommandPath, [System.Text.Encoding]::UTF8)
-    $utf8Bom = [System.Text.UTF8Encoding]::new($true)
-    [System.IO.File]::WriteAllText($childScriptPath, $scriptText, $utf8Bom)
-
-    $scriptPathLiteral = ConvertTo-PSLiteral -Value $childScriptPath
-    $targetUserLiteral = ConvertTo-PSLiteral -Value $targetUser
-    $targetProfileLiteral = ConvertTo-PSLiteral -Value $targetProfile
-    $mainLogPathLiteral = ConvertTo-PSLiteral -Value $logPath
-    $childStdoutLiteral = ConvertTo-PSLiteral -Value $childStdoutPath
-    $childStderrLiteral = ConvertTo-PSLiteral -Value $childStderrPath
-
-    $wrapper = @(
-        '$ErrorActionPreference = "Stop"'
-        '$scriptPath = ' + $scriptPathLiteral
-        '$targetUser = ' + $targetUserLiteral
-        '$targetProfile = ' + $targetProfileLiteral
-        '$mainLogPath = ' + $mainLogPathLiteral
-        '$childStdoutPath = ' + $childStdoutLiteral
-        '$childStderrPath = ' + $childStderrLiteral
-        '$script:ExitCode = 1'
-        ''
-        'function Write-LogLine {'
-        '    param('
-        '        [Parameter(Mandatory)]'
-        '        [string]$Path,'
-        '        [Parameter(Mandatory)]'
-        '        [string]$Message'
-        '    )'
-        ''
-        '    "[{0}] {1}" -f (Get-Date -Format o), $Message |'
-        '        Out-File -FilePath $Path -Append -Encoding utf8'
-        '}'
-        ''
-        'function Append-FileToLog {'
-        '    param('
-        '        [Parameter(Mandatory)]'
-        '        [string]$SourcePath,'
-        '        [Parameter(Mandatory)]'
-        '        [string]$DestinationPath,'
-        '        [Parameter(Mandatory)]'
-        '        [string]$Title'
-        '    )'
-        ''
-        '    Write-LogLine -Path $DestinationPath -Message "----- $Title begin -----"'
-        ''
-        '    if (Test-Path $SourcePath -PathType Leaf) {'
-        '        $content = Get-Content -Path $SourcePath -ErrorAction SilentlyContinue'
-        ''
-        '        if ($null -ne $content) {'
-        '            $content | Out-File -FilePath $DestinationPath -Append -Encoding utf8'
-        '        }'
-        '    } else {'
-        '        Write-LogLine -Path $DestinationPath -Message "$Title file not found: $SourcePath"'
-        '    }'
-        ''
-        '    Write-LogLine -Path $DestinationPath -Message "----- $Title end -----"'
-        '}'
-        ''
-        'function Remove-GeneratedFile {'
-        '    param('
-        '        [string[]]$Path'
-        '    )'
-        ''
-        '    foreach ($item in $Path) {'
-        '        if ([string]::IsNullOrWhiteSpace($item)) {'
-        '            continue'
-        '        }'
-        ''
-        '        Remove-Item -LiteralPath $item -Force -ErrorAction SilentlyContinue'
-        '    }'
-        '}'
-        ''
-        'try {'
-        '    Write-LogLine -Path $mainLogPath -Message "=== setup-autostart elevated wrapper started ==="'
-        '    Write-LogLine -Path $mainLogPath -Message "elevated identity: $([System.Security.Principal.WindowsIdentity]::GetCurrent().Name)"'
-        '    Write-LogLine -Path $mainLogPath -Message "target user: $targetUser"'
-        '    Write-LogLine -Path $mainLogPath -Message "target profile: $targetProfile"'
-        '    Write-LogLine -Path $mainLogPath -Message "child script path: $scriptPath"'
-        '    Write-LogLine -Path $mainLogPath -Message "child stdout path: $childStdoutPath"'
-        '    Write-LogLine -Path $mainLogPath -Message "child stderr path: $childStderrPath"'
-        ''
-        '    if (-not (Test-Path $scriptPath -PathType Leaf)) {'
-        '        throw "script path does not exist: $scriptPath"'
-        '    }'
-        ''
-        '    $childArgs = @('
-        '        "-NoProfile",'
-        '        "-ExecutionPolicy", "Bypass",'
-        '        "-File", $scriptPath,'
-        '        "-ElevatedChild",'
-        '        "-TargetUser", $targetUser,'
-        '        "-TargetProfilePath", $targetProfile,'
-        '        "-LogPath", $mainLogPath'
-        '    )'
-        ''
-        '    & powershell.exe @childArgs > $childStdoutPath 2> $childStderrPath'
-        '    $exitCode = $LASTEXITCODE'
-        ''
-        '    if ($null -eq $exitCode) {'
-        '        $exitCode = 0'
-        '    }'
-        ''
-        '    Write-LogLine -Path $mainLogPath -Message "child exit code: $exitCode"'
-        '    Append-FileToLog -SourcePath $childStdoutPath -DestinationPath $mainLogPath -Title "child stdout"'
-        '    Append-FileToLog -SourcePath $childStderrPath -DestinationPath $mainLogPath -Title "child stderr"'
-        '    Write-LogLine -Path $mainLogPath -Message "=== setup-autostart elevated wrapper finished with exit code $exitCode ==="'
-        ''
-        '    $script:ExitCode = $exitCode'
-        '} catch {'
-        '    Write-LogLine -Path $mainLogPath -Message "WRAPPER ERROR: $($_.Exception.Message)"'
-        '    ($_ | Out-String) | Out-File -FilePath $mainLogPath -Append -Encoding utf8'
-        '    $script:ExitCode = 1'
-        '} finally {'
-        '    Remove-GeneratedFile -Path @('
-        '        $scriptPath,'
-        '        $childStdoutPath,'
-        '        $childStderrPath'
-        '    )'
-        '}'
-        ''
-        'exit $script:ExitCode'
-    )
-
-    $wrapper | Set-Content -Path $wrapperPath -Encoding utf8
-
-    Write-LogLine -Path $logPath -Message "wrapper path: $wrapperPath"
-    Write-LogLine -Path $logPath -Message "child script path: $childScriptPath"
-    Write-LogLine -Path $logPath -Message "child stdout path: $childStdoutPath"
-    Write-LogLine -Path $logPath -Message "child stderr path: $childStderrPath"
-
-    $script:ParentExitCode = 1
-
-    try {
-        $parentStartParams = @{
-            FilePath = "powershell.exe"
-            ArgumentList = @(
-                "-NoProfile",
-                "-ExecutionPolicy", "Bypass",
-                "-File", $wrapperPath
-            )
-            Verb = "RunAs"
-            Wait = $true
-            PassThru = $true
-        }
-
-        $process = Start-Process @parentStartParams
-
-        if ($null -ne $process -and $process.ExitCode -ne 0) {
-            Write-Warning "管理员子进程退出码为 $($process.ExitCode)，计划任务可能未同步完成。"
-            Write-Warning "请查看日志: $logPath"
-            $script:ParentExitCode = $process.ExitCode
-        } else {
-            Write-LogLine -Path $logPath -Message "parent finished successfully."
-            $script:ParentExitCode = 0
-        }
-    } catch {
-        Write-LogLine -Path $logPath -Message "PARENT ERROR: $($_.Exception.Message)"
-        Write-Warning "UAC 提权被取消或失败，计划任务同步失败：$($_.Exception.Message)"
-        $script:ParentExitCode = 1
-    } finally {
-        Remove-GeneratedFile -Path @(
-            $wrapperPath,
-            $childScriptPath,
-            $childStdoutPath,
-            $childStderrPath
-        )
-    }
-
-    exit $script:ParentExitCode
-}
-
-# ==================================================================================
-# --- [核心逻辑 (Core Script Logic)] ---
-# ==================================================================================
 
 function Get-TaskScriptPath {
     param(
@@ -700,15 +316,20 @@ function Register-StartupTask {
 # --- [执行入口 (Entry Point)] ---
 # ==================================================================================
 
+# 公共 UAC 模板负责：
+# - 非管理员 parent 清空本次日志；
+# - direct admin run 清空本次日志；
+# - elevated child 复用 parent 传入的 LogPath。
+
+$LogPath = Get-ChezmoiLogPath -Path $LogPath
+
 if ($ElevatedChild) {
-    $LogPath = Initialize-LogPath -Path $LogPath
-    Write-LogLine -Path $LogPath -Message "=== setup-autostart elevated child entered ==="
+    Write-LogLine -Path $LogPath -Message "=== setup-autostart elevated child entered setup body ==="
     Write-LogLine -Path $LogPath -Message "elevated child identity: $(Get-CurrentUserName)"
     Write-LogLine -Path $LogPath -Message "target user: $TargetUser"
     Write-LogLine -Path $LogPath -Message "target profile: $(Get-TargetProfilePath)"
 } else {
-    $LogPath = Initialize-LogPath -Path $LogPath -Clear
-    Write-LogLine -Path $LogPath -Message "=== setup-autostart direct admin run started ==="
+    Write-LogLine -Path $LogPath -Message "=== setup-autostart direct admin setup body entered ==="
     Write-LogLine -Path $LogPath -Message "identity: $(Get-CurrentUserName)"
     Write-LogLine -Path $LogPath -Message "target profile: $(Get-TargetProfilePath)"
 }
