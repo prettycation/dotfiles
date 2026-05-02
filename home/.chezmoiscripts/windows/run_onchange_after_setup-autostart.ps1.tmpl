@@ -73,8 +73,8 @@ wrapper / child 临时文件会在本次运行结束后自动清理。
 # startup.ps1.tmpl 使用 lookPath，所以这里必须 hash 渲染结果。
 
 # Documents/Scripts/NuisanceWindow-manager.ps1 sha256: {{ include "Documents/Scripts/NuisanceWindow-manager.ps1" | sha256sum }}
-# Documents/Scripts/startup-admin.ps1 sha256: {{ include "Documents/Scripts/startup-admin.ps1" | sha256sum }}
-# Documents/Scripts/startup.ps1.tmpl rendered sha256: {{ includeTemplate "Documents/Scripts/startup.ps1" | sha256sum }}
+# Documents/Scripts/startup-admin.ps1.tmpl sha256: {{ includeTemplate "Documents/Scripts/startup-admin.ps1.tmpl" . | sha256sum }}
+# Documents/Scripts/startup.ps1.tmpl rendered sha256: {{ includeTemplate "Documents/Scripts/startup.ps1.tmpl" . | sha256sum }}
 
 # ==================================================================================
 # --- [配置区域 (Your Configuration Area)] ---
@@ -761,4 +761,4 @@ Write-Host " Task Synchronization Complete."
 
 Write-LogLine -Path $LogPath -Message "Task Synchronization Complete."
 {{- end -}}
-{{/* vim: set ft=ps1.tmpl: */}}
+{{/* vim: set ft=ps1.chezmoitmpl: */}}

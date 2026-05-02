@@ -1,0 +1,98 @@
+{{- $windhawk := lookPath "windhawk.exe" -}}
+{{- $yasb := lookPath "yasb.exe" -}}
+{{- $glazewm := lookPath "glazewm.exe" -}}
+
+{{- if eq .chezmoi.os "windows" -}}
+# ==================================================================================
+# Windows 桌面环境启动脚本
+# ==================================================================================
+
+# 由计划任务调用：
+#   Startup - Desktop Environment (Apps)
+
+# 说明：
+# - 此文件由 chezmoi 模板渲染生成；
+# - 应用是否存在由 chezmoi 的 lookPath 在 apply 阶段检测；
+# - 未检测到的应用不会生成对应的启动代码；
+# - 脚本本身保持非交互，不能 Read-Host / pause。
+
+$ErrorActionPreference = "Continue"
+
+function Start-StartupApp {
+    param(
+        [Parameter(Mandatory)]
+        [string]$Name,
+
+        [Parameter(Mandatory)]
+        [string]$FilePath,
+
+        [string[]]$ArgumentList = @(),
+
+        [string]$ProcessName,
+
+        [int]$DelaySeconds = 1,
+
+        [switch]$AllowMultiple
+    )
+
+    if (-not $ProcessName) {
+        $ProcessName = [System.IO.Path]::GetFileNameWithoutExtension($FilePath)
+    }
+
+    if (-not $AllowMultiple -and (Get-Process -Name $ProcessName -ErrorAction SilentlyContinue)) {
+        Write-Host "[$Name] already running, skip."
+        return
+    }
+
+    Write-Host "[$Name] starting: $FilePath"
+
+    $startProcessParams = @{
+        FilePath = $FilePath
+    }
+
+    if ($ArgumentList.Count -gt 0) {
+        $startProcessParams.ArgumentList = $ArgumentList
+    }
+
+    $workingDirectory = Split-Path -Parent $FilePath
+
+    if ($workingDirectory) {
+        $startProcessParams.WorkingDirectory = $workingDirectory
+    }
+
+    Start-Process @startProcessParams
+
+    if ($DelaySeconds -gt 0) {
+        Start-Sleep -Seconds $DelaySeconds
+    }
+}
+
+{{ if $windhawk }}
+# --- 启动Windhawk ---
+Start-StartupApp `
+    -Name "Windhawk" `
+    -FilePath '{{ $windhawk }}' `
+    -ArgumentList @("-tray-only") `
+    -ProcessName "windhawk" `
+    -DelaySeconds 1
+{{ end }}
+
+{{ if $yasb }}
+# --- 启动状态栏 ---
+Start-StartupApp `
+    -Name "YASB" `
+    -FilePath '{{ $yasb }}' `
+    -ProcessName "yasb" `
+    -DelaySeconds 1
+{{ end }}
+
+{{ if $glazewm }}
+# --- 启动窗口管理器 ---
+Start-StartupApp `
+    -Name "GlazeWM" `
+    -FilePath '{{ $glazewm }}' `
+    -ProcessName "glazewm" `
+    -DelaySeconds 1
+{{ end }}
+{{- end -}}
+{{/* vim: set ft=ps1.chezmoitmpl: */}}
