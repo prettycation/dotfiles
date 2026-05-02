@@ -1,38 +1,30 @@
-{{- $hasStylua := lookPath "stylua" -}}
 {{- $hasemmylua_ls := lookPath "emmylua_ls" -}}
+
+{{- if $hasemmylua_ls }}
 return {
-  {{ if $hasemmylua_ls }}
   -- EmmyLua 分支：使用独立 LuaCATS/luv 类型库替代 lua-language-server 的 ${3rd}/luv/library。
   {
     "LuaCATS/luv",
     name = "luacats-luv",
     lazy = true,
   },
-  {{ end }}
 
   -- Lua 开发环境
   {
     "folke/lazydev.nvim",
-    ft = "lua",
-    opts = {
-      library = {
-        {{ if $hasemmylua_ls }}
-        { path = "luacats-luv/library", words = { "vim%.uv" } },
-        {{ else }}
-        -- 加载 luvit 类型
-        { path = "${3rd}/luv/library", words = { "vim%.uv" } },
-        {{ end }}
-        -- 预加载核心框架和常用插件
-        "LazyVim",
-        { path = "nvim-lspconfig", words = { "lspconfig" } },
-        { path = "blink.cmp", words = { "blink" } },
-      },
-      -- 启用集成
-      integrations = {
-        lspconfig = true,
-        cmp = false,
-      },
-    },
+    optional = true,
+    opts = function(_, opts)
+      opts.library = opts.library or {}
+
+      -- 移除 LazyVim 默认的 lua-language-server ${3rd}/luv/library。
+      opts.library = vim.tbl_filter(function(lib)
+        return not (type(lib) == "table" and lib.path == "${3rd}/luv/library")
+      end, opts.library)
+
+      -- 使用 EmmyLua 兼容的 luv 类型库。
+      table.insert(opts.library, 1, { path = "luacats-luv/library", words = { "vim%.uv" } })
+    end,
   },
 }
-{{/* vim: set ft=lua.chezmoitemplate: */}}
+{{- end }}
+{{/* vim: set ft=lua.chezmoitmpl: */}}
