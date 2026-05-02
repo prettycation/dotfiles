@@ -1,4 +1,9 @@
-{{- $mousemaster := lookPath "mousemaster.exe" -}}
+{{- $scoopRoot := env "SCOOP" -}}
+{{- $mousemaster := "" -}}
+
+{{- if $scoopRoot -}}
+{{- $mousemaster = printf "%s\\apps\\mousemaster\\current\\mousemaster.exe" $scoopRoot -}}
+{{- end -}}
 
 {{- if eq .chezmoi.os "windows" -}}
 # ==================================================================================
