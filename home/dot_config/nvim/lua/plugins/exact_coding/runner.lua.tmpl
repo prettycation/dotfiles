@@ -1,4 +1,3 @@
-{{- /* 判断系统并定义变量 */ -}}
 {{- $isWindows := eq .chezmoi.os "windows" -}}
 
 {{- /* Python: Windows 优先 python；Unix 优先 python3，找不到再退回 python */ -}}
@@ -15,10 +14,12 @@
   {{- end -}}
 {{- end -}}
 
-{{- /* Shell: Windows 优先 pwsh，再退回 powershell；Unix 优先 zsh，再退回 sh */ -}}
+{{- /* Shell: Windows 优先 nu，再退回 pwsh，最后退回 powershell；Unix 优先 zsh，再退回 sh */ -}}
 {{- $shellCmd := "" -}}
 {{- if $isWindows -}}
-  {{- if lookPath "pwsh" -}}
+  {{- if lookPath "nu" -}}
+    {{- $shellCmd = "nu" -}}
+  {{- else if lookPath "pwsh" -}}
     {{- $shellCmd = "pwsh" -}}
   {{- else if lookPath "powershell" -}}
     {{- $shellCmd = "powershell" -}}
@@ -32,8 +33,6 @@
 {{- end -}}
 
 {{- /* 其他运行时 */ -}}
-{{- $hasTypst := lookPath "typst" -}}
-{{- $hasRustc := lookPath "rustc" -}}
 {{- $hasLua := lookPath "lua" -}}
 
 {{- /* 清屏命令 */ -}}
@@ -43,43 +42,25 @@
 {{- end -}}
 
 return {
-  -- 1. Code Runner: 负责运行整个文件
+  -- 1. Overseer.nvim: 在 LazyVim extra 的默认配置上追加“运行当前文件”
   {
-    "CRAG666/code_runner.nvim",
-    dependencies = { "nvim-lua/plenary.nvim" },
-    config = true,
-    keys = {
-      { "<leader>rr", "<cmd>RunCode<cr>", desc = "Run File" },
-      { "<leader>rc", "<cmd>RunClose<cr>", desc = "Close Runner" },
-    },
-    opts = {
-      mode = "float",
-      -- 浮窗样式
-      float = {
-        border = "rounded",
-        height = 0.8,
-        width = 0.8,
-        x = 0.5,
-        y = 0.5,
-      },
-      filetype = {
-        {{- if $pythonCmd }}
-        python = "{{ $pythonCmd }} -u",
-        {{- end }}
-        {{- if $hasTypst }}
-        typst = "typst compile",
-        {{- end }}
-        {{- if $hasRustc }}
-        rust = "cd $dir && rustc $fileName && $dir/$fileNameWithoutExt",
-        {{- end }}
-        {{- if $hasLua }}
-        lua = "lua",
-        {{- end }}
-      },
-    },
+    "stevearc/overseer.nvim",
+    lazy = true,
+    optional = true,
+    keys = function(_, keys)
+      keys[#keys + 1] = {
+        "<leader>or",
+        function()
+          require("utils.run_file").run()
+        end,
+        desc = "Run Current File",
+      }
+
+      return keys
+    end,
   },
 
-  -- 2. Iron.nvim: 交互式 REPL (Windows 适配版)
+  -- 2. Iron.nvim: 交互式 REPL
   {
     "Vigemus/iron.nvim",
     main = "iron.core",
@@ -101,13 +82,17 @@ return {
               format = common.bracketed_paste_python,
             },
             {{- end }}
+
             {{- if $hasLua }}
             lua = {
               command = { "lua" },
             },
             {{- end }}
+
             {{- if $shellCmd }}
             sh = {
+              -- Windows 下按 nu -> pwsh -> powershell 逐级回退；
+              -- Unix 下按 zsh -> sh 逐级回退。
               command = { "{{ $shellCmd }}" },
             },
             {{- end }}
@@ -130,7 +115,8 @@ return {
         },
       }
     end,
-    -- 自定义按键绑定 (解决 Windows 兼容性问题与 crunner 冲突)
+
+    -- 自定义按键绑定
     keys = {
       { "<leader>ro", desc = "Toggle REPL" },
       { "<leader>rs", mode = { "n", "v" }, desc = "Send to REPL" },
@@ -148,12 +134,15 @@ return {
       },
       {{- end }}
 
-      -- 【Windows 修复】自定义退出：发送 exit() 并关闭窗口
+      -- 【Windows 修复】自定义退出：
+      -- Python REPL 发送 exit()；其他 REPL 发送 exit。
       {
         "<leader>rq",
         function()
-          require("iron.core").send(nil, "exit()")
-          -- 延迟 200ms 关闭窗口，给 Python 一点时间退出
+          local exit_cmd = vim.bo.filetype == "python" and "exit()" or "exit"
+          require("iron.core").send(nil, exit_cmd)
+
+          -- 延迟 200ms 关闭窗口，给 REPL 一点时间退出
           vim.defer_fn(function()
             require("iron.core").close_repl()
           end, 200)
@@ -163,4 +152,4 @@ return {
     },
   },
 }
-{{/* vim: set ft=lua.chezmoitemplate: */}}
+{{/* vim: set ft=lua.chezmoitmpl: */}}

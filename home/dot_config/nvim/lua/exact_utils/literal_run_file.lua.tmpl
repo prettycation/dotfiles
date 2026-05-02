@@ -1,0 +1,391 @@
+{{- $isWindows := eq .chezmoi.os "windows" -}}
+
+{{- /* Python: Windows 优先 python；Unix 优先 python3，找不到再退回 python */ -}}
+{{- $pythonCmd := "" -}}
+{{- if $isWindows -}}
+  {{- if lookPath "python" -}}
+    {{- $pythonCmd = "python" -}}
+  {{- end -}}
+{{- else -}}
+  {{- if lookPath "python3" -}}
+    {{- $pythonCmd = "python3" -}}
+  {{- else if lookPath "python" -}}
+    {{- $pythonCmd = "python" -}}
+  {{- end -}}
+{{- end -}}
+
+{{- /* Windows Shell: Python 单文件运行也使用 nu -> pwsh -> powershell 逐级回退 */ -}}
+{{- $winShellCmd := "" -}}
+{{- $winShellKind := "" -}}
+{{- if $isWindows -}}
+  {{- if lookPath "nu" -}}
+    {{- $winShellCmd = "nu" -}}
+    {{- $winShellKind = "nu" -}}
+  {{- else if lookPath "pwsh" -}}
+    {{- $winShellCmd = "pwsh" -}}
+    {{- $winShellKind = "powershell" -}}
+  {{- else if lookPath "powershell" -}}
+    {{- $winShellCmd = "powershell" -}}
+    {{- $winShellKind = "powershell" -}}
+  {{- end -}}
+{{- end -}}
+
+{{- /* Shell: REPL 用；Windows 优先 nu，再退回 pwsh，最后退回 powershell；Unix 优先 zsh，再退回 sh */ -}}
+{{- $shellCmd := "" -}}
+{{- if $isWindows -}}
+  {{- $shellCmd = $winShellCmd -}}
+{{- else -}}
+  {{- if lookPath "zsh" -}}
+    {{- $shellCmd = "zsh" -}}
+  {{- else if lookPath "sh" -}}
+    {{- $shellCmd = "sh" -}}
+  {{- end -}}
+{{- end -}}
+
+{{- /* PowerShell: 用于运行 ps1 文件；优先 pwsh，再退回 powershell */ -}}
+{{- $psCmd := "" -}}
+{{- if lookPath "pwsh" -}}
+  {{- $psCmd = "pwsh" -}}
+{{- else if lookPath "powershell" -}}
+  {{- $psCmd = "powershell" -}}
+{{- end -}}
+
+{{- /* 其他运行时 */ -}}
+{{- $hasUv := lookPath "uv" -}}
+{{- $hasLua := lookPath "lua" -}}
+{{- $hasTypst := lookPath "typst" -}}
+{{- $hasCargo := lookPath "cargo" -}}
+{{- $hasRustc := lookPath "rustc" -}}
+{{- $hasNu := lookPath "nu" -}}
+
+{{- /* 是否渲染 Python runner */ -}}
+{{- $hasPythonRunner := false -}}
+{{- if $isWindows -}}
+  {{- if and $winShellCmd (or $hasUv $pythonCmd) -}}
+    {{- $hasPythonRunner = true -}}
+  {{- end -}}
+{{- else -}}
+  {{- if or $hasUv $pythonCmd -}}
+    {{- $hasPythonRunner = true -}}
+  {{- end -}}
+{{- end -}}
+
+local M = {}
+
+{{- if $pythonCmd }}
+local PYTHON_CMD = "{{ $pythonCmd }}"
+{{- end }}
+
+{{- if and $isWindows $winShellCmd }}
+local WINDOWS_SHELL_CMD = "{{ $winShellCmd }}"
+local WINDOWS_SHELL_KIND = "{{ $winShellKind }}"
+{{- end }}
+
+{{- if $shellCmd }}
+local SHELL_CMD = "{{ $shellCmd }}"
+{{- end }}
+
+{{- if $psCmd }}
+local PS_CMD = "{{ $psCmd }}"
+{{- end }}
+
+local function notify(msg, level)
+  vim.notify(msg, level or vim.log.levels.INFO, { title = "Run File" })
+end
+
+local function exists(path)
+  local uv = vim.uv or vim.loop
+  return path and path ~= "" and uv.fs_stat(path) ~= nil
+end
+
+local function join_path(...)
+  if vim.fs and vim.fs.joinpath then
+    return vim.fs.joinpath(...)
+  end
+
+  return table.concat({ ... }, "/")
+end
+
+local function get_root(file)
+  local root = nil
+
+  if vim.fs and vim.fs.root then
+    root = vim.fs.root(file, {
+      "uv.lock",
+      "pyproject.toml",
+      "Cargo.toml",
+      "typst.toml",
+      "Makefile",
+      "justfile",
+      ".git",
+    })
+  end
+
+  return root or vim.fn.fnamemodify(file, ":h")
+end
+
+{{- if $hasUv }}
+local function should_use_uv(cwd)
+  -- 只有存在 uv.lock 时才明确认为是 uv 项目；
+  -- 单纯 pyproject.toml 可能是 poetry / pdm / hatch，不强行误判。
+  return exists(join_path(cwd, "uv.lock"))
+end
+{{- end }}
+
+{{- if and $isWindows $winShellCmd }}
+local function quote_nu_arg(arg)
+  -- Nushell 双引号字符串会解析反斜杠转义；
+  -- Windows 路径统一转成正斜杠，避免 F:\project 中的 \p 被解析。
+  arg = arg:gsub("\\", "/")
+  arg = arg:gsub('"', '\\"')
+  return '"' .. arg .. '"'
+end
+
+local function quote_powershell_arg(arg)
+  -- PowerShell 单引号字符串不解析反斜杠；
+  -- 单引号本身用两个单引号转义。
+  arg = arg:gsub("'", "''")
+  return "'" .. arg .. "'"
+end
+
+local function quote_windows_shell_arg(arg)
+  if WINDOWS_SHELL_KIND == "nu" then
+    return quote_nu_arg(arg)
+  end
+
+  return quote_powershell_arg(arg)
+end
+
+local function build_windows_shell_command(executable, args)
+  local parts = { executable }
+
+  for _, arg in ipairs(args) do
+    parts[#parts + 1] = quote_windows_shell_arg(arg)
+  end
+
+  return table.concat(parts, " ")
+end
+
+local function build_windows_shell_task(name, executable, args, cwd)
+  local command = build_windows_shell_command(executable, args)
+
+  if WINDOWS_SHELL_KIND == "nu" then
+    return {
+      name = name,
+      cmd = { WINDOWS_SHELL_CMD, "-c", command },
+      cwd = cwd,
+      components = { "default" },
+    }
+  end
+
+  return {
+    name = name,
+    cmd = {
+      WINDOWS_SHELL_CMD,
+      "-NoProfile",
+      "-ExecutionPolicy",
+      "Bypass",
+      "-Command",
+      command,
+    },
+    cwd = cwd,
+    components = { "default" },
+  }
+end
+{{- end }}
+
+{{- if $hasPythonRunner }}
+local function build_python_task(file, cwd, file_name)
+  {{- if $hasUv }}
+  if should_use_uv(cwd) then
+    {{- if $isWindows }}
+    return build_windows_shell_task("uv run " .. file_name, "uv", { "run", "python", file }, cwd)
+    {{- else }}
+    return {
+      name = "uv run " .. file_name,
+      cmd = { "uv", "run", "python", file },
+      cwd = cwd,
+      components = { "default" },
+    }
+    {{- end }}
+  end
+  {{- end }}
+
+  {{- if $pythonCmd }}
+  {{- if $isWindows }}
+  return build_windows_shell_task("python run " .. file_name, PYTHON_CMD, { "-u", file }, cwd)
+  {{- else }}
+  return {
+    name = "python run " .. file_name,
+    cmd = { PYTHON_CMD, "-u", file },
+    cwd = cwd,
+    components = { "default" },
+  }
+  {{- end }}
+  {{- else }}
+  return nil
+  {{- end }}
+end
+{{- end }}
+
+{{- if $hasLua }}
+local function build_lua_task(file, cwd, file_name)
+  return {
+    name = "lua run " .. file_name,
+    cmd = { "lua", file },
+    cwd = cwd,
+    components = { "default" },
+  }
+end
+{{- end }}
+
+{{- if $hasTypst }}
+local function build_typst_task(file, cwd, file_name)
+  return {
+    name = "typst compile " .. file_name,
+    cmd = { "typst", "compile", file },
+    cwd = cwd,
+    components = { "default" },
+  }
+end
+{{- end }}
+
+{{- if or $hasCargo $hasRustc }}
+local function build_rust_task(file, cwd, file_name)
+  -- Rust 项目优先 cargo run；单文件退回 rustc 编译。
+  {{- if $hasCargo }}
+  if exists(join_path(cwd, "Cargo.toml")) then
+    return {
+      name = "cargo run",
+      cmd = { "cargo", "run" },
+      cwd = cwd,
+      components = { "default" },
+    }
+  end
+  {{- end }}
+
+  {{- if $hasRustc }}
+  return {
+    name = "rustc compile " .. file_name,
+    cmd = { "rustc", file },
+    cwd = cwd,
+    components = { "default" },
+  }
+  {{- else }}
+  return nil
+  {{- end }}
+end
+{{- end }}
+
+{{- if $hasNu }}
+local function build_nu_task(file, cwd, file_name)
+  return {
+    name = "nu run " .. file_name,
+    cmd = { "nu", file },
+    cwd = cwd,
+    components = { "default" },
+  }
+end
+{{- end }}
+
+{{- if $psCmd }}
+local function build_powershell_task(file, cwd, file_name)
+  return {
+    name = "powershell run " .. file_name,
+    cmd = { PS_CMD, "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", file },
+    cwd = cwd,
+    components = { "default" },
+  }
+end
+{{- end }}
+
+{{- if and (not $isWindows) $shellCmd }}
+local function build_shell_task(file, cwd, file_name)
+  return {
+    name = "shell run " .. file_name,
+    cmd = { SHELL_CMD, file },
+    cwd = cwd,
+    components = { "default" },
+  }
+end
+{{- end }}
+
+local function build_task(file, cwd, filetype)
+  local file_name = vim.fn.fnamemodify(file, ":t")
+
+  {{- if $hasPythonRunner }}
+  if filetype == "python" then
+    return build_python_task(file, cwd, file_name)
+  end
+  {{- end }}
+
+  {{- if $hasLua }}
+  if filetype == "lua" then
+    return build_lua_task(file, cwd, file_name)
+  end
+  {{- end }}
+
+  {{- if $hasTypst }}
+  if filetype == "typst" then
+    return build_typst_task(file, cwd, file_name)
+  end
+  {{- end }}
+
+  {{- if or $hasCargo $hasRustc }}
+  if filetype == "rust" then
+    return build_rust_task(file, cwd, file_name)
+  end
+  {{- end }}
+
+  {{- if $hasNu }}
+  if filetype == "nu" then
+    return build_nu_task(file, cwd, file_name)
+  end
+  {{- end }}
+
+  {{- if $psCmd }}
+  if filetype == "ps1" or filetype == "powershell" then
+    return build_powershell_task(file, cwd, file_name)
+  end
+  {{- end }}
+
+  {{- if and (not $isWindows) $shellCmd }}
+  if filetype == "sh" or filetype == "bash" or filetype == "zsh" then
+    return build_shell_task(file, cwd, file_name)
+  end
+  {{- end }}
+
+  notify("暂不支持直接运行 filetype: " .. filetype, vim.log.levels.WARN)
+  return nil
+end
+
+function M.run()
+  local overseer = require("overseer")
+
+  local file = vim.fn.expand("%:p")
+  if file == "" then
+    notify("当前 buffer 没有关联文件", vim.log.levels.WARN)
+    return
+  end
+
+  if not exists(file) then
+    notify("当前文件尚未保存到磁盘", vim.log.levels.WARN)
+    return
+  end
+
+  local cwd = get_root(file)
+  local filetype = vim.bo.filetype
+  local task_def = build_task(file, cwd, filetype)
+
+  if not task_def then
+    return
+  end
+
+  local task = overseer.new_task(task_def)
+  task:start()
+
+  overseer.open({ enter = false })
+end
+
+return M
+{{/* vim: set ft=lua.chezmoitmpl: */}}
