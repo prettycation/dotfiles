@@ -1,96 +1,107 @@
+{{- $isWindows := eq .chezmoi.os "windows" -}}
+
+{{- $nu := "" -}}
+{{- $pwsh := "" -}}
+{{- $powershell := "" -}}
+{{- $cmd := "" -}}
+{{- $gitBash := "" -}}
+{{- $gitSh := "" -}}
+{{- $msys2 := "" -}}
+
+{{- $bash := "" -}}
+{{- $fish := "" -}}
+{{- $zsh := "" -}}
+
+{{- if $isWindows -}}
+{{- $nu = lookPath "nu.exe" -}}
+{{- $pwsh = lookPath "pwsh.exe" -}}
+{{- $powershell = lookPath "powershell.exe" -}}
+{{- $cmd = lookPath "cmd.exe" -}}
+{{- $gitBash = lookPath "git-bash.exe" -}}
+{{- $gitSh = lookPath "sh.exe" -}}
+{{- $msys2 = lookPath "ucrt64.cmd" -}}
+{{- else -}}
+{{- $nu = lookPath "nu" -}}
+{{- $bash = lookPath "bash" -}}
+{{- $fish = lookPath "fish" -}}
+{{- $zsh = lookPath "zsh" -}}
+{{- end -}}
+
 local options = {
   default_prog = {},
   launch_menu = {},
 }
 
-{{- if eq .chezmoi.os "windows" }}
+{{- if $isWindows }}
 
-{{- if lookPath "nu.exe" }}
-options.default_prog = { {{ lookPath "nu.exe" | toJson }} }
-{{- else if lookPath "pwsh.exe" }}
-options.default_prog = { {{ lookPath "pwsh.exe" | toJson }}, "-NoLogo" }
-{{- else if lookPath "powershell.exe" }}
-options.default_prog = { {{ lookPath "powershell.exe" | toJson }} }
-{{- else if lookPath "cmd.exe" }}
-options.default_prog = { {{ lookPath "cmd.exe" | toJson }} }
+{{- if $nu }}
+options.default_prog = { {{ $nu | toJson }} }
+{{- else if $pwsh }}
+options.default_prog = { {{ $pwsh | toJson }}, "-NoLogo" }
+{{- else if $powershell }}
+options.default_prog = { {{ $powershell | toJson }} }
+{{- else if $cmd }}
+options.default_prog = { {{ $cmd | toJson }} }
 {{- end }}
 
 options.launch_menu = {
-  {{- if lookPath "pwsh.exe" }}
-  { label = "PowerShell Core", args = { {{ lookPath "pwsh.exe" | toJson }}, "-NoLogo" } },
-  {{- if lookPath "nu.exe" }}
-  { label = "Nushell", args = { {{ lookPath "nu.exe" | toJson }} } },
+  {{- if $nu }}
+  { label = "Nushell", args = { {{ $nu | toJson }} } },
   {{- end }}
+
+  {{- if $pwsh }}
+  { label = "PowerShell Core", args = { {{ $pwsh | toJson }}, "-NoLogo" } },
   {{- end }}
-  {{- if lookPath "bash.exe" }}
-  { label = "Git Bash", args = { {{ lookPath "bash.exe" | toJson }}, "-l" } },
+
+  {{- if and $gitBash $gitSh }}
+  { label = "Git Bash", args = { {{ $gitSh | toJson }}, "--login", "-i" } },
   {{- end }}
-  {{- if lookPath "cmd.exe" }}
-  { label = "Command Prompt", args = { {{ lookPath "cmd.exe" | toJson }} } },
+
+  {{- if $cmd }}
+  { label = "Command Prompt", args = { {{ $cmd | toJson }} } },
   {{- end }}
-  {{- if lookPath "powershell.exe" }}
-  { label = "PowerShell Desktop", args = { {{ lookPath "powershell.exe" | toJson }} } },
+
+  {{- if $powershell }}
+  { label = "PowerShell Desktop", args = { {{ $powershell | toJson }} } },
   {{- end }}
-  {{- if lookPath "ucrt64.cmd" }}
-  { label = "Msys2", args = { {{ lookPath "ucrt64.cmd" | toJson }} } },
+
+  {{- if $msys2 }}
+  { label = "Msys2", args = { {{ $msys2 | toJson }} } },
   {{- end }}
 }
 
-{{- else if eq .chezmoi.os "darwin" }}
+{{- else }}
 
-{{- if lookPath "zsh" }}
-options.default_prog = { {{ lookPath "zsh" | toJson }}, "-l" }
-{{- else if lookPath "fish" }}
-options.default_prog = { {{ lookPath "fish" | toJson }}, "-l" }
-{{- else if lookPath "nu" }}
-options.default_prog = { {{ lookPath "nu" | toJson }}, "-l" }
-{{- else if lookPath "bash" }}
-options.default_prog = { {{ lookPath "bash" | toJson }}, "-l" }
+{{- if $zsh }}
+options.default_prog = { {{ $zsh | toJson }}, "-l" }
+{{- else if $fish }}
+options.default_prog = { {{ $fish | toJson }}, "-l" }
+{{- else if $nu }}
+options.default_prog = { {{ $nu | toJson }}, "-l" }
+{{- else if $bash }}
+options.default_prog = { {{ $bash | toJson }}, "-l" }
 {{- end }}
 
 options.launch_menu = {
-  {{- if lookPath "bash" }}
-  { label = "Bash", args = { {{ lookPath "bash" | toJson }}, "-l" } },
+  {{- if $bash }}
+  { label = "Bash", args = { {{ $bash | toJson }}, "-l" } },
   {{- end }}
-  {{- if lookPath "fish" }}
-  { label = "Fish", args = { {{ lookPath "fish" | toJson }}, "-l" } },
-  {{- end }}
-  {{- if lookPath "nu" }}
-  { label = "Nushell", args = { {{ lookPath "nu" | toJson }}, "-l" } },
-  {{- end }}
-  {{- if lookPath "zsh" }}
-  { label = "Zsh", args = { {{ lookPath "zsh" | toJson }}, "-l" } },
-  {{- end }}
-}
 
-{{- else if eq .chezmoi.os "linux" }}
+  {{- if $fish }}
+  { label = "Fish", args = { {{ $fish | toJson }}, "-l" } },
+  {{- end }}
 
-{{- if lookPath "zsh" }}
-options.default_prog = { {{ lookPath "zsh" | toJson }}, "-l" }
-{{- else if lookPath "fish" }}
-options.default_prog = { {{ lookPath "fish" | toJson }}, "-l" }
-{{- else if lookPath "nu" }}
-options.default_prog = { {{ lookPath "nu" | toJson }}, "-l" }
-{{- else if lookPath "bash" }}
-options.default_prog = { {{ lookPath "bash" | toJson }}, "-l" }
-{{- end }}
+  {{- if $nu }}
+  { label = "Nushell", args = { {{ $nu | toJson }}, "-l" } },
+  {{- end }}
 
-options.launch_menu = {
-  {{- if lookPath "bash" }}
-  { label = "Bash", args = { {{ lookPath "bash" | toJson }}, "-l" } },
-  {{- end }}
-  {{- if lookPath "fish" }}
-  { label = "Fish", args = { {{ lookPath "fish" | toJson }}, "-l" } },
-  {{- end }}
-  {{- if lookPath "nu" }}
-  { label = "Nushell", args = { {{ lookPath "nu" | toJson }}, "-l" } },
-  {{- end }}
-  {{- if lookPath "zsh" }}
-  { label = "Zsh", args = { {{ lookPath "zsh" | toJson }}, "-l" } },
+  {{- if $zsh }}
+  { label = "Zsh", args = { {{ $zsh | toJson }}, "-l" } },
   {{- end }}
 }
 
 {{- end }}
 
 return options
+
 {{/* vim: set ft=lua.chezmoitmpl: */}}
