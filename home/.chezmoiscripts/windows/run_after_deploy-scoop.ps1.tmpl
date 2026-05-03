@@ -45,7 +45,7 @@ $sourceDir = "{{ .chezmoi.sourceDir }}"
 # ----------------------------
 # 3) 读取缓存 state (去除缓慢的管道)
 # ----------------------------
-$stateDir = [System.IO.Path]::Combine($env:LOCALAPPDATA, "chezmoi")
+$stateDir = [System.IO.Path]::Combine($env:XDG_STATE_HOME, "chezmoi")
 $statePath = [System.IO.Path]::Combine($stateDir, "scoop-deploy-state.json")
 
 if (-not ([System.IO.Directory]::Exists($stateDir))) {
