@@ -7,7 +7,9 @@ return {
       { "<leader>fE", false },
       { "<leader>E", false },
       { "<leader>e", false },
-      { "<leader>gd", false },
+      -- 在 keymaps.lua 覆盖
+      -- { "<leader>gd", false },
+      -- { "<leader>gD", false },
     },
     opts = function(_, opts)
       opts.explorer = opts.explorer or {}

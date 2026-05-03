@@ -6,10 +6,24 @@
 
 -- vim.keymap.set("c", "jk", "<Esc>", { desc = "退出命令模式", silent = true })
 
--- 禁用原生 diffget (do)
-vim.keymap.set("n", "do", "<Nop>", { noremap = true, silent = true })
--- diffput (dp)
-vim.keymap.set("n", "dp", "<Nop>", { noremap = true, silent = true })
+pcall(vim.keymap.del, "n", "<leader>gd")
+pcall(vim.keymap.del, "n", "<leader>gD")
+pcall(vim.keymap.del, "n", "<leader>gf")
+
+vim.keymap.set("n", "<leader>gd", "<cmd>CodeDiff<cr>", {
+  desc = "Git Diff (CodeDiff)",
+  silent = true,
+})
+
+vim.keymap.set("n", "<leader>gD", "<cmd>CodeDiff origin/HEAD<cr>", {
+  desc = "Git Diff origin/HEAD (CodeDiff)",
+  silent = true,
+})
+
+vim.keymap.set("n", "<leader>gf", "<cmd>CodeDiff history HEAD~50 %<cr>", {
+  desc = "Git Current File History (CodeDiff)",
+  silent = true,
+})
 
 if vim.g.vscode then
   -- 清理 vscode-neovim 默认的 m 开头的多光标映射，解决 m 键延迟
