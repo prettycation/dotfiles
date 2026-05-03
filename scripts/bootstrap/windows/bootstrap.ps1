@@ -36,6 +36,9 @@ param(
   # Skip the cargo packages step.
   [switch]$SkipCargo,
 
+  # Skip the PowerShell completions step.
+  [switch]$SkipPSCompletions,
+
   # Optional hint shown in the final manual chezmoi steps.
   [string]$ChezmoiRepo = "",
 
@@ -98,9 +101,14 @@ if (-not $SkipCargo)
   $steps += "steps\50-cargo-packages.ps1"
 }
 
+if (-not $SkipPSCompletions)
+{
+  $steps += "steps\60-pscompletions.ps1"
+}
+
 if (-not $SkipVSCode)
 {
-  $steps += "steps\60-vscode.ps1"
+  $steps += "steps\70-vscode.ps1"
 }
 
 foreach ($relativeStep in $steps)
@@ -135,6 +143,16 @@ Write-Host (Get-ManualChezmoiNextSteps -RepoHint $ChezmoiRepo) -ForegroundColor 
 if ($SkipMise)
 {
   Write-Warn "mise step was skipped."
+}
+
+if ($SkipCargo)
+{
+  Write-Warn "cargo step was skipped."
+}
+
+if ($SkipPSCompletions)
+{
+  Write-Warn "PowerShell completions step was skipped."
 }
 
 if ($SkipVSCode)
