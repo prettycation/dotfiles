@@ -1,0 +1,549 @@
+#!/bin/bash
+
+set -u
+
+# ==========================================
+# 1. 国际化与终端输出
+# ==========================================
+C_DEF='\033[0m'
+C_BLU='\033[1;34m'
+C_GRN='\033[1;32m'
+C_YEL='\033[1;33m'
+C_RED='\033[1;31m'
+C_CYA='\033[1;36m'
+
+IS_ZH=0
+if [[ "${LANG:-}" == *"zh_CN"* || "${LC_ALL:-}" == *"zh_CN"* ]]; then
+  IS_ZH=1
+fi
+
+_t() {
+  if [[ $IS_ZH -eq 1 && -n "${2:-}" ]]; then
+    echo "$2"
+  else
+    echo "$1"
+  fi
+}
+
+info() { echo -e "${C_BLU}[*]${C_DEF} $1"; }
+ok() { echo -e "${C_GRN}[OK]${C_DEF} $1"; }
+warn() { echo -e "${C_YEL}[!]${C_DEF} $1"; }
+err() { echo -e "${C_RED}[X]${C_DEF} $1"; }
+step() { echo -e "\n${C_CYA}>>> $1${C_DEF}"; }
+
+# ==========================================
+# 2. 路径变量
+# ==========================================
+# 只读取这些系统模板/资源目录；本脚本不会把 TEMPLATE_DIR 整体同步到家目录。
+WALLPAPER_SRC_DIR="/usr/share/shorin-niri-wallpapers"
+
+# Shorin/Matugen 相关用户路径。
+USER_BIN_DIR="$HOME/.local/bin"
+ENV_DIR="$HOME/.config/environment.d"
+MATUGEN_STRATEGY_DIR="$HOME/.cache/matugen-strategy"
+
+# ==========================================
+# 3. sudo 探针与保活
+# ==========================================
+# 只有需要改 systemd 服务、i2c 组、内核模块加载文件时才调用。
+ask_for_sudo() {
+  if sudo -n true 2>/dev/null; then
+    (
+      while kill -0 "$$" 2>/dev/null; do
+        sudo -n true >/dev/null 2>&1 || true
+        sleep 60
+      done
+    ) 2>/dev/null &
+    return 0
+  fi
+
+  step "$(_t "Requesting administrator privileges" "请求管理员权限")"
+  info "$(_t "Please enter your password for sudo." "请输入 sudo 密码。")"
+  sudo -v || {
+    err "$(_t "Sudo authentication failed." "sudo 验证失败。")"
+    exit 1
+  }
+
+  (
+    while kill -0 "$$" 2>/dev/null; do
+      sudo -n true >/dev/null 2>&1 || true
+      sleep 60
+    done
+  ) 2>/dev/null &
+
+  ok "$(_t "Sudo privileges acquired." "管理员权限获取成功。")"
+}
+
+# ==========================================
+# 4. 依赖检查：只检查，不安装
+# ==========================================
+# REQUIRED_COMMANDS 是 Shorin Niri 常用功能会调用到的命令。
+# 缺失时只提示，不会执行 pacman/paru/yay 安装。
+REQUIRED_COMMANDS=(
+  niri
+  waybar
+  kitty
+  fuzzel
+  mako
+  swayosd-server
+  swayosd-client
+  wl-copy
+  wl-paste
+  cliphist
+  cliphist-tui
+  satty
+  grim
+  slurp
+  wl-longshot
+  wl-screenrec
+  wf-recorder
+  shorin-screenrec-menu
+  pavucontrol
+  bluetui
+  cava
+  playerctl
+  checkupdates
+  notify-send
+  pw-play
+  wpctl
+  pactl
+  waypaper
+  matugen
+  awww
+  jq
+  magick
+  powerprofilesctl
+  # 时钟/日历/取色器
+  gnome-clocks
+  gnome-calendar
+  hyprpicker
+  wl-clipboard
+  pipewire
+  sound-theme-freedesktop
+  # 锁屏
+  hyprlock
+  # 壁纸选择器等 gtk 主题
+  adw-gtk-theme
+)
+
+check_dependencies() {
+  step "$(_t "Checking runtime commands" "检查运行时命令")"
+  local missing=()
+
+  for cmd in "${REQUIRED_COMMANDS[@]}"; do
+    if ! command -v "$cmd" >/dev/null 2>&1; then
+      missing+=("$cmd")
+    fi
+  done
+
+  if ((${#missing[@]} == 0)); then
+    ok "$(_t "All checked commands are available." "已检查命令均存在。")"
+    return 0
+  fi
+
+  warn "$(_t "Some commands are missing. This script will not install them automatically." "存在缺失命令；本脚本不会自动安装。")"
+  for cmd in "${missing[@]}"; do
+    echo "  - $cmd"
+  done
+  return 1
+}
+
+# ==========================================
+# 5. PATH 修复
+# ==========================================
+# Waybar/Niri 不是交互式 shell，未必能读到 .zshrc/.bashrc。
+# 这里同时修复 profile 和 systemd user environment。
+ensure_local_bin_path() {
+  step "$(_t "Ensuring ~/.local/bin is visible" "确保 ~/.local/bin 可被会话识别")"
+
+  mkdir -p "$USER_BIN_DIR" "$ENV_DIR"
+
+  if ! grep -qxF 'export PATH="$HOME/.local/bin:$PATH"' "$HOME/.profile" 2>/dev/null; then
+    echo 'export PATH="$HOME/.local/bin:$PATH"' >>"$HOME/.profile"
+    info "$(_t "Added PATH line to ~/.profile." "已向 ~/.profile 添加 PATH。")"
+  fi
+
+  if [[ -f "$HOME/.zprofile" ]]; then
+    if ! grep -qxF 'export PATH="$HOME/.local/bin:$PATH"' "$HOME/.zprofile" 2>/dev/null; then
+      echo 'export PATH="$HOME/.local/bin:$PATH"' >>"$HOME/.zprofile"
+      info "$(_t "Added PATH line to ~/.zprofile." "已向 ~/.zprofile 添加 PATH。")"
+    fi
+  fi
+
+  printf 'PATH=%s/.local/bin:%s\n' "$HOME" "$PATH" >"$ENV_DIR/10-shorin-local-bin.conf"
+  export PATH="$USER_BIN_DIR:$PATH"
+  systemctl --user import-environment PATH 2>/dev/null || true
+
+  ok "$(_t "PATH prepared. Re-login is recommended for a clean session." "PATH 已处理；建议重新登录以彻底生效。")"
+}
+
+# ==========================================
+# 6. 本地命令链接修复
+# ==========================================
+# 原版 shorinniri init 会执行 shorin link。
+# 该命令会把 shorin-contrib 提供的工具命令链接到 ~/.local/bin。
+# 这里保留该行为，但不安装 shorin-contrib。
+link_user_commands() {
+  step "$(_t "Linking Shorin helper commands" "链接 Shorin 辅助命令")"
+
+  mkdir -p "$USER_BIN_DIR"
+
+  if command -v kitty >/dev/null 2>&1; then
+    ln -sfn /usr/bin/kitty "$USER_BIN_DIR/xterm"
+    ok "$(_t "Linked kitty as ~/.local/bin/xterm." "已将 kitty 链接为 ~/.local/bin/xterm。")"
+  else
+    warn "$(_t "kitty not found; skipped xterm compatibility link." "未找到 kitty，跳过 xterm 兼容链接。")"
+  fi
+
+  if command -v shorin >/dev/null 2>&1; then
+    shorin link || warn "$(_t "shorin link returned a non-zero status." "shorin link 返回非零状态。")"
+    ok "$(_t "Executed shorin link." "已执行 shorin link。")"
+  else
+    warn "$(_t "shorin command not found; skipped shorin link." "未找到 shorin 命令，跳过 shorin link。")"
+  fi
+}
+
+# ==========================================
+# 7. 脚本权限修复
+# ==========================================
+# 手动复制 dotfiles 时常见问题：脚本失去执行权限。
+# Waybar 自定义模块、取色脚本、截图/录屏脚本都依赖这些权限。
+fix_script_permissions() {
+  step "$(_t "Fixing script executable permissions" "修复脚本执行权限")"
+
+  if [[ -d "$HOME/.config/scripts" ]]; then
+    find "$HOME/.config/scripts" -type f -exec chmod +x {} \;
+    ok "$(_t "Fixed ~/.config/scripts." "已修复 ~/.config/scripts。")"
+  else
+    warn "$(_t "~/.config/scripts does not exist." "~/.config/scripts 不存在。")"
+  fi
+
+  if [[ -d "$HOME/.config/waybar/scripts" ]]; then
+    find "$HOME/.config/waybar/scripts" -type f -exec chmod +x {} \;
+    ok "$(_t "Fixed ~/.config/waybar/scripts." "已修复 ~/.config/waybar/scripts。")"
+  else
+    warn "$(_t "~/.config/waybar/scripts does not exist." "~/.config/waybar/scripts 不存在。")"
+  fi
+
+  if [[ -d "$USER_BIN_DIR" ]]; then
+    find "$USER_BIN_DIR" -maxdepth 1 -type f -exec chmod +x {} \;
+    ok "$(_t "Fixed ~/.local/bin files." "已修复 ~/.local/bin 下的普通脚本。")"
+  fi
+}
+
+# ==========================================
+# 8. Niri 辅助文件修复
+# ==========================================
+# 只补缺失的辅助文件，不从模板覆盖用户现有配置。
+prepare_niri_runtime_files() {
+  step "$(_t "Preparing Niri runtime files" "准备 Niri 运行时辅助文件")"
+
+  if [[ ! -f "$HOME/.config/niri/output.kdl" && -f "$HOME/.config/niri/output-example.kdl" ]]; then
+    cp "$HOME/.config/niri/output-example.kdl" "$HOME/.config/niri/output.kdl"
+    info "$(_t "Created output.kdl from output-example.kdl." "已从 output-example.kdl 创建 output.kdl。")"
+  fi
+
+  ok "$(_t "Niri runtime files prepared." "Niri 运行时辅助文件已准备。")"
+}
+
+# ==========================================
+# 9. 壁纸资源修复
+# ==========================================
+# 只在目标目录不存在同名文件时复制默认壁纸；不会覆盖你的壁纸。
+prepare_wallpapers() {
+  step "$(_t "Preparing wallpaper directory" "准备壁纸目录")"
+
+  local wp_dest="$HOME/Pictures/Wallpapers"
+  mkdir -p "$wp_dest"
+
+  if [[ -d "$WALLPAPER_SRC_DIR" ]]; then
+    cp -an "$WALLPAPER_SRC_DIR"/. "$wp_dest"/ 2>/dev/null || true
+    ok "$(_t "Default wallpapers copied without overwriting existing files." "默认壁纸已复制，未覆盖已有文件。")"
+  else
+    warn "$(_t "Wallpaper source directory not found." "未找到系统默认壁纸目录。")"
+  fi
+}
+
+# ==========================================
+# 10. Matugen/Waypaper 取色逻辑修复
+# ==========================================
+# 保留 Shorin 的动态取色逻辑：
+# - 初始化配色策略缓存；
+# - 尝试使用当前壁纸生成颜色；
+# - 如果没有当前壁纸，使用 Wallpapers 中第一张图片；
+# - 不覆盖你的模板配置，只触发已有脚本生成 colors 文件。
+ensure_matugen_strategy_defaults() {
+  mkdir -p "$MATUGEN_STRATEGY_DIR" "$HOME/.cache/matugen-update"
+  [[ -f "$MATUGEN_STRATEGY_DIR/type" ]] || echo "scheme-tonal-spot" >"$MATUGEN_STRATEGY_DIR/type"
+  [[ -f "$MATUGEN_STRATEGY_DIR/mode" ]] || echo "dark" >"$MATUGEN_STRATEGY_DIR/mode"
+  [[ -f "$MATUGEN_STRATEGY_DIR/index_mode" ]] || echo "0" >"$MATUGEN_STRATEGY_DIR/index_mode"
+}
+
+find_first_wallpaper() {
+  find "$HOME/Pictures/Wallpapers" -type f \
+    \( -iname '*.png' -o -iname '*.jpg' -o -iname '*.jpeg' -o -iname '*.webp' \) \
+    2>/dev/null | head -n 1
+}
+
+refresh_colors() {
+  step "$(_t "Refreshing Matugen colors" "刷新 Matugen 取色文件")"
+  ensure_matugen_strategy_defaults
+
+  local update_script="$HOME/.config/scripts/matugen-update.sh"
+  if [[ ! -x "$update_script" ]]; then
+    warn "$(_t "matugen-update.sh is missing or not executable." "matugen-update.sh 不存在或不可执行。")"
+    warn "$(_t "Run: chmod +x ~/.config/scripts/matugen-update.sh" "请执行: chmod +x ~/.config/scripts/matugen-update.sh")"
+    return 1
+  fi
+
+  # 优先让 Shorin 脚本自己寻找 awww/waypaper 当前壁纸。
+  if "$update_script" -f; then
+    ok "$(_t "Colors refreshed from current wallpaper." "已根据当前壁纸刷新配色。")"
+    return 0
+  fi
+
+  # 兜底：如果当前壁纸探测失败，则使用壁纸目录第一张图。
+  local wall
+  wall="$(find_first_wallpaper)"
+  if [[ -n "$wall" ]]; then
+    "$update_script" -f "$wall"
+    ok "$(_t "Colors refreshed from fallback wallpaper." "已根据备用壁纸刷新配色。")"
+  else
+    warn "$(_t "No wallpaper found for color generation." "未找到可用于取色的壁纸。")"
+    return 1
+  fi
+}
+
+# ==========================================
+# 11. 系统服务修复
+# ==========================================
+# 只处理 Shorin/Niri 功能运行所需服务和权限。
+# 不再写 Firefox 策略，不再设置 adw-gtk3-dark，不再做 Flatpak override。
+setup_system_runtime() {
+  ask_for_sudo
+  step "$(_t "Configuring runtime services" "配置运行时服务")"
+
+  sudo systemctl enable --now power-profiles-daemon.service >/dev/null 2>&1 ||
+    warn "$(_t "Could not enable power-profiles-daemon." "无法启用 power-profiles-daemon。")"
+
+  sudo systemctl enable --now swayosd-libinput-backend.service >/dev/null 2>&1 ||
+    warn "$(_t "Could not enable swayosd-libinput-backend." "无法启用 swayosd-libinput-backend。")"
+
+  # DDC/CI 外接显示器亮度控制需要 i2c-dev 与 i2c 组。
+  if getent group i2c >/dev/null 2>&1; then
+    sudo gpasswd -a "$USER" i2c >/dev/null 2>&1 || true
+  else
+    warn "$(_t "Group i2c does not exist; skipped adding user to i2c." "i2c 用户组不存在，跳过加入用户组。")"
+  fi
+
+  echo "i2c-dev" | sudo tee /etc/modules-load.d/i2c-dev.conf >/dev/null
+  sudo modprobe i2c-dev 2>/dev/null || true
+
+  ok "$(_t "Runtime services configured." "运行时服务已配置。")"
+}
+
+# ==========================================
+# 12. 用户级轻量配置修复
+# ==========================================
+# 这些是低风险补全项：默认终端列表、模板文件、XDG 用户目录。
+# 不会覆盖用户的 Niri/Waybar/Fcitx5/GTK 配置。
+apply_light_user_runtime() {
+  step "$(_t "Applying lightweight user runtime settings" "应用轻量用户运行时设置")"
+
+  mkdir -p "$HOME/.config" "$HOME/Templates"
+
+  if command -v xdg-user-dirs-update >/dev/null 2>&1; then
+    LANG=en_US.UTF-8 LANGUAGE=en_US.UTF-8 xdg-user-dirs-update --force || true
+  fi
+
+  if ! grep -q "kitty.desktop" "$HOME/.config/xdg-terminals.list" 2>/dev/null; then
+    echo "kitty.desktop" >>"$HOME/.config/xdg-terminals.list"
+    info "$(_t "Added kitty.desktop to xdg-terminals.list." "已向 xdg-terminals.list 添加 kitty.desktop。")"
+  fi
+
+  [[ -f "$HOME/Templates/new" ]] || touch "$HOME/Templates/new"
+
+  if [[ ! -f "$HOME/Templates/new.sh" ]]; then
+    printf '#!/usr/bin/env bash\n' >"$HOME/Templates/new.sh"
+    chmod +x "$HOME/Templates/new.sh"
+  fi
+
+  ok "$(_t "Lightweight user runtime settings applied." "轻量用户运行时设置已应用。")"
+}
+
+# ==========================================
+# 13. 显式隐藏应用图标，可选执行
+# ==========================================
+# 原版脚本会自动隐藏一批桌面图标。
+# 这里改成手动子命令 hide-icons，避免 init/update 悄悄修改应用菜单。
+hide_desktop_file() {
+  local source_file="$1"
+  local filename
+  filename="$(basename "$source_file")"
+  local user_dir="$HOME/.local/share/applications"
+  local target_file="$user_dir/$filename"
+
+  if [[ -f "$source_file" ]]; then
+    mkdir -p "$user_dir"
+    cp -f "$source_file" "$target_file"
+    if grep -q "^NoDisplay=" "$target_file" 2>/dev/null; then
+      sed -i 's/^NoDisplay=.*/NoDisplay=true/' "$target_file"
+    else
+      echo "NoDisplay=true" >>"$target_file"
+    fi
+  fi
+}
+
+run_hide_desktop_file() {
+  step "$(_t "Hiding selected desktop entries" "隐藏指定桌面图标")"
+  local apps_to_hide=(
+    "lstopo.desktop"
+    "avahi-discover.desktop"
+    "qv4l2.desktop"
+    "qvidcap.desktop"
+    "bssh.desktop"
+    "org.fcitx.Fcitx5.desktop"
+    "org.fcitx.fcitx5-migrator.desktop"
+    "xgps.desktop"
+    "xgpsspeed.desktop"
+    "gvim.desktop"
+    "kbd-layout-viewer5.desktop"
+    "bvnc.desktop"
+    "yazi.desktop"
+    "btop.desktop"
+    "vim.desktop"
+    "nvim.desktop"
+    "nvtop.desktop"
+    "mpv.desktop"
+    "org.gnome.Settings.desktop"
+    "thunar-settings.desktop"
+    "thunar-bulk-rename.desktop"
+    "thunar-volman-settings.desktop"
+    "clipse-gui.desktop"
+    "waypaper.desktop"
+    "xfce4-about.desktop"
+    "cmake-gui.desktop"
+    "assistant.desktop"
+    "qdbusviewer.desktop"
+    "linguist.desktop"
+    "designer.desktop"
+    "org.kde.drkonqi.coredump.gui.desktop"
+    "org.kde.kwrite.desktop"
+    "org.freedesktop.MalcontentControl.desktop"
+    "org.gnome.Nautilus.desktop"
+  )
+
+  for app in "${apps_to_hide[@]}"; do
+    hide_desktop_file "/usr/share/applications/$app"
+  done
+  ok "$(_t "Desktop entry hiding completed." "桌面图标隐藏完成。")"
+}
+
+# ==========================================
+# 14. 运行时修复总入口
+# ==========================================
+# init/update/repair 都走这里：
+# - 不安装软件；
+# - 不同步 dotfiles；
+# - 只修复运行环境。
+repair_runtime() {
+  check_dependencies || true
+  ensure_local_bin_path
+  link_user_commands
+  fix_script_permissions
+  prepare_niri_runtime_files
+  prepare_wallpapers
+  apply_light_user_runtime
+  setup_system_runtime
+  refresh_colors || true
+  ok "$(_t "Runtime repair finished." "运行时修复完成。")"
+}
+
+# ==========================================
+# 15. 安全清理
+# ==========================================
+# 不再按模板删除你的 dotfiles。
+# 这里只清理本脚本创建的少量兼容链接和可再生成缓存。
+safe_remove() {
+  step "$(_t "Safe cleanup" "安全清理")"
+  warn "$(_t "This will not remove your dotfiles or packages." "这不会删除你的配置文件或软件包。")"
+  read -r -p "$(_t "Continue? [y/N] " "继续？[y/N] ")" confirm
+  if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
+    info "$(_t "Cancelled." "已取消。")"
+    return 0
+  fi
+
+  rm -f "$USER_BIN_DIR/xterm"
+  rm -rf "$HOME/.cache/matugen-update"
+  ok "$(_t "Safe cleanup completed." "安全清理完成。")"
+}
+
+# ==========================================
+# 16. 帮助信息
+# ==========================================
+usage() {
+  cat <<'USAGE'
+Usage:
+  shorinniri init        修复运行环境；不安装包，不同步/覆盖 dotfiles
+  shorinniri update      同 init；保留兼容入口
+  shorinniri repair      同 init；语义更明确
+  shorinniri check       检查 Shorin/Niri/Waybar 常用命令是否存在
+  shorinniri link        执行 shorin link，并创建 kitty -> xterm 兼容链接
+  shorinniri perms       修复 ~/.config/scripts、~/.config/waybar/scripts、~/.local/bin 权限
+  shorinniri colors      重新运行 Matugen/Waypaper 取色生成
+  shorinniri path        修复 ~/.local/bin PATH
+  shorinniri services    启用 power-profiles-daemon、swayosd 后端、i2c-dev
+  shorinniri hide-icons  手动隐藏一批桌面菜单图标
+  shorinniri remove      安全清理少量可再生成文件；不删配置，不删包
+
+Removed from original behavior:
+  - 不再自动安装 TARGET_SOFTWARE。
+  - 不再写 ~/.cache/shorin-niri-software.cache。
+  - 不再 pacman -D --asexplicit 保护全家桶。
+  - 不再从 /usr/share/shorin-niri 复制/覆盖所有配置文件。
+  - 不再写 Firefox 策略。
+  - 不再强制设置 adw-gtk3-dark 或 Flatpak GTK override。
+USAGE
+}
+
+# ==========================================
+# 17. 路由入口
+# ==========================================
+case "${1:-}" in
+init | update | repair)
+  repair_runtime
+  ;;
+check)
+  check_dependencies
+  ;;
+link)
+  ensure_local_bin_path
+  link_user_commands
+  ;;
+perms)
+  fix_script_permissions
+  ;;
+colors)
+  refresh_colors
+  ;;
+path)
+  ensure_local_bin_path
+  ;;
+services)
+  setup_system_runtime
+  ;;
+hide-icons)
+  run_hide_desktop_file
+  ;;
+remove)
+  safe_remove
+  ;;
+-h | --help | help | "")
+  usage
+  ;;
+*)
+  err "$(_t "Unknown command." "未知命令。")"
+  usage
+  exit 1
+  ;;
+esac
