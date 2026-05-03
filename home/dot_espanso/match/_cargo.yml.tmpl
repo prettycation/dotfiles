@@ -1,0 +1,107 @@
+{{- $isWindows := eq .chezmoi.os "windows" -}}
+{{- $binOnlyStrategies := "crate-meta-data,quick-install" -}}
+
+{{- $nu := "" -}}
+{{- $pwsh := "" -}}
+{{- $powershell := "" -}}
+{{- $cmd := "" -}}
+{{- $gitBash := "" -}}
+{{- $gitSh := "" -}}
+{{- $msys2 := "" -}}
+
+{{- $bash := "" -}}
+{{- $fish := "" -}}
+{{- $zsh := "" -}}
+
+{{- if $isWindows -}}
+{{- $nu = lookPath "nu.exe" -}}
+{{- $pwsh = lookPath "pwsh.exe" -}}
+{{- $powershell = lookPath "powershell.exe" -}}
+{{- $cmd = lookPath "cmd.exe" -}}
+{{- $gitBash = lookPath "git-bash.exe" -}}
+{{- $gitSh = lookPath "sh.exe" -}}
+{{- $msys2 = lookPath "ucrt64.cmd" -}}
+{{- else -}}
+{{- $nu = lookPath "nu" -}}
+{{- $bash = lookPath "bash" -}}
+{{- $fish = lookPath "fish" -}}
+{{- $zsh = lookPath "zsh" -}}
+{{- end -}}
+
+{{- $shellStyle := "posix" -}}
+
+{{- if $isWindows -}}
+  {{- if $nu -}}
+    {{- $shellStyle = "nu" -}}
+  {{- else if $pwsh -}}
+    {{- $shellStyle = "powershell" -}}
+  {{- else if $powershell -}}
+    {{- $shellStyle = "powershell" -}}
+  {{- else if $cmd -}}
+    {{- $shellStyle = "cmd" -}}
+  {{- else if or $gitBash $gitSh $msys2 -}}
+    {{- $shellStyle = "posix" -}}
+  {{- end -}}
+{{- else -}}
+  {{- if $zsh -}}
+    {{- $shellStyle = "posix" -}}
+  {{- else if $fish -}}
+    {{- $shellStyle = "fish" -}}
+  {{- else if $nu -}}
+    {{- $shellStyle = "nu" -}}
+  {{- else if $bash -}}
+    {{- $shellStyle = "posix" -}}
+  {{- end -}}
+{{- end -}}
+
+{{- $binstallUpdateAll := "" -}}
+
+{{- if eq $shellStyle "nu" -}}
+  {{- $binstallUpdateAll = printf "with-env { BINSTALL_STRATEGIES: %q } { cargo install-update -a --locked }" $binOnlyStrategies -}}
+{{- else if eq $shellStyle "fish" -}}
+  {{- $binstallUpdateAll = printf "env BINSTALL_STRATEGIES=%s cargo install-update -a --locked" $binOnlyStrategies -}}
+{{- else if eq $shellStyle "powershell" -}}
+  {{- $binstallUpdateAll = printf "$env:BINSTALL_STRATEGIES='%s'; cargo install-update -a --locked" $binOnlyStrategies -}}
+{{- else if eq $shellStyle "cmd" -}}
+  {{- $binstallUpdateAll = printf "set \"BINSTALL_STRATEGIES=%s\" && cargo install-update -a --locked" $binOnlyStrategies -}}
+{{- else -}}
+  {{- $binstallUpdateAll = printf "BINSTALL_STRATEGIES=%s cargo install-update -a --locked" $binOnlyStrategies -}}
+{{- end -}}
+
+matches:
+  - trigger: "c.ls"
+    replace: "cargo install --list"
+
+  # 只接受预编译包；没有预编译包就失败，不回退 cargo install 编译
+  - trigger: "c.bis"
+    replace: "cargo binstall --no-confirm --strategies crate-meta-data,quick-install --locked $|$"
+
+  # 只接受预编译包的 update
+  - trigger: "c.bup"
+    replace: >-
+      {{ $binstallUpdateAll }}
+
+  # 允许源码编译，但要求 Cargo.lock
+  - trigger: "c.is"
+    replace: "cargo install --locked $|$"
+
+  - trigger: "c.ui"
+    replace: "cargo uninstall $|$"
+
+  - trigger: "c.st"
+    replace: "cargo install-update -l"
+
+  # 允许非预编译 / 允许 fallback，但要求 --locked
+  - trigger: "c.up"
+    replace: "cargo install-update -a -i cargo-binstall --locked"
+
+  - trigger: "c.cl"
+    replace: "cargo cache --autoclean"
+
+  - trigger: "c.ccs"
+    replace: "cargo cache"
+
+  - trigger: "c.sc"
+    replace: "cargo search $|$"
+
+{{/* vim: set ft=yaml.chezmoitmpl: */}}
