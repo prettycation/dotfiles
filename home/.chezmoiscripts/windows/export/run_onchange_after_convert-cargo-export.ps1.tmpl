@@ -231,6 +231,10 @@ $exportedPackages = @(
     $package = $_
     $packageMetadata = Get-MetadataByName -MetadataMap $cargoPackageMetadata -Name $package.name
 
+    $mergedMetadata = [ordered]@{}
+    Merge-OrderedMap -Base $mergedMetadata -Extra $defaultMetadata | Out-Null
+    Merge-OrderedMap -Base $mergedMetadata -Extra $packageMetadata | Out-Null
+
     $item = [ordered]@{
       name = $package.name
       version = $package.version
@@ -248,10 +252,17 @@ $exportedPackages = @(
       $item["source"] = $package.source
     }
 
-    # defaults 先合并，单包 metadata 后合并；
-    # 因此单包 optional / os / installPriority 会覆盖默认值。
-    Merge-OrderedMap -Base $item -Extra $defaultMetadata | Out-Null
-    Merge-OrderedMap -Base $item -Extra $packageMetadata | Out-Null
+    foreach ($key in @("optional", "installPriority", "os", "notes")) {
+      if ($mergedMetadata.Contains($key)) {
+        $item[$key] = $mergedMetadata[$key]
+      }
+    }
+
+    foreach ($key in $mergedMetadata.Keys) {
+      if (-not $item.Contains($key)) {
+        $item[$key] = $mergedMetadata[$key]
+      }
+    }
 
     [pscustomobject]$item
   }

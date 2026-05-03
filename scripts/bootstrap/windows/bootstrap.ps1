@@ -33,6 +33,9 @@ param(
   # Skip the mise config/runtime step.
   [switch]$SkipMise,
 
+  # Skip the cargo packages step.
+  [switch]$SkipCargo,
+
   # Optional hint shown in the final manual chezmoi steps.
   [string]$ChezmoiRepo = "",
 
@@ -68,6 +71,10 @@ $context.WindowsRuntimes = Get-ManifestJson `
   -RepoRoot $repoRoot `
   -RelativePath "manifests\windows.runtimes.json"
 
+$context.CargoPackages = Get-ManifestJson `
+  -RepoRoot $repoRoot `
+  -RelativePath "manifests\cargo.packages.json"
+
 # New bootstrap only supports the scoopGroups-based manifest structure.
 Assert-ManifestHasScoopGroups -WindowsPackages $context.WindowsPackages
 
@@ -84,6 +91,11 @@ $steps = @(
 if (-not $SkipMise)
 {
   $steps += "steps\40-mise.ps1"
+}
+
+if (-not $SkipCargo)
+{
+  $steps += "steps\50-cargo-packages.ps1"
 }
 
 if (-not $SkipVSCode)

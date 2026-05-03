@@ -7,6 +7,7 @@ cargo:
     cargo-binstall:
       optional: false
       installPriority: 10
+      notes: "Cargo 二进制安装器"
       os:
         - windows
         - linux
@@ -15,6 +16,7 @@ cargo:
     cargo-update:
       optional: false
       installPriority: 20
+      notes: "更新 cargo install 安装的工具"
       os:
         - windows
         - linux
@@ -23,6 +25,7 @@ cargo:
     cargo-cache:
       optional: true
       installPriority: 30
+      notes: "清理 Cargo 构建缓存和 registry 缓存"
       os:
         - windows
         - linux
@@ -30,19 +33,22 @@ cargo:
 
     gat-gwm:
       optional: true
-      installPriority: 200
+      installPriority: 300
+      notes: "GlazeWM 自动切换平铺方向的工具"
       os:
         - windows
 
     psmux:
       optional: true
       installPriority: 200
+      notes: "PowerShell/tmux 风格的终端复用工具"
       os:
         - windows
 
     tylax:
       optional: true
       installPriority: 200
+      notes: "Typst <-> latex 转换工具"
       os:
         - windows
         - linux

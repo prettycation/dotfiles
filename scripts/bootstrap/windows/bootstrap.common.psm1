@@ -183,6 +183,7 @@ function New-BootstrapContext
   <#
     .SYNOPSIS
         创建 bootstrap 共享上下文对象。
+
     .DESCRIPTION
         后续各步骤脚本统一接收 Context，避免重复计算 repo 路径、重复读取 manifest。
     #>
@@ -192,7 +193,9 @@ function New-BootstrapContext
     [string]$BootstrapRoot,
 
     [string]$ChezmoiRepo = "",
+
     [string]$DevDrive = "",
+
     [bool]$SkipChezmoi = $false
   )
 
@@ -206,6 +209,7 @@ function New-BootstrapContext
     SkipChezmoi     = $SkipChezmoi
     WindowsPackages = $null
     WindowsRuntimes = $null
+    CargoPackages = $null
   }
 }
 
