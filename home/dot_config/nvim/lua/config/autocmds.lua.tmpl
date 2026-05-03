@@ -25,6 +25,38 @@ vim.api.nvim_create_autocmd("FileType", {
   end,
 })
 
+{{- if lookPath "diny" }}
+local function diny_commit()
+  if vim.fn.executable("diny") ~= 1 then
+    vim.notify("diny not found in $PATH", vim.log.levels.ERROR)
+    return
+  end
+
+  local cwd = LazyVim.root.git() or LazyVim.root()
+
+  Snacks.terminal.focus({ "diny", "commit" }, {
+    cwd = cwd,
+    interactive = true,
+    auto_close = true,
+  })
+end
+
+vim.api.nvim_create_autocmd("User", {
+  group = vim.api.nvim_create_augroup("personal_neogit_diny", { clear = true }),
+  pattern = "NeogitStatusRefreshed",
+  callback = function()
+    local buf = vim.api.nvim_get_current_buf()
+
+    vim.keymap.set("n", "C", diny_commit, {
+      buffer = buf,
+      silent = true,
+      nowait = true,
+      desc = "diny commit",
+    })
+  end,
+})
+{{- end }}
+
 {{- if eq .chezmoi.os "windows" }}
 
 -- 修复 LazyVim chezmoi extra 在 Windows 下保存后不自动 apply 的问题。
