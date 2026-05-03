@@ -4,24 +4,27 @@ Personal Windows and Arch/Linux dotfiles managed with [chezmoi](https://www.chez
 
 > **Current status**
 >
-> The **Windows** bootstrap flow is the only installation path that has been tested and is expected to work. Linux and other POSIX-related files are present, but should be treated as work in progress until they are explicitly validated.
+> The **Windows** bootstrap flow is the primary tested installation path. Linux and other POSIX-related files are present, but should be treated as work in progress until they are explicitly validated.
 
 ## Overview
 
-This repository is organized as a two-stage workstation setup:
+This repository is organized as a staged workstation setup:
 
-1. **Bootstrap the machine**: install package manager prerequisites, Scoop buckets, selected packages, runtime tooling, and user-level environment variables.
+1. **Bootstrap the machine**: install package-manager prerequisites, Scoop buckets, selected Windows packages, runtime tooling, Cargo-installed tools, PowerShell completions, VS Code extensions, and user-level environment variables.
 2. **Apply dotfiles with chezmoi**: render templates and place configuration files after local choices and secrets are ready.
+3. **Use Make targets for repeatable workflows**: run common bootstrap and chezmoi commands from the repository root when `make` is available.
 
-The bootstrap phase and the chezmoi apply phase are intentionally separate. The Windows bootstrap prepares the machine, but it does not automatically apply all dotfiles.
+The bootstrap phase and the chezmoi apply phase are intentionally separate. The Windows bootstrap prepares the machine, but it does **not** automatically apply all dotfiles.
 
 ## Repository layout
 
 ```text
 .
 ├── home/                         # chezmoi source root
-│   ├── .chezmoidata/             # structured data used by chezmoi templates
-│   ├── .chezmoiscripts/windows/  # Windows scripts executed by chezmoi apply/onchange hooks
+│   ├── .chezmoidata/             # structured data used by templates and manifest exporters
+│   ├── .chezmoiscripts/windows/  # Windows chezmoi scripts and onchange hooks
+│   │   ├── export/               # generated manifest export hooks
+│   │   └── remove/               # Windows cleanup/remove hooks
 │   ├── .chezmoitemplates/        # shared template fragments
 │   ├── AppData/Local/Packages/   # Windows app data managed through chezmoi
 │   ├── Documents/                # user document-level configuration or shortcuts
@@ -39,12 +42,16 @@ The bootstrap phase and the chezmoi apply phase are intentionally separate. The 
 │   ├── dot_gitconfig.tmpl        # Git config template
 │   ├── dot_zshenv                # zsh environment
 │   └── empty_dot_hushlogin       # suppress login message where supported
-├── manifests/                    # package/runtime/extension manifests
+├── manifests/                    # generated package/runtime/extension manifests
+│   ├── cargo.packages.json
 │   ├── windows.packages.json
 │   ├── windows.runtimes.json
 │   ├── windows.vscode-extensions.json
 │   ├── linux.arch.packages.json
 │   └── linux.ubuntu.packages.json
+├── makefiles/                    # modular Make targets
+│   ├── bootstrap.mk
+│   └── chezmoi.mk
 ├── scripts/bootstrap/
 │   ├── windows/                  # tested Windows bootstrap flow
 │   └── linux/                    # experimental Linux bootstrap flow
@@ -55,6 +62,7 @@ The bootstrap phase and the chezmoi apply phase are intentionally separate. The 
 ├── .emmyrc.json                  # Lua language-server/editor metadata
 ├── .gitignore
 ├── LICENSE
+├── Makefile                      # includes makefiles/*.mk
 └── install.sh                    # POSIX helper, not the tested Windows entrypoint
 ```
 
@@ -64,14 +72,16 @@ The `home/` directory is the chezmoi source tree. File and directory names follo
 
 ### chezmoi metadata
 
-| Path                              | Purpose                                                                                            |
-| --------------------------------- | -------------------------------------------------------------------------------------------------- |
-| `home/.chezmoidata/`              | Shared data for templates. Use this for structured values that multiple templates/scripts need.    |
-| `home/.chezmoitemplates/`         | Reusable template fragments. Useful for keeping large templates maintainable.                      |
-| `home/.chezmoi.toml.tmpl`         | Template for chezmoi's own configuration. This may depend on local identity, platform, or secrets. |
-| `home/.chezmoiexternal.toml.tmpl` | External resources that chezmoi can fetch/manage. Review before applying on a new machine.         |
-| `home/.chezmoiignore.tmpl`        | Conditional ignore rules, usually platform-specific.                                               |
-| `home/.chezmoiremove.tmpl`        | Conditional cleanup/removal rules. Review before applying on a machine with existing config.       |
+| Path                                            | Purpose                                                                                                   |
+| ----------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| `home/.chezmoidata/`                            | Shared source data for templates and generated manifests.                                                 |
+| `home/.chezmoidata/cargo.packages.yaml`         | Source data for Cargo package declarations. Exported to `manifests/cargo.packages.json`.                  |
+| `home/.chezmoidata/windows/scoop.packages.yaml` | Source data for Scoop package groups and package metadata. Exported to `manifests/windows.packages.json`. |
+| `home/.chezmoitemplates/`                       | Reusable template fragments. Useful for keeping large templates maintainable.                             |
+| `home/.chezmoi.toml.tmpl`                       | Template for chezmoi's own configuration. This may depend on local identity, platform, or secrets.        |
+| `home/.chezmoiexternal.toml.tmpl`               | External resources that chezmoi can fetch/manage. Review before applying on a new machine.                |
+| `home/.chezmoiignore.tmpl`                      | Conditional ignore rules, usually platform-specific.                                                      |
+| `home/.chezmoiremove.tmpl`                      | Conditional cleanup/removal rules. Review before applying on a machine with existing config.              |
 
 ### Shell, Git, SSH, and local state
 
@@ -94,6 +104,7 @@ Most application configuration lives under `home/dot_config/`, which maps to `~/
 | ------------------------------------ | -------------------------------------------------------- |
 | `home/dot_config/atuin/`             | Atuin shell history configuration.                       |
 | `home/dot_config/bat/`               | bat themes/configuration.                                |
+| `home/dot_config/btop/`              | btop terminal monitor configuration.                     |
 | `home/dot_config/diny/`              | diny configuration.                                      |
 | `home/dot_config/exact_zsh/`         | zsh-related configuration managed as an exact directory. |
 | `home/dot_config/eza/`               | eza configuration.                                       |
@@ -120,13 +131,29 @@ Additional Windows-oriented configuration is stored outside `dot_config` where t
 
 ## Platform support
 
-| Platform            | Status           | Entrypoint                                   |
-| ------------------- | ---------------- | -------------------------------------------- |
-| Windows             | Tested           | `scripts/bootstrap/windows/bootstrap.ps1`    |
-| Arch/Linux          | Work in progress | `scripts/bootstrap/linux/bootstrap-linux.sh` |
-| Other POSIX systems | Work in progress | `install.sh`                                 |
+| Platform            | Status           | Entrypoint                                |
+| ------------------- | ---------------- | ----------------------------------------- |
+| Windows             | Tested / primary | `scripts/bootstrap/windows/bootstrap.ps1` |
+| Arch/Linux          | Work in progress | `scripts/bootstrap/linux/bootstrap.sh`    |
+| Other POSIX systems | Work in progress | `install.sh`                              |
 
 The Windows path is the primary supported path. Do not treat the Linux bootstrap script or the top-level `install.sh` as equivalent to the Windows installer.
+
+## Make targets
+
+The root `Makefile` includes all files under `makefiles/`.
+
+| Target                   | Purpose                                                                                 |
+| ------------------------ | --------------------------------------------------------------------------------------- |
+| `make bootstrap-windows` | Run the Windows bootstrap through PowerShell.                                           |
+| `make bootstrap-linux`   | Run the experimental Linux bootstrap script.                                            |
+| `make diff`              | Run `chezmoi diff`.                                                                     |
+| `make status`            | Run `chezmoi status`.                                                                   |
+| `make doctor`            | Run `chezmoi doctor`.                                                                   |
+| `make apply`             | Run `chezmoi apply`.                                                                    |
+| `make apply-bw`          | Unlock Bitwarden with `bw unlock --raw`, export `BW_SESSION`, then run `chezmoi apply`. |
+
+These targets are convenience wrappers. Review the commands before using them on a machine with existing configuration.
 
 ## Windows
 
@@ -168,11 +195,17 @@ Set-ExecutionPolicy Bypass -Scope Process -Force
 Optional flags:
 
 ```powershell
-# Skip VS Code extension synchronization
-./scripts/bootstrap/windows/bootstrap.ps1 -SkipVSCode
-
 # Skip mise runtime setup
 ./scripts/bootstrap/windows/bootstrap.ps1 -SkipMise
+
+# Skip Cargo package setup
+./scripts/bootstrap/windows/bootstrap.ps1 -SkipCargo
+
+# Skip PowerShell completions setup
+./scripts/bootstrap/windows/bootstrap.ps1 -SkipPSCompletions
+
+# Skip VS Code extension synchronization
+./scripts/bootstrap/windows/bootstrap.ps1 -SkipVSCode
 
 # Show a custom chezmoi repository hint in the final manual steps
 ./scripts/bootstrap/windows/bootstrap.ps1 -ChezmoiRepo "https://github.com/prettycation/dotfiles"
@@ -195,8 +228,12 @@ scripts/bootstrap/windows/
 │   ├── 15-bootstrap-required.ps1
 │   ├── 20-scoop-groups.ps1
 │   ├── 40-mise.ps1
-│   └── 60-vscode.ps1
+│   ├── 50-cargo-packages.ps1
+│   ├── 60-pscompletions.ps1
+│   └── 70-vscode.ps1
 └── tasks/
+    ├── add-pscompletions.ps1
+    ├── install-cargo-packages.ps1
     └── install-vscode-extensions.ps1
 ```
 
@@ -206,9 +243,11 @@ scripts/bootstrap/windows/
 | `05-xdg-env.ps1`            | Creates XDG-style user directories and user-level environment variables.                               |
 | `10-scoop-core.ps1`         | Adds Scoop buckets declared in the Windows package manifest.                                           |
 | `15-bootstrap-required.ps1` | Installs required bootstrap packages first.                                                            |
-| `20-scoop-groups.ps1`       | Prompts for default and optional package groups.                                                       |
+| `20-scoop-groups.ps1`       | Prompts for default and optional Scoop package groups.                                                 |
 | `40-mise.ps1`               | Optionally configures mise and installs declared runtimes.                                             |
-| `60-vscode.ps1`             | Optionally installs VS Code extensions when `code` is available.                                       |
+| `50-cargo-packages.ps1`     | Optionally installs declared Cargo packages, using the Cargo package manifest.                         |
+| `60-pscompletions.ps1`      | Optionally installs declared PowerShell completions from the Windows package manifest.                 |
+| `70-vscode.ps1`             | Optionally installs VS Code extensions when `code` is available.                                       |
 
 The bootstrap intentionally does **not**:
 
@@ -242,10 +281,13 @@ Windows packages are declared in:
 manifests/windows.packages.json
 ```
 
+The manifest is generated from `home/.chezmoidata/windows/scoop.packages.yaml` and contains Scoop buckets/groups, package metadata, and exported PowerShell completion declarations.
+
 The manifest is split into:
 
 - `scoopBuckets`: Scoop bucket names and URLs to add before package installation.
 - `scoopGroups`: categorized package groups with selection behavior.
+- `powershellCompletions`: PowerShell completion specifications consumed by the `60-pscompletions.ps1` bootstrap step.
 
 Group selection modes:
 
@@ -265,14 +307,34 @@ Package install modes:
 
 The required bootstrap group currently covers core bootstrap tools such as archive support, download acceleration, Git, and PowerShell 7. Other groups cover CLI utilities, shell workflow tools, Git/development tools, build/runtime tooling, file/PDF/image tools, terminals, fonts, input methods, browsers, window management, desktop customization, editors, AI tooling, media, networking, security, and system utilities.
 
-### Runtime and VS Code manifests
+### Runtime, Cargo, and VS Code manifests
 
 | Manifest                                   | Purpose                                                                                   |
 | ------------------------------------------ | ----------------------------------------------------------------------------------------- |
 | `manifests/windows.runtimes.json`          | Runtime/toolchain declarations for mise.                                                  |
+| `manifests/cargo.packages.json`            | Cargo package declarations consumed by the Windows bootstrap Cargo step.                  |
 | `manifests/windows.vscode-extensions.json` | VS Code extension recommendations installed by the VS Code task when `code` is available. |
 
-These steps can be skipped with `-SkipMise` and `-SkipVSCode`.
+These steps can be skipped with `-SkipMise`, `-SkipCargo`, `-SkipPSCompletions`, and `-SkipVSCode`.
+
+### Generated manifests
+
+The generated manifests are refreshed by chezmoi onchange export hooks under:
+
+```text
+home/.chezmoiscripts/windows/export/
+├── run_onchange_after_convert-cargo-export.ps1.tmpl
+├── run_onchange_after_convert-pscompletions-export.ps1.tmpl
+└── run_onchange_after_convert-scoop-export.ps1.tmpl
+```
+
+Treat the YAML files under `home/.chezmoidata/` as the preferred source of truth for package metadata. The JSON files under `manifests/` are the runtime inputs consumed by the bootstrap scripts.
+
+### Windows chezmoi scripts
+
+Windows-specific chezmoi hooks live under `home/.chezmoiscripts/windows/`. They cover generated manifest exports, cleanup/removal hooks, deploy-time Scoop handling, PSReadLine history deduplication, Neovim plugin spec compilation, and autostart setup.
+
+Review these scripts before applying on a machine with existing configuration, especially when they may touch startup entries, generated files, or application state.
 
 ### Apply dotfiles with chezmoi
 
@@ -311,7 +373,7 @@ Linux support is currently experimental.
 Related files:
 
 ```text
-scripts/bootstrap/linux/bootstrap-linux.sh
+scripts/bootstrap/linux/bootstrap.sh
 manifests/linux.arch.packages.json
 manifests/linux.ubuntu.packages.json
 ```
@@ -321,7 +383,7 @@ The Linux manifests are still minimal, and this path has not been tested like th
 For inspection/testing only:
 
 ```bash
-./scripts/bootstrap/linux/bootstrap-linux.sh --dry-run
+./scripts/bootstrap/linux/bootstrap.sh --dry-run
 ```
 
 ## Other POSIX systems
@@ -350,6 +412,14 @@ Close the current window, open PowerShell 7 (`pwsh`) as Administrator, return to
 ```powershell
 ./scripts/bootstrap/windows/bootstrap.ps1
 ```
+
+### Cargo packages were skipped
+
+The Cargo step is skipped if `-SkipCargo` is passed, if the Cargo package manifest is missing, or if no applicable Cargo packages are selected. Ensure Rust/Cargo tooling is available through your selected runtime/package groups, then rerun without `-SkipCargo`.
+
+### PowerShell completions were skipped
+
+The PowerShell completions step is skipped if `-SkipPSCompletions` is passed or if no `powershellCompletions` entries are declared in the Windows package manifest. Refresh the generated manifests from the chezmoi source data, then rerun without `-SkipPSCompletions`.
 
 ### VS Code extensions were skipped
 
