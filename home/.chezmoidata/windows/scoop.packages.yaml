@@ -1,4 +1,4 @@
-# windows.scoop-classification.yaml
+# scoop.package.yaml
 
 # 作用：
 #   这是 Scoop 分类“源文件”，按“组 -> bucket -> 包名”维护。
@@ -446,6 +446,7 @@ scoopClassification:
         extras:
           - CopyQ
           - flow-launcher
+          - ropy
         margin:
           - regjump
 
@@ -797,6 +798,8 @@ scoopClassification:
       sqlitebrowser:
         selection: optional
         notes: yazi 依赖
+      CopyQ:
+        selection: optional
 
     abyss:
       HuLaSpark.HuLa:
@@ -810,6 +813,8 @@ scoopClassification:
       agalwood.Motrix:
         selection: optional
       WINBIGFOX.TimeScribe:
+        selection: optional
+      EcoPaste.EcoPaste:
         selection: optional
 
     nonportable:

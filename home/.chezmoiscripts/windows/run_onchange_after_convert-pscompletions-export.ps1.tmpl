@@ -1,0 +1,142 @@
+{{ if and (eq .chezmoi.os "windows") (ne (lookPath "pwsh") "") }}
+{{/*
+  读取 PSCompletions 的 psc list，自动更新 manifests/windows.packages.json。
+
+  psc list 在 PowerShell 中返回的是对象，不是普通文本。
+  读取 .Completion 和 .Alias 属性
+*/}}
+
+param(
+  [string]$TargetFile = "manifests/windows.packages.json"
+)
+
+$ErrorActionPreference = "Stop"
+
+$chezmoiSourceDir = "{{ .chezmoi.sourceDir }}"
+$chezmoiRepoRoot = Split-Path -Parent $chezmoiSourceDir
+$targetPath = Join-Path $chezmoiRepoRoot $TargetFile
+
+try {
+  Import-Module PSCompletions -ErrorAction Stop
+} catch {
+  Write-Host "PSCompletions module not available; skip export." -ForegroundColor Yellow
+  exit 0
+}
+
+if (-not (Get-Command psc -ErrorAction SilentlyContinue)) {
+  Write-Host "psc command not available after importing PSCompletions; skip export." -ForegroundColor Yellow
+  exit 0
+}
+
+Write-Host "Running 'psc list'..." -ForegroundColor Cyan
+
+try {
+  $rawItems = @(psc list)
+} catch {
+  Write-Error "Failed to export PSCompletions list: $_"
+  exit 1
+}
+
+$items = @()
+
+foreach ($entry in $rawItems) {
+  if ($null -eq $entry) {
+    continue
+  }
+
+  # psc list 通常返回对象，优先读取对象属性
+  if (
+    $entry.PSObject.Properties["Completion"] -and
+    $entry.PSObject.Properties["Alias"]
+  ) {
+    $completion = [string]$entry.Completion
+    $alias = [string]$entry.Alias
+
+    if (
+      -not [string]::IsNullOrWhiteSpace($completion) -and
+      -not [string]::IsNullOrWhiteSpace($alias)
+    ) {
+      $items += [pscustomobject]@{
+        completion = $completion
+        alias = $alias
+      }
+    }
+
+    continue
+  }
+
+  # 兜底：如果 psc list 在某些版本中返回文本，再按表格文本解析
+  $text = [string]$entry
+
+  if ([string]::IsNullOrWhiteSpace($text)) {
+    continue
+  }
+
+  if ($text -match '^\s*Completion\s+Alias\s*$') {
+    continue
+  }
+
+  if ($text -match '^\s*-+\s+-+\s*$') {
+    continue
+  }
+
+  if ($text -match '^\s*(\S+)\s+(\S+)\s*$') {
+    $items += [pscustomobject]@{
+      completion = [string]$matches[1]
+      alias = [string]$matches[2]
+    }
+  }
+}
+
+$items = @(
+  $items |
+    Where-Object {
+      -not [string]::IsNullOrWhiteSpace($_.completion) -and
+      -not [string]::IsNullOrWhiteSpace($_.alias)
+    } |
+    Sort-Object completion
+)
+
+if (Test-Path $targetPath) {
+  try {
+    $existingManifest = Get-Content $targetPath -Raw | ConvertFrom-Json
+  } catch {
+    Write-Error "Failed to read existing manifest: $targetPath"
+    throw
+  }
+} else {
+  $existingManifest = [pscustomobject]@{}
+}
+
+$newManifest = [ordered]@{}
+
+foreach ($prop in $existingManifest.PSObject.Properties) {
+  if ($prop.Name -eq "powershellCompletions") {
+    continue
+  }
+
+  $newManifest[$prop.Name] = $prop.Value
+}
+
+$newManifest["powershellCompletions"] = @(
+  $items | ForEach-Object {
+    [ordered]@{
+      completion = $_.completion
+      alias = $_.alias
+    }
+  }
+)
+
+$targetDir = Split-Path -Parent $targetPath
+
+if (-not (Test-Path $targetDir)) {
+  New-Item -ItemType Directory -Path $targetDir -Force | Out-Null
+}
+
+$jsonContent = $newManifest | ConvertTo-Json -Depth 30
+Set-Content -Path $targetPath -Value $jsonContent -Encoding UTF8
+
+Write-Host "`nSuccessfully updated $TargetFile" -ForegroundColor Green
+Write-Host " PSCompletions : $(@($newManifest.powershellCompletions).Count)"
+{{ end }}
+{{- /* vim: set filetype=ps1.chezmoitmpl: */}}

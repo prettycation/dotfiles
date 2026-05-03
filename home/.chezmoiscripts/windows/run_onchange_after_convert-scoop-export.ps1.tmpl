@@ -1,6 +1,6 @@
 {{ if and (eq .chezmoi.os "windows") (ne (lookPath "scoop") "") }}
 # 3-day-trigger: {{ div (now | unixEpoch | int64) 259200 }}
-{{/* 读取 scoop export 结果，结合 .chezmoidata/windows.scoop-classification.yaml，自动更新 windows.packages.json。 */}}
+{{/* 读取 scoop export 结果，结合 .chezmoidata/scoop.package.yaml，自动更新 windows.packages.json。 */}}
 
 param(
     [string]$TargetFile = "manifests/windows.packages.json"

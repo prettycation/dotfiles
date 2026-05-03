@@ -460,13 +460,24 @@
         ],
         "extras": [
           "CopyQ",
-          "flow-launcher"
+          "flow-launcher",
+          "ropy"
         ],
         "margin": [
           "regjump"
         ]
       },
       "packageOptions": {
+        "abyss": {
+          "EcoPaste.EcoPaste": {
+            "selection": "optional"
+          }
+        },
+        "extras": {
+          "CopyQ": {
+            "selection": "optional"
+          }
+        },
         "margin": {
           "regjump": {
             "selection": "optional",
@@ -945,6 +956,60 @@
     {
       "id": "9PDH8M7HF2SQ",
       "source": "msstore"
+    }
+  ],
+  "powershellCompletions": [
+    {
+      "completion": "cargo",
+      "alias": "cargo"
+    },
+    {
+      "completion": "conda",
+      "alias": "conda"
+    },
+    {
+      "completion": "gh",
+      "alias": "gh"
+    },
+    {
+      "completion": "git",
+      "alias": "git"
+    },
+    {
+      "completion": "jq",
+      "alias": "jq"
+    },
+    {
+      "completion": "psc",
+      "alias": "psc"
+    },
+    {
+      "completion": "pwsh",
+      "alias": "pwsh"
+    },
+    {
+      "completion": "scoop",
+      "alias": "scoop"
+    },
+    {
+      "completion": "uv",
+      "alias": "uv"
+    },
+    {
+      "completion": "winget",
+      "alias": "winget"
+    },
+    {
+      "completion": "wsl",
+      "alias": "wsl"
+    },
+    {
+      "completion": "ya",
+      "alias": "ya"
+    },
+    {
+      "completion": "yazi",
+      "alias": "yazi"
     }
   ]
 }
