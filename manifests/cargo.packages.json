@@ -1,0 +1,68 @@
+{
+  "cargoPackages": [
+    {
+      "name": "cargo-binstall",
+      "version": "1.18.1",
+      "installPriority": 10,
+      "optional": false,
+      "os": [
+        "windows",
+        "linux",
+        "darwin"
+      ]
+    },
+    {
+      "name": "cargo-update",
+      "version": "20.0.0",
+      "installPriority": 20,
+      "optional": false,
+      "os": [
+        "windows",
+        "linux",
+        "darwin"
+      ]
+    },
+    {
+      "name": "cargo-cache",
+      "version": "0.8.3",
+      "installPriority": 30,
+      "optional": true,
+      "os": [
+        "windows",
+        "linux",
+        "darwin"
+      ]
+    },
+    {
+      "name": "gat-gwm",
+      "version": "0.3.1",
+      "git": "https://github.com/Dutch-Raptor/GAT-GWM.git",
+      "rev": "29dd2445",
+      "installPriority": 200,
+      "optional": true,
+      "os": [
+        "windows"
+      ]
+    },
+    {
+      "name": "psmux",
+      "version": "3.3.3",
+      "installPriority": 200,
+      "optional": true,
+      "os": [
+        "windows"
+      ]
+    },
+    {
+      "name": "tylax",
+      "version": "0.3.5",
+      "installPriority": 200,
+      "optional": true,
+      "os": [
+        "windows",
+        "linux",
+        "darwin"
+      ]
+    }
+  ]
+}

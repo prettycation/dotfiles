@@ -1,0 +1,49 @@
+cargo:
+  defaults:
+    optional: true
+    installPriority: 500
+
+  packages:
+    cargo-binstall:
+      optional: false
+      installPriority: 10
+      os:
+        - windows
+        - linux
+        - darwin
+
+    cargo-update:
+      optional: false
+      installPriority: 20
+      os:
+        - windows
+        - linux
+        - darwin
+
+    cargo-cache:
+      optional: true
+      installPriority: 30
+      os:
+        - windows
+        - linux
+        - darwin
+
+    gat-gwm:
+      optional: true
+      installPriority: 200
+      os:
+        - windows
+
+    psmux:
+      optional: true
+      installPriority: 200
+      os:
+        - windows
+
+    tylax:
+      optional: true
+      installPriority: 200
+      os:
+        - windows
+        - linux
+        - darwin

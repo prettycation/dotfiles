@@ -1,0 +1,300 @@
+{{ if and (eq .chezmoi.os "windows") (ne (lookPath "cargo") "") }}
+{{/*
+  读取 cargo install --list，结合 .chezmoidata/cargo.packages.yaml，
+  自动更新 manifests/cargo.packages.json。
+
+  这里把 .cargo.defaults 和 .cargo.packages 直接渲染进脚本内容。
+  因此 cargo.packages.yaml 内容变化时，渲染后的脚本内容也会变化，
+  run_onchange_after 会重新触发。
+*/}}
+
+param(
+  [string]$TargetFile = "manifests/cargo.packages.json"
+)
+
+$ErrorActionPreference = "Stop"
+
+$chezmoiSourceDir = "{{ .chezmoi.sourceDir }}"
+$chezmoiRepoRoot = Split-Path -Parent $chezmoiSourceDir
+$targetPath = Join-Path $chezmoiRepoRoot $TargetFile
+
+# ----------------------------
+# 0) 读取 Cargo 包配置（由 chezmoi 模板注入）
+# ----------------------------
+
+$cargoDefaultsJson = @'
+{{- if and .cargo .cargo.defaults }}
+{{ toPrettyJson .cargo.defaults }}
+{{- else }}
+{}
+{{- end }}
+'@
+
+$cargoPackageMetadataJson = @'
+{{- if and .cargo .cargo.packages }}
+{{ toPrettyJson .cargo.packages }}
+{{- else }}
+{}
+{{- end }}
+'@
+
+try {
+  $cargoDefaults = $cargoDefaultsJson | ConvertFrom-Json
+} catch {
+  Write-Error "Failed to parse embedded cargo defaults data: $_"
+  exit 1
+}
+
+try {
+  $cargoPackageMetadata = $cargoPackageMetadataJson | ConvertFrom-Json
+} catch {
+  Write-Error "Failed to parse embedded cargo package metadata: $_"
+  exit 1
+}
+
+function Test-JsonProperty {
+  param(
+    [Parameter(Mandatory = $true)]
+    [object]$Object,
+
+    [Parameter(Mandatory = $true)]
+    [string]$Name
+  )
+
+  if ($null -eq $Object) {
+    return $false
+  }
+
+  return $null -ne $Object.PSObject.Properties[$Name]
+}
+
+function Get-PropValue {
+  param(
+    [object]$Object,
+    [string]$Name,
+    [object]$Fallback = $null
+  )
+
+  if ($null -ne $Object -and $Object.PSObject.Properties[$Name]) {
+    return $Object.$Name
+  }
+
+  return $Fallback
+}
+
+function Convert-MetadataObject {
+  param(
+    [object]$Metadata
+  )
+
+  $result = [ordered]@{}
+
+  if ($null -eq $Metadata) {
+    return $result
+  }
+
+  foreach ($prop in $Metadata.PSObject.Properties) {
+    $result[$prop.Name] = $prop.Value
+  }
+
+  return $result
+}
+
+function Merge-OrderedMap {
+  param(
+    [Parameter(Mandatory = $true)]
+    [System.Collections.IDictionary]$Base,
+
+    [Parameter(Mandatory = $true)]
+    [System.Collections.IDictionary]$Extra
+  )
+
+  foreach ($key in $Extra.Keys) {
+    $Base[$key] = $Extra[$key]
+  }
+
+  return $Base
+}
+
+function Get-MetadataByName {
+  param(
+    [object]$MetadataMap,
+
+    [string]$Name
+  )
+
+  if ([string]::IsNullOrWhiteSpace($Name)) {
+    return [ordered]@{}
+  }
+
+  if (-not (Test-JsonProperty -Object $MetadataMap -Name $Name)) {
+    return [ordered]@{}
+  }
+
+  return Convert-MetadataObject -Metadata $MetadataMap.$Name
+}
+
+function Get-InstallPriority {
+  param(
+    [object]$Package
+  )
+
+  $value = Get-PropValue -Object $Package -Name "installPriority" -Fallback $null
+
+  if ($null -eq $value) {
+    return 500
+  }
+
+  try {
+    return [int]$value
+  } catch {
+    return 500
+  }
+}
+
+function Convert-CargoInstallList {
+  param(
+    [string[]]$Lines
+  )
+
+  $packages = @()
+  $current = $null
+
+  foreach ($line in $Lines) {
+    if ($line -match '^([^\s]+)\s+v([^\s:]+)(?:\s+\((.+)\))?:$') {
+      if ($null -ne $current) {
+        $packages += [pscustomobject]$current
+      }
+
+      $name = [string]$matches[1]
+      $version = [string]$matches[2]
+      $source = $null
+
+      if ($matches.Count -ge 4) {
+        $source = [string]$matches[3]
+      }
+
+      $current = [ordered]@{
+        name = $name
+        version = $version
+      }
+
+      if (-not [string]::IsNullOrWhiteSpace($source)) {
+        if ($source -match '^(https?://.+?)(?:#(.+))?$') {
+          $current["git"] = [string]$matches[1]
+
+          if ($matches.Count -ge 3 -and -not [string]::IsNullOrWhiteSpace([string]$matches[2])) {
+            $current["rev"] = [string]$matches[2]
+          }
+        } else {
+          $current["source"] = $source
+        }
+      }
+
+      continue
+    }
+
+    # cargo install --list 会在 package 行后列出二进制文件。
+    # 当前 manifest 只关心 package 级别安装，不导出 bins。
+  }
+
+  if ($null -ne $current) {
+    $packages += [pscustomobject]$current
+  }
+
+  return $packages
+}
+
+# ----------------------------
+# 1) 导出 Cargo 当前状态
+# ----------------------------
+
+Write-Host "Running 'cargo install --list'..." -ForegroundColor Cyan
+
+try {
+  $lines = @(cargo install --list)
+} catch {
+  Write-Error "Failed to export cargo packages: $_"
+  exit 1
+}
+
+$packages = @(Convert-CargoInstallList -Lines $lines)
+
+# ----------------------------
+# 2) 合并 defaults 与单包 metadata
+# ----------------------------
+
+$defaultMetadata = Convert-MetadataObject -Metadata $cargoDefaults
+
+$exportedPackages = @(
+  $packages | ForEach-Object {
+    $package = $_
+    $packageMetadata = Get-MetadataByName -MetadataMap $cargoPackageMetadata -Name $package.name
+
+    $item = [ordered]@{
+      name = $package.name
+      version = $package.version
+    }
+
+    if ($package.PSObject.Properties["git"]) {
+      $item["git"] = $package.git
+    }
+
+    if ($package.PSObject.Properties["rev"]) {
+      $item["rev"] = $package.rev
+    }
+
+    if ($package.PSObject.Properties["source"]) {
+      $item["source"] = $package.source
+    }
+
+    # defaults 先合并，单包 metadata 后合并；
+    # 因此单包 optional / os / installPriority 会覆盖默认值。
+    Merge-OrderedMap -Base $item -Extra $defaultMetadata | Out-Null
+    Merge-OrderedMap -Base $item -Extra $packageMetadata | Out-Null
+
+    [pscustomobject]$item
+  }
+)
+
+# ----------------------------
+# 3) 按 installPriority 与 name 排序
+# ----------------------------
+
+$sortedPackages = @(
+  $exportedPackages |
+    Sort-Object `
+      @{ Expression = { Get-InstallPriority -Package $_ } }, `
+      @{ Expression = { [string]$_.name } }
+)
+
+$newManifest = [ordered]@{
+  cargoPackages = $sortedPackages
+}
+
+# ----------------------------
+# 4) 写回文件
+# ----------------------------
+
+$targetDir = Split-Path -Parent $targetPath
+
+if (-not (Test-Path $targetDir)) {
+  New-Item -ItemType Directory -Path $targetDir -Force | Out-Null
+}
+
+$jsonOptions = @{
+  Depth = 30
+  Compress = $false
+}
+
+$jsonContent = $newManifest | ConvertTo-Json @jsonOptions
+Set-Content -Path $targetPath -Value $jsonContent -Encoding UTF8
+
+# ----------------------------
+# 5) 总结
+# ----------------------------
+
+Write-Host "`nSuccessfully updated $TargetFile" -ForegroundColor Green
+Write-Host " Cargo Packages : $(@($newManifest.cargoPackages).Count)"
+{{ end }}
+{{- /* vim: set filetype=ps1.chezmoitmpl: */}}
