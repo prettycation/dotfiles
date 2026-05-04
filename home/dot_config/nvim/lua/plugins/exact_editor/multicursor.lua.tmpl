@@ -1,0 +1,108 @@
+{{- $hasCode := lookPath "code" -}}
+
+{{- $cond := "" -}}
+
+{{- if $hasCode }}
+{{- $cond = "-- 在 vscode 中加载\n\t\tcond = true,\n\t\t"}}
+{{- end }}
+
+{{- $keymaps := list
+	(dict "lhs" "<C-n>" "call" "mc.matchAddCursor(1)" "message" "Multicursor started" "mode" `{ "n", "x" }` "desc" "Multicursor: start / add next match")
+	(dict "lhs" "<leader>ma" "call" "mc.matchAllAddCursors()" "message" "Added cursors for all matches" "mode" `{ "n", "x" }` "desc" "Multicursor: add all matches")
+	(dict "lhs" "<leader>mj" "call" "mc.lineAddCursor(1)" "message" "Added cursor below" "mode" `{ "n", "x" }` "desc" "Multicursor: add cursor down")
+	(dict "lhs" "<leader>mk" "call" "mc.lineAddCursor(-1)" "message" "Added cursor above" "mode" `{ "n", "x" }` "desc" "Multicursor: add cursor up")
+	(dict "lhs" "<leader>mJ" "call" "mc.lineSkipCursor(1)" "mode" `{ "n", "x" }` "desc" "Multicursor: skip line down")
+	(dict "lhs" "<leader>mK" "call" "mc.lineSkipCursor(-1)" "mode" `{ "n", "x" }` "desc" "Multicursor: skip line up")
+	(dict "lhs" "<leader>mg" "call" "mc.addCursorOperator()" "message" "Multicursor operator" "mode" `{ "n", "x" }` "desc" "Multicursor: add cursors by operator")
+	(dict "lhs" "<leader>mr" "call" "mc.restoreCursors()" "message" "Cursors restored" "mode" `"n"` "desc" "Multicursor: restore cursors")
+	(dict "lhs" "<leader>mc" "call" "mc.clearCursors()" "message" "Multicursor cleared" "mode" `{ "n", "x" }` "desc" "Multicursor: clear cursors")
+	(dict "lhs" "<leader>mt" "call" "mc.toggleCursor()" "message" "Multicursor toggled" "mode" `{ "n", "x" }` "desc" "Multicursor: toggle cursors")
+  (dict "lhs" "<leader>ms" "call" "mc.splitCursors()" "message" "Split cursors by regex" "mode" `"x"` "desc" "Multicursor: split selections by regex")
+  (dict "lhs" "<leader>mm" "call" "mc.matchCursors()" "message" "Match cursors by regex" "mode" `"x"` "desc" "Multicursor: match cursors by regex")
+-}}
+
+return {
+	{
+		"jake-stewart/multicursor.nvim",
+		{{ $cond -}}
+		branch = "1.0",
+
+		keys = {
+			{{- range $keymap := $keymaps }}
+			{
+				"{{ $keymap.lhs }}",
+				function()
+					local mc = require("multicursor-nvim")
+					{{ $keymap.call }}
+					{{- if hasKey $keymap "message" }}
+					vim.notify("{{ $keymap.message }}", vim.log.levels.INFO, { title = "Multicursor" })
+					{{- end }}
+				end,
+				mode = {{ $keymap.mode }},
+				desc = "{{ $keymap.desc }}",
+			},
+			{{- end }}
+		},
+
+		config = function()
+			local mc = require("multicursor-nvim")
+			mc.setup()
+
+			local function notify(message, level)
+				vim.notify(message, level or vim.log.levels.INFO, { title = "Multicursor" })
+			end
+
+			-- 这些 key 只在 multicursor 激活时生效。
+			-- 因此不会覆盖普通模式的 n 搜索、q 录制宏。
+			mc.addKeymapLayer(function(layer_set)
+				-- 你的目标操作：
+				-- <C-n> 后，n 添加/跳到下一个匹配，N 反方向
+				layer_set({ "n", "x" }, "n", function()
+					mc.matchAddCursor(1)
+				end)
+				layer_set({ "n", "x" }, "N", function()
+					mc.matchAddCursor(-1)
+				end)
+
+				-- q 跳过下一个匹配，Q 反方向跳过
+				layer_set({ "n", "x" }, "q", function()
+					mc.matchSkipCursor(1)
+				end)
+				layer_set({ "n", "x" }, "Q", function()
+					mc.matchSkipCursor(-1)
+				end)
+
+				-- 当前主 cursor 之间切换；只在 multicursor 中接管
+				layer_set({ "n", "x" }, "[", mc.prevCursor)
+				layer_set({ "n", "x" }, "]", mc.nextCursor)
+
+				-- 删除当前主 cursor
+				layer_set({ "n", "x" }, "x", function()
+					mc.deleteCursor()
+					notify("Cursor removed")
+				end)
+
+				-- esc：如果 cursors 被禁用，则恢复；否则清空退出
+				layer_set("n", "<esc>", function()
+					if not mc.cursorsEnabled() then
+						mc.enableCursors()
+						notify("Multicursor resumed")
+					else
+						mc.clearCursors()
+						notify("Multicursor exited")
+					end
+				end)
+			end)
+
+			local hl = vim.api.nvim_set_hl
+			hl(0, "MultiCursorCursor", { reverse = true })
+			hl(0, "MultiCursorVisual", { link = "Visual" })
+			hl(0, "MultiCursorSign", { link = "SignColumn" })
+			hl(0, "MultiCursorMatchPreview", { link = "Search" })
+			hl(0, "MultiCursorDisabledCursor", { reverse = true })
+			hl(0, "MultiCursorDisabledVisual", { link = "Visual" })
+			hl(0, "MultiCursorDisabledSign", { link = "SignColumn" })
+		end,
+	},
+}
+{{/* vim: set filetype=lua.chezmoitmpl: */}}

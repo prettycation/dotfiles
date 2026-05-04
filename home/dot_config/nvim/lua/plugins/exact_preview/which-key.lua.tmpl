@@ -10,12 +10,15 @@ return {
       table.insert(opts.spec, { "<leader>a", group = "ai" })
       {{ end }}
 
-      -- Toggle / Translate
-      table.insert(opts.spec, { "<leader>t", group = "toggle/translate" })
+      -- Translate
+      table.insert(opts.spec, { "<leader>t", group = "translate", icon = "󰗊" })
 
       -- Runner
       table.insert(opts.spec, { "<leader>r", group = "run", icon = " " })
+
+      -- Multiple cursor
+      table.insert(opts.spec, { "<leader>m", group = "multiple-cursor", icon = "󰆿" })
     end,
   },
 }
-{{/* vim: set ft=lua.chezmoitemplate: */}}
+{{/* vim: set ft=lua.chezmoitmpl: */}}
