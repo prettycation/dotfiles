@@ -1,0 +1,146 @@
+From be24778eae79d06ae75dcad3d8cf177de12f6bc8 Mon Sep 17 00:00:00 2001
+From: Kevin Silvester <kevinsilvester05@gmail.com>
+Date: Sat, 2 May 2026 17:31:42 +0100
+Subject: [PATCH] feat(config.bindings): disable window resize key-binds on
+ Windows due to bug; docs: update key bindings + getting started; chore: add
+ type annotations
+
+---
+ README.md           | 24 ++++++++++--------------
+ config/bindings.lua | 25 +++++++++++++++++++------
+ 2 files changed, 29 insertions(+), 20 deletions(-)
+
+diff --git a/README.md b/README.md
+index f6dabfc4..f95225a4 100644
+--- a/README.md
++++ b/README.md
+@@ -122,7 +122,7 @@
+     > :bulb:<br>
+     > Toast notifications don't work in non-portable installations.<br>
+     > See issue <https://github.com/wez/wezterm/issues/5166> for more details
+-  
++
+     ---
+ 
+     **MacOS**
+@@ -199,14 +199,10 @@
+       # On Windows and Unix systems
+       git clone https://github.com/KevinSilvester/wezterm-config.git ~/.config/wezterm
+       ```
+-  2.  And Done!!! 🎉🎉
+-
+-&nbsp;
+-
+-- ##### Things You Might Want to Change:
+-
+-  - [./config/domains.lua](./config/domains.lua) for custom SSH/WSL domains
+-  - [./config/launch.lua](./config/launch.lua) for preferred shells and its paths
++  2.  Update `launch` and `domain` related option:
++      - [./config/launch.lua](./config/launch.lua) for preferred shells and its paths
++      - [./config/domains.lua](./config/domains.lua) for custom SSH/WSL domains
++  3.  And Done!!! 🎉🎉
+ 
+ ---
+ 
+@@ -297,11 +293,11 @@ Most of the key bindings revolve around a <kbd>SUPER</kbd> and <kbd>SUPER_REV</k
+ 
+ #### Windows
+ 
+-| Keys                          | Action               |
+-| ----------------------------- | -------------------- |
+-| <kbd>SUPER</kbd>+<kbd>n</kbd> | `SpawnWindow`        |
+-| <kbd>SUPER</kbd>+<kbd>=</kbd> | Increase Window Size |
+-| <kbd>SUPER</kbd>+<kbd>-</kbd> | Decrease Window Size |
++| Keys                          | Action                                                             |
++| ----------------------------- | ------------------------------------------------------------------ |
++| <kbd>SUPER</kbd>+<kbd>n</kbd> | `SpawnWindow`                                                      |
++| <kbd>SUPER</kbd>+<kbd>=</kbd> | Increase Window Size <sub>(disabled on Windows due to a bug)</sub> |
++| <kbd>SUPER</kbd>+<kbd>-</kbd> | Decrease Window Size <sub>(disabled on Windows due to a bug)</sub> |
+ 
+ &nbsp;
+ 
+diff --git a/config/bindings.lua b/config/bindings.lua
+index 01d3f947..a7acc275 100644
+--- a/config/bindings.lua
++++ b/config/bindings.lua
+@@ -14,9 +14,10 @@ elseif platform.is_win or platform.is_linux then
+ end
+ 
+ -- stylua: ignore
++---@type Key[]
+ local keys = {
+    -- misc/useful --
+-   { key = 'F1', mods = 'NONE', action = 'ActivateCopyMode' },
++   { key = 'F1', mods = 'NONE', action = act.ActivateCopyMode },
+    { key = 'F2', mods = 'NONE', action = act.ActivateCommandPalette },
+    { key = 'F3', mods = 'NONE', action = act.ShowLauncher },
+    { key = 'F4', mods = 'NONE', action = act.ShowLauncherArgs({ flags = 'FUZZY|TABS' }) },
+@@ -49,14 +50,17 @@ local keys = {
+    },
+ 
+    -- cursor movement --
+-   { key = 'LeftArrow',  mods = mod.SUPER,     action = act.SendString '\u{1b}OH' },
+-   { key = 'RightArrow', mods = mod.SUPER,     action = act.SendString '\u{1b}OF' },
+-   { key = 'Backspace',  mods = mod.SUPER,     action = act.SendString '\u{15}' },
++   { key = 'LeftArrow',  mods = mod.SUPER,     action = act.SendString('\u{1b}OH') },
++   { key = 'RightArrow', mods = mod.SUPER,     action = act.SendString('\u{1b}OF') },
++   { key = 'Backspace',  mods = mod.SUPER,     action = act.SendString('\u{15}') },
+ 
+    -- copy/paste --
+    { key = 'c',          mods = 'CTRL|SHIFT',  action = act.CopyTo('Clipboard') },
+    { key = 'v',          mods = 'CTRL|SHIFT',  action = act.PasteFrom('Clipboard') },
+ 
++   { key = 'n',          mods = 'CTRL|SHIFT',  action = act.SendString('\u{2660}') },
++   { key = 's',          mods = 'CTRL|SHIFT',  action = act.SendString('\u{203D}') },
++
+    -- tabs --
+    -- tabs: spawn+close
+    { key = 't',          mods = mod.SUPER,     action = act.SpawnTab('DefaultDomain') },
+@@ -86,7 +90,10 @@ local keys = {
+       mods = mod.SUPER,
+       action = wezterm.action_callback(function(window, _pane)
+          local dimensions = window:get_dimensions()
+-         if dimensions.is_full_screen then
++         -- on Windows 11 (the only OS I'm able to test this on), `is_full_screen` is always false (it's a bug).
++         -- Calling `set_inner_size` when the window is actually in fullscreen will cause the
++         -- program UI to completely freeze.
++         if platform.is_win or dimensions.is_full_screen then
+             return
+          end
+          local new_width = dimensions.pixel_width - 50
+@@ -99,7 +106,10 @@ local keys = {
+       mods = mod.SUPER,
+       action = wezterm.action_callback(function(window, _pane)
+          local dimensions = window:get_dimensions()
+-         if dimensions.is_full_screen then
++         -- on Windows 11 (the only OS I'm able to test this on), `is_full_screen` is always false (it's a bug).
++         -- Calling `set_inner_size` when the window is actually in fullscreen will cause the
++         -- program UI to completely freeze.
++         if platform.is_win or dimensions.is_full_screen then
+             return
+          end
+          local new_width = dimensions.pixel_width + 50
+@@ -220,6 +230,7 @@ local keys = {
+ }
+ 
+ -- stylua: ignore
++---@type table<string, Key[]>
+ local key_tables = {
+    resize_font = {
+       { key = 'k',      action = act.IncreaseFontSize },
+@@ -238,6 +249,7 @@ local key_tables = {
+    },
+ }
+ 
++---@type MouseBinding[]
+ local mouse_bindings = {
+    -- Ctrl-click will open the link under the mouse cursor
+    {
+@@ -247,6 +259,7 @@ local mouse_bindings = {
+    },
+ }
+ 
++---@type Config
+ return {
+    disable_default_key_bindings = true,
+    -- disable_default_mouse_bindings = true,
