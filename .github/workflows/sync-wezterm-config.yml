@@ -327,7 +327,7 @@ jobs:
           ${{ steps.apply.outputs.failed_patch }}
           ```
 
-          To take over locally:
+          ## Take over locally
 
           ```bash
           cd ~/.local/share/chezmoi
@@ -341,36 +341,64 @@ jobs:
           git am --3way --empty=drop --exclude="backdrops/**" --exclude="home/dot_config/wezterm/backdrops/**" --directory=home/dot_config/wezterm .github/sync/wezterm-config-patches/*.patch
           ```
 
-          If Git creates merge conflicts, resolve them with your configured merge tool:
+          ## Resolve failed patches
+
+          If `git am` stops with a patch failure, first try applying the current patch as a normal context patch:
+
+          ```bash
+          git apply --reject --directory=home/dot_config/wezterm .git/rebase-apply/patch
+          ```
+
+          If this creates `.rej` files, inspect the current patch with syntax highlighting:
+
+          ```bash
+          git am --show-current-patch=diff | bat --language=diff
+          ```
+
+          Or, if you use `delta`:
+
+          ```bash
+          git am --show-current-patch=diff | delta
+          ```
+
+          Then manually apply the rejected changes to the corresponding files.
+
+          If Git creates real merge conflicts, you can use your configured merge tool:
 
           ```bash
           git mergetool
           ```
 
-          Then stage resolved files and continue the patch application:
+          If `git mergetool` says `No files need merging`, this is not a merge conflict. Inspect the patch and rejected hunks manually instead.
+
+          ## Continue or skip
+
+          After resolving the current patch:
+
+          ```bash
+          git add home/dot_config/wezterm
+          git am --continue
+          ```
+
+          If the current patch is not needed, skip it:
+
+          ```bash
+          git am --skip
+          ```
+
+          Repeat the resolve/add/continue cycle until all patches are applied.
+
+          When finished, confirm that the `git am` session has ended:
 
           ```bash
           git status
-          git add home/dot_config/wezterm
-          git am --continue
           ```
 
-          If `git mergetool` says `No files need merging`, inspect the current patch and apply it manually:
+          The output should not say that you are in the middle of an `am` session.
 
-          ```bash
-          git am --show-current-patch=diff
-          ```
+          ## Finish the sync
 
-          After editing the affected files manually:
-
-          ```bash
-          git add home/dot_config/wezterm
-          git am --continue
-          ```
-
-          Repeat until all patches are applied.
-
-          After all patches are applied, update the upstream sync marker:
+          Update the upstream sync marker to the target upstream SHA:
 
           ```bash
           echo ${{ steps.upstream.outputs.sha }} > .github/sync/wezterm-config-upstream-sha
@@ -382,11 +410,11 @@ jobs:
           git rm -r .github/sync/wezterm-config-patches
           ```
 
-          Commit and push back to this PR branch:
+          Commit the marker update and cleanup:
 
           ```bash
           git add .github/sync/wezterm-config-upstream-sha
-          git commit -m "chore: finish wezterm config upstream sync"
+          git commit -m "chore: update wezterm config upstream sync marker"
           git push
           ```
 
