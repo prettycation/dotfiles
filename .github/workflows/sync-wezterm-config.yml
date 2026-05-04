@@ -105,13 +105,12 @@ jobs:
 
           mkdir -p .github/sync/wezterm-config-patches
           rm -f .github/sync/wezterm-config-patches/*.patch
-          rm -f .github/sync/wezterm-config-sync-failed.md
 
           failed=0
           failed_patch=""
 
           for patch in /tmp/wezterm-config-patches/*.patch; do
-            echo "Applying patch: $patch"
+            echo "Applying patch with git am --3way: $patch"
 
             git am \
               --3way \
@@ -123,47 +122,76 @@ jobs:
 
             status=$?
 
-            if [ "$status" -ne 0 ]; then
-              echo "::warning::failed to apply $patch"
-              failed=1
-              failed_patch="$patch"
-
-              git am --abort || true
-
-              cp "$patch" .github/sync/wezterm-config-patches/
-
-              found_current=0
-              for remaining in /tmp/wezterm-config-patches/*.patch; do
-                if [ "$remaining" = "$patch" ]; then
-                  found_current=1
-                  continue
-                fi
-
-                if [ "$found_current" -eq 1 ]; then
-                  cp "$remaining" .github/sync/wezterm-config-patches/
-                fi
-              done
-
-              break
+            if [ "$status" -eq 0 ]; then
+              continue
             fi
+
+            echo "::warning::git am --3way failed for $patch"
+            echo "Trying fallback with git apply --reject."
+
+            git apply \
+              --reject \
+              --exclude="backdrops/**" \
+              --exclude="home/dot_config/wezterm/backdrops/**" \
+              --directory=home/dot_config/wezterm \
+              .git/rebase-apply/patch
+
+            apply_status=$?
+
+            reject_files="$(find home/dot_config/wezterm -name '*.rej' -print)"
+
+            if [ "$apply_status" -eq 0 ] && [ -z "$reject_files" ]; then
+              echo "Fallback apply succeeded cleanly."
+
+              git add home/dot_config/wezterm
+              git am --continue
+
+              continue_status=$?
+
+              if [ "$continue_status" -eq 0 ]; then
+                echo "git am --continue succeeded after fallback."
+                continue
+              fi
+
+              echo "::warning::git am --continue failed after fallback."
+            else
+              echo "::warning::Fallback apply did not finish cleanly."
+              if [ -n "$reject_files" ]; then
+                echo "Reject files:"
+                echo "$reject_files"
+              fi
+            fi
+
+            failed=1
+            failed_patch="$patch"
+
+            git am --abort || true
+            git reset --hard HEAD
+            find home/dot_config/wezterm -name '*.rej' -delete
+
+            cp "$patch" .github/sync/wezterm-config-patches/
+
+            found_current=0
+            for remaining in /tmp/wezterm-config-patches/*.patch; do
+              if [ "$remaining" = "$patch" ]; then
+                found_current=1
+                continue
+              fi
+
+              if [ "$found_current" -eq 1 ]; then
+                cp "$remaining" .github/sync/wezterm-config-patches/
+              fi
+            done
+
+            break
           done
 
           if [ "$failed" -eq 1 ]; then
-            {
-              echo "# WezTerm upstream sync failed"
-              echo ""
-              echo "- Upstream: KevinSilvester/wezterm-config"
-              echo "- From: \`${{ steps.base.outputs.sha }}\`"
-              echo "- To: \`${{ steps.upstream.outputs.sha }}\`"
-              echo "- Failed patch: \`$(basename "$failed_patch")\`"
-              echo ""
-              echo "See the pull request comment for local takeover instructions."
-            } > .github/sync/wezterm-config-sync-failed.md
-
-            git add .github/sync/wezterm-config-patches .github/sync/wezterm-config-sync-failed.md
-            git commit -m "chore: record failed wezterm upstream sync"
+            git add .github/sync/wezterm-config-patches
+            git commit -m "chore: record remaining wezterm upstream patches"
 
             echo "result=failed" >> "$GITHUB_OUTPUT"
+            echo "failed_patch=$(basename "$failed_patch")" >> "$GITHUB_OUTPUT"
             exit 0
           fi
 
@@ -230,7 +258,9 @@ jobs:
           - Excluded: `backdrops/**`
           - Status: manual conflict resolution required
 
-          The workflow applied all patches it could, then stopped at a patch that could not be applied automatically.
+          The workflow applied all patches it could, including a fallback attempt for patches where `git am --3way` failed.
+
+          Remaining patch files are stored under `.github/sync/wezterm-config-patches/`.
 
           See the bot comment below for local takeover instructions.
           EOF
@@ -279,13 +309,23 @@ jobs:
           cat > /tmp/wezterm-sync-takeover-comment.md <<'EOF'
           ## Manual conflict resolution required
 
-          The workflow could not apply the upstream patch series automatically.
+          The workflow could not apply the full upstream patch series automatically.
+
+          It already tried:
+
+          - `git am --3way`
+          - fallback with `git apply --reject`
 
           The PR branch contains:
 
           - upstream commits that were applied successfully
           - remaining patch files under `.github/sync/wezterm-config-patches/`
-          - failure details in `.github/sync/wezterm-config-sync-failed.md`
+
+          Failed patch:
+
+          ```text
+          ${{ steps.apply.outputs.failed_patch }}
+          ```
 
           To take over locally:
 
@@ -301,7 +341,7 @@ jobs:
           git am --3way --empty=drop --exclude="backdrops/**" --exclude="home/dot_config/wezterm/backdrops/**" --directory=home/dot_config/wezterm .github/sync/wezterm-config-patches/*.patch
           ```
 
-          If conflicts occur, resolve them with your configured merge tool:
+          If Git creates merge conflicts, resolve them with your configured merge tool:
 
           ```bash
           git mergetool
@@ -315,7 +355,20 @@ jobs:
           git am --continue
           ```
 
-          Repeat `git mergetool`, `git add`, and `git am --continue` until all patches are applied.
+          If `git mergetool` says `No files need merging`, inspect the current patch and apply it manually:
+
+          ```bash
+          git am --show-current-patch=diff
+          ```
+
+          After editing the affected files manually:
+
+          ```bash
+          git add home/dot_config/wezterm
+          git am --continue
+          ```
+
+          Repeat until all patches are applied.
 
           After all patches are applied, update the upstream sync marker:
 
@@ -323,11 +376,10 @@ jobs:
           echo ${{ steps.upstream.outputs.sha }} > .github/sync/wezterm-config-upstream-sha
           ```
 
-          Remove the temporary failure artifacts:
+          Remove the temporary patch files:
 
           ```bash
           git rm -r .github/sync/wezterm-config-patches
-          git rm .github/sync/wezterm-config-sync-failed.md
           ```
 
           Commit and push back to this PR branch:
