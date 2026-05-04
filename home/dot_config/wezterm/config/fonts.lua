@@ -38,6 +38,7 @@ for i, name in ipairs(config_settings.families) do
    }
 end
 
+---@type Config
 return {
    -- 使用 font_with_fallback 实现中英文混排
    font = wezterm.font_with_fallback(font_list),

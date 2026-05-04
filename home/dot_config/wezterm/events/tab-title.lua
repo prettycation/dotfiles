@@ -55,6 +55,7 @@ local M = {}
 
 ---Commit date part of release tag `20250209-182623-44866cc1`
 local PROGRESS_MIN_VERSION = 20250209
+local PROGRESS_STALE_AFTER = 30 -- seconds
 
 local ICON_SCIRCLE_LEFT = nf.ple_left_half_circle_thick --[[  ]]
 local ICON_SCIRCLE_RIGHT = nf.ple_right_half_circle_thick --[[  ]]
@@ -271,10 +272,52 @@ local function create_title(process_name, base_title, max_width, inset)
    return title
 end
 
+local progress_stale = (function()
+   -- stylua: ignore
+   local status_score = {
+      indeterminate = 100,
+      error         = 200,
+      percentage    = 300,
+   }
+
+   ---@type {sum: integer, last_changed: integer}[]
+   local entries = {}
+
+   ---Mark progress value as stale if the output hasn't changed in 30 seconds
+   ---@param tab_index integer
+   ---@param pane_index integer
+   ---@param status 'indeterminate'|'error'|'percentage'
+   ---@param pct integer
+   ---@return boolean `true` if stale
+   return function(tab_index, pane_index, status, pct)
+      -- shifting by 5 bits, assuming no more than 31 panes will be
+      -- spawned in a single tab
+      local entry_id = (tab_index << 5) | pane_index
+
+      if not entries[entry_id] then
+         entries[entry_id] = {}
+         entries[entry_id].sum = status_score[status] + pct
+         entries[entry_id].last_changed = os.time()
+         return false
+      end
+
+      local sum = status_score[status] + pct
+
+      if sum ~= entries[entry_id].sum then
+         entries[entry_id].sum = sum
+         entries[entry_id].last_changed = os.time()
+         return false
+      end
+
+      return os.time() - entries[entry_id].last_changed > PROGRESS_STALE_AFTER
+   end
+end)()
+
 ---@param options Event.TabTitleOptions
+---@param tab_index integer
 ---@param panes PaneInformation[]
 ---@return {icon: string?, status: 'indeterminate'|'percentage'|'error'?}[]
-local function check_progress(options, panes)
+local function check_progress(options, tab_index, panes)
    if not options.show_progress then
       return {}
    end
@@ -282,28 +325,31 @@ local function check_progress(options, panes)
    local progress = {}
    local limit = 3
 
-   for i, pane in ipairs(panes) do
-      if i > limit then
+   for _, pane in ipairs(panes) do
+      if #progress > limit then
          break
       end
 
       local prog = pane.progress
       local status = nil
       local icon = nil
+      local pct = 0
 
       if prog == 'Indeterminate' then
          status = 'indeterminate'
          icon = _ind_to_frame()
       elseif prog.Percentage ~= nil then
          status = 'percentage'
-         icon = _pct_to_frame(prog.Percentage)
+         icon, pct = _pct_to_frame(prog.Percentage), prog.Percentage
       elseif prog.Error ~= nil then
          status = 'error'
-         icon = _pct_to_frame(prog.Error)
+         icon, pct = _pct_to_frame(prog.Error), prog.Error
       end
 
       if icon and status then
-         table.insert(progress, { icon = icon, status = status })
+         if not progress_stale(tab_index, pane.pane_index, status, pct) then
+            table.insert(progress, { icon = icon, status = status })
+         end
       end
    end
 
@@ -328,12 +374,12 @@ local function check_unseen_output(options, is_active, panes)
       limit = 0
    end
 
-   for i = 1, #panes, 1 do
+   for _, pane in ipairs(panes) do
       if count > limit then
          break
       end
 
-      if panes[i].has_unseen_output then
+      if pane.has_unseen_output then
          count = count + 1
       end
    end
@@ -405,7 +451,7 @@ function Tab:update_cells(event_opts, tab, hover, max_width)
    local process_name = clean_process_name(tab.active_pane.foreground_process_name)
    local base_title, prefix_icon = create_base_title(tab.active_pane.title, process_name)
    local unseen_icon = check_unseen_output(event_opts, tab.is_active, tab.panes)
-   local progress = check_progress(event_opts, tab.panes)
+   local progress = check_progress(event_opts, tab.tab_index, tab.panes)
    local inset = TITLE_INSET.default
 
    -- Prefix icons
