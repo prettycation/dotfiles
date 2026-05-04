@@ -1,0 +1,51 @@
+{{- $hasCode := or (lookPath "code") (lookPath "code-insiders") (lookPath "codium") -}}
+{{- $hasPython := or (lookPath "python3") (lookPath "python") -}}
+{{- $hasTaplo := lookPath "taplo" -}}
+{{- $hasTypst := lookPath "typst" -}}
+{{- $hasTinymist := lookPath "tinymist" -}}
+{{- $hasTypstyle := lookPath "typstyle" -}}
+
+{{- $extras := list
+  "lazyvim.plugins.extras.coding.luasnip"
+  "lazyvim.plugins.extras.coding.mini-surround"
+  "lazyvim.plugins.extras.editor.dial"
+  "lazyvim.plugins.extras.editor.illuminate"
+  "lazyvim.plugins.extras.editor.inc-rename"
+  "lazyvim.plugins.extras.editor.overseer"
+  "lazyvim.plugins.extras.formatting.prettier"
+  "lazyvim.plugins.extras.lang.json"
+  "lazyvim.plugins.extras.lang.markdown"
+-}}
+
+{{- if $hasPython -}}
+  {{- $extras = append $extras "lazyvim.plugins.extras.lang.python" -}}
+{{- end -}}
+
+{{- if $hasTaplo -}}
+  {{- $extras = append $extras "lazyvim.plugins.extras.lang.toml" -}}
+{{- end -}}
+
+{{- if or $hasTypst $hasTinymist $hasTypstyle -}}
+  {{- $extras = append $extras "lazyvim.plugins.extras.lang.typst" -}}
+{{- end -}}
+
+{{- $extras = concat $extras (list
+  "lazyvim.plugins.extras.lang.yaml"
+  "lazyvim.plugins.extras.ui.treesitter-context"
+  "lazyvim.plugins.extras.util.chezmoi"
+  "lazyvim.plugins.extras.util.dot"
+  "lazyvim.plugins.extras.util.mini-hipatterns"
+) -}}
+
+{{- if $hasCode -}}
+  {{- $extras = append $extras "lazyvim.plugins.extras.vscode" -}}
+{{- end -}}
+
+{{- dict
+  "extras" $extras
+  "install_version" 8
+  "news" (dict "NEWS.md" "11866")
+  "version" 8
+  | toPrettyJson
+-}}
+{{- /* vim: set filetype=json.chezmoitmpl: */ -}}
