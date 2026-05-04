@@ -1,7 +1,9 @@
 return {
   {
     "nvim-treesitter/nvim-treesitter",
-    event = "User ThemeReady",
+    event = function()
+      return { "User ThemeReady" }
+    end,
     build = ":TSUpdate",
     optional = true,
 
@@ -202,6 +204,21 @@ return {
       -- 这样它们不会和 nvim-treesitter 并发抢顺序，
       -- 而是明确排在 Treesitter setup 之后。
       vim.api.nvim_exec_autocmds("User", { pattern = "TreesitterReady" })
+    end,
+  },
+  {
+    "nvim-treesitter/nvim-treesitter-textobjects",
+    optional = true,
+    event = function()
+      return { "User TreesitterReady" }
+    end,
+  },
+
+  {
+    "nvim-treesitter/nvim-treesitter-context",
+    optional = true,
+    event = function()
+      return { "User TreesitterReady" }
     end,
   },
 }

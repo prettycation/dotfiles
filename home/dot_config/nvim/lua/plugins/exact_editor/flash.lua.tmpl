@@ -120,6 +120,9 @@ return {
   {
     "folke/flash.nvim",
     optional = true,
+    event = function()
+      return {}
+    end,
     keys = {
       { "s", mode = { "n", "x", "o" }, false },
       { "S", mode = { "n", "x", "o" }, false },
