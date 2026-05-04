@@ -57,6 +57,7 @@ jobs:
           fi
 
           echo "sha=$UPSTREAM_SHA" >> "$GITHUB_OUTPUT"
+          echo "short=${UPSTREAM_SHA:0:7}" >> "$GITHUB_OUTPUT"
           echo "Latest upstream SHA: $UPSTREAM_SHA"
 
       - name: Stop if already synced
@@ -66,46 +67,114 @@ jobs:
           echo "Current marker: ${{ steps.base.outputs.sha }}"
           echo "Upstream head:   ${{ steps.upstream.outputs.sha }}"
 
-      - name: Download upstream patch series
+      - name: Prepare sync branch
         if: steps.base.outputs.sha != steps.upstream.outputs.sha
         run: |
+          git switch -c sync/wezterm-config-upstream
+
+      - name: Download upstream commit patches
+        if: steps.base.outputs.sha != steps.upstream.outputs.sha
+        run: |
+          mkdir -p /tmp/wezterm-config-patches
+
           curl -L \
-            "https://github.com/KevinSilvester/wezterm-config/compare/${{ steps.base.outputs.sha }}...${{ steps.upstream.outputs.sha }}.patch" \
-            -o /tmp/wezterm-config.patch
+            "https://api.github.com/repos/KevinSilvester/wezterm-config/compare/${{ steps.base.outputs.sha }}...${{ steps.upstream.outputs.sha }}" \
+            -o /tmp/wezterm-config-compare.json
 
-          echo "Downloaded patch:"
-          ls -lh /tmp/wezterm-config.patch
+          jq -r '.commits[].sha' /tmp/wezterm-config-compare.json > /tmp/wezterm-config-commits.txt
 
-      - name: Show patch file list
+          if [ ! -s /tmp/wezterm-config-commits.txt ]; then
+            echo "::error::no upstream commits found in compare range"
+            exit 1
+          fi
+
+          n=1
+          while read -r sha; do
+            file="$(printf "/tmp/wezterm-config-patches/%04d-%s.patch" "$n" "$sha")"
+            curl -L "https://github.com/KevinSilvester/wezterm-config/commit/${sha}.patch" -o "$file"
+            echo "$file"
+            n=$((n + 1))
+          done < /tmp/wezterm-config-commits.txt
+
+      - name: Apply upstream patches
         if: steps.base.outputs.sha != steps.upstream.outputs.sha
+        id: apply
+        continue-on-error: true
         run: |
-          echo "Files touched by upstream patch:"
-          grep '^diff --git ' /tmp/wezterm-config.patch || true
+          set +e
 
-          echo ""
-          echo "Backdrops entries, if any:"
-          grep 'backdrops/' /tmp/wezterm-config.patch || true
+          mkdir -p .github/sync/wezterm-config-patches
+          rm -f .github/sync/wezterm-config-patches/*.patch
+          rm -f .github/sync/wezterm-config-sync-failed.md
 
-      - name: Apply upstream patches into chezmoi wezterm directory
-        if: steps.base.outputs.sha != steps.upstream.outputs.sha
-        run: |
-          git am \
-            --3way \
-            --empty=drop \
-            --exclude="backdrops/**" \
-            --exclude="home/dot_config/wezterm/backdrops/**" \
-            --directory=home/dot_config/wezterm \
-            /tmp/wezterm-config.patch
+          failed=0
+          failed_patch=""
+
+          for patch in /tmp/wezterm-config-patches/*.patch; do
+            echo "Applying patch: $patch"
+
+            git am \
+              --3way \
+              --empty=drop \
+              --exclude="backdrops/**" \
+              --exclude="home/dot_config/wezterm/backdrops/**" \
+              --directory=home/dot_config/wezterm \
+              "$patch"
+
+            status=$?
+
+            if [ "$status" -ne 0 ]; then
+              echo "::warning::failed to apply $patch"
+              failed=1
+              failed_patch="$patch"
+
+              git am --abort || true
+
+              cp "$patch" .github/sync/wezterm-config-patches/
+
+              found_current=0
+              for remaining in /tmp/wezterm-config-patches/*.patch; do
+                if [ "$remaining" = "$patch" ]; then
+                  found_current=1
+                  continue
+                fi
+
+                if [ "$found_current" -eq 1 ]; then
+                  cp "$remaining" .github/sync/wezterm-config-patches/
+                fi
+              done
+
+              break
+            fi
+          done
+
+          if [ "$failed" -eq 1 ]; then
+            {
+              echo "# WezTerm upstream sync failed"
+              echo ""
+              echo "- Upstream: KevinSilvester/wezterm-config"
+              echo "- From: \`${{ steps.base.outputs.sha }}\`"
+              echo "- To: \`${{ steps.upstream.outputs.sha }}\`"
+              echo "- Failed patch: \`$(basename "$failed_patch")\`"
+              echo ""
+              echo "See the pull request comment for local takeover instructions."
+            } > .github/sync/wezterm-config-sync-failed.md
+
+            git add .github/sync/wezterm-config-patches .github/sync/wezterm-config-sync-failed.md
+            git commit -m "chore: record failed wezterm upstream sync"
+
+            echo "result=failed" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          echo "result=success" >> "$GITHUB_OUTPUT"
 
       - name: Update upstream sync marker
-        if: steps.base.outputs.sha != steps.upstream.outputs.sha
+        if: steps.base.outputs.sha != steps.upstream.outputs.sha && steps.apply.outputs.result == 'success'
         run: |
           mkdir -p .github/sync
           echo "${{ steps.upstream.outputs.sha }}" > .github/sync/wezterm-config-upstream-sha
 
-      - name: Commit updated sync marker
-        if: steps.base.outputs.sha != steps.upstream.outputs.sha
-        run: |
           git add .github/sync/wezterm-config-upstream-sha
           git commit -m "chore: update wezterm config upstream sync marker"
 
@@ -133,39 +202,155 @@ jobs:
 
           echo "No backdrops changes detected."
 
-      - name: Show final marker
+      - name: Push sync branch
         if: steps.base.outputs.sha != steps.upstream.outputs.sha
         run: |
-          echo "Old marker: ${{ steps.base.outputs.sha }}"
-          echo "New marker: $(cat .github/sync/wezterm-config-upstream-sha)"
+          git push --force-with-lease origin HEAD:sync/wezterm-config-upstream
 
-      - name: Create pull request
+      - name: Write pull request body
         if: steps.base.outputs.sha != steps.upstream.outputs.sha
-        uses: peter-evans/create-pull-request@v8
-        with:
-          branch: sync/wezterm-config-upstream
-          delete-branch: true
-          title: "Sync WezTerm config with upstream"
-          body: |
-            Sync `home/dot_config/wezterm` with upstream `KevinSilvester/wezterm-config`.
+        run: |
+          if [ "${{ steps.apply.outputs.result }}" = "success" ]; then
+            cat > /tmp/wezterm-sync-pr-body.md <<'EOF'
+          Sync `home/dot_config/wezterm` with upstream `KevinSilvester/wezterm-config`.
 
-            - From: `${{ steps.base.outputs.sha }}`
-            - To: `${{ steps.upstream.outputs.sha }}`
-            - Excluded: `backdrops/**`
+          - From: `${{ steps.base.outputs.sha }}`
+          - To: `${{ steps.upstream.outputs.sha }}`
+          - Excluded: `backdrops/**`
+          - Status: automated sync completed successfully
 
-            This workflow applies upstream commits as a patch series into:
+          This PR was generated automatically by the WezTerm upstream sync workflow.
+          EOF
+          else
+            cat > /tmp/wezterm-sync-pr-body.md <<'EOF'
+          Sync `home/dot_config/wezterm` with upstream `KevinSilvester/wezterm-config`.
 
-            ```text
-            home/dot_config/wezterm
-            ```
+          - From: `${{ steps.base.outputs.sha }}`
+          - To: `${{ steps.upstream.outputs.sha }}`
+          - Excluded: `backdrops/**`
+          - Status: manual conflict resolution required
 
-            It intentionally excludes:
+          The workflow applied all patches it could, then stopped at a patch that could not be applied automatically.
 
-            ```text
-            backdrops/**
-            ```
+          See the bot comment below for local takeover instructions.
+          EOF
+          fi
 
-            If conflicts occur, resolve them locally with Neogit and push back to this branch.
-          labels: |
-            automated
-            wezterm
+      - name: Create or update pull request
+        if: steps.base.outputs.sha != steps.upstream.outputs.sha
+        id: pr
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          pr_number="$(gh pr list \
+            --head sync/wezterm-config-upstream \
+            --base "${{ github.ref_name }}" \
+            --json number \
+            --jq '.[0].number')"
+
+          if [ -n "$pr_number" ]; then
+            gh pr edit "$pr_number" \
+              --title "Sync WezTerm config with upstream" \
+              --body-file /tmp/wezterm-sync-pr-body.md \
+              --add-label automated \
+              --add-label wezterm
+
+            echo "number=$pr_number" >> "$GITHUB_OUTPUT"
+          else
+            pr_url="$(gh pr create \
+              --base "${{ github.ref_name }}" \
+              --head sync/wezterm-config-upstream \
+              --title "Sync WezTerm config with upstream" \
+              --body-file /tmp/wezterm-sync-pr-body.md \
+              --label automated \
+              --label wezterm)"
+
+            echo "Created PR: $pr_url"
+
+            pr_number="$(gh pr view "$pr_url" --json number --jq '.number')"
+            echo "number=$pr_number" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Comment local takeover instructions
+        if: steps.base.outputs.sha != steps.upstream.outputs.sha && steps.apply.outputs.result == 'failed'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cat > /tmp/wezterm-sync-takeover-comment.md <<'EOF'
+          ## Manual conflict resolution required
+
+          The workflow could not apply the upstream patch series automatically.
+
+          The PR branch contains:
+
+          - upstream commits that were applied successfully
+          - remaining patch files under `.github/sync/wezterm-config-patches/`
+          - failure details in `.github/sync/wezterm-config-sync-failed.md`
+
+          To take over locally:
+
+          ```bash
+          git fetch origin sync/wezterm-config-upstream
+          git switch sync/wezterm-config-upstream
+          ```
+
+          Continue applying the remaining patches:
+
+          ```bash
+          git am --3way --empty=drop \
+            --exclude="backdrops/**" \
+            --exclude="home/dot_config/wezterm/backdrops/**" \
+            --directory=home/dot_config/wezterm \
+            .github/sync/wezterm-config-patches/*.patch
+          ```
+
+          If conflicts occur, resolve them with your configured merge tool:
+
+          ```bash
+          git mergetool
+          ```
+
+          Then stage resolved files and continue the patch application:
+
+          ```bash
+          git status
+          git add home/dot_config/wezterm
+          git am --continue
+          ```
+
+          Repeat `git mergetool`, `git add`, and `git am --continue` until all patches are applied.
+
+          After all patches are applied, update the upstream sync marker:
+
+          ```bash
+          echo ${{ steps.upstream.outputs.sha }} > .github/sync/wezterm-config-upstream-sha
+          ```
+
+          Remove the temporary failure artifacts:
+
+          ```bash
+          git rm -r .github/sync/wezterm-config-patches
+          git rm .github/sync/wezterm-config-sync-failed.md
+          ```
+
+          Commit and push back to this PR branch:
+
+          ```bash
+          git add .github/sync/wezterm-config-upstream-sha
+          git commit -m "chore: finish wezterm config upstream sync"
+          git push
+          ```
+
+          If you prefer Neogit for staging/review, open it after `git mergetool`:
+
+          ```vim
+          :Neogit
+          ```
+
+          Use Neogit to inspect resolved files and stage them before running `git am --continue`.
+          EOF
+
+          gh pr comment "${{ steps.pr.outputs.number }}" \
+            --edit-last \
+            --create-if-none \
+            --body-file /tmp/wezterm-sync-takeover-comment.md
