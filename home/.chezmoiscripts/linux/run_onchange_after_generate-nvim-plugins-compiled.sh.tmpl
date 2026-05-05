@@ -10,7 +10,7 @@ start_ts="$(date +%s)"
 
 printf '\033[36mGenerating Neovim compiled plugin specs...\033[0m\n'
 
-nvim --headless +'lua require("exact_utils.plugin_compiler").run()' +qa
+nvim --headless +'lua require("utils.plugin_compiler").run()' +qa
 
 end_ts="$(date +%s)"
 elapsed="$((end_ts - start_ts))"
