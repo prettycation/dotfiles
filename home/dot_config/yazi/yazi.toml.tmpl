@@ -6,7 +6,7 @@
 {{- $hasSqlite3 := lookPath "sqlite3" -}}
 {{- $hasSqliteBrowser := lookPath "DB Browser for SQLite.exe" -}}
 {{- $hasPlay := or $hasMpv $hasMediainfo -}}
-"$schema" = "https://yazi-rs.github.io/schemas/yazi.json"
+# "$schema" = "https://yazi-rs.github.io/schemas/yazi.json"
 
 # --- [mgr] (Manager) ---
 # 管理器界面，即 yazi 的主视图 (左中右三个窗格) 的行为设置。
@@ -245,12 +245,7 @@ spotters = [
 prepend_preloaders = [
   {{- if $hasDuckdb }}
   # DuckDB：按最新官方 preloader 规则字段配置；旧版 README 里的 `multi = false` 已不再属于合法字段。
-  { url = "*.csv", run = "duckdb" },
-  { url = "*.tsv", run = "duckdb" },
-  { url = "*.json", run = "duckdb" },
-  { url = "*.parquet", run = "duckdb" },
-  { url = "*.txt", run = "duckdb" },
-  { url = "*.xlsx", run = "duckdb" },
+  { url = "*.{csv,tsv,json,parquet,txt}", run = "duckdb" },
   {{- end }}
 
   {{- if $hasSoffice }}
@@ -267,12 +262,7 @@ prepend_preloaders = [
 
   # 规则4: 作为备用方案，通过文件名后缀来匹配。
   # 这在系统未能正确识别MIME类型时非常有用。
-  { url = "*.docx", run = "office" },
-  { url = "*.xlsx", run = "office" },
-  { url = "*.pptx", run = "office" },
-  { url = "*.doc", run = "office" },  # 增加对旧版 .doc 的支持
-  { url = "*.xls", run = "office" },  # 增加对旧版 .xls 的支持
-  { url = "*.ppt", run = "office" },  # 增加对旧版 .ppt 的支持
+  { url = "*.{docx,xlsx,pptx,doc,xls,ppt}", run = "office" },
 
   # --- Office 文档预览规则结束 ---
   {{- end }}
@@ -280,8 +270,7 @@ prepend_preloaders = [
   {{- if $hasMediainfo }}
   # [mediainfo] 使用 mediainfo 替代原有的 magick, image, video 规则
   { mime = "{audio,video,image}/*", run = "mediainfo" },
-  { mime = "application/subrip", run = "mediainfo" },
-  { mime = "application/postscript", run = "mediainfo" },
+  { mime = "application/{subrip,postscript}", run = "mediainfo" },
   {{- end }}
 ]
 
