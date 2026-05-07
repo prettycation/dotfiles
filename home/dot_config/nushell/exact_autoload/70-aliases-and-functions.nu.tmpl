@@ -1,18 +1,28 @@
+{{- $hasGsudo := lookPath "gsudo" -}}
+{{- $hasFastfetch := lookPath "fastfetch" -}}
+{{- $hasEza := lookPath "eza" -}}
+{{- $hasYazi := lookPath "yazi" -}}
+{{- $hasZoxide := lookPath "zoxide" -}}
+{{- $hasFzf := lookPath "fzf" -}}
 # -----------------------------------------------------------------
 # 别名、函数与工具
 # -----------------------------------------------------------------
 
+{{- if $hasGsudo }}
+alias sudo = gsudo
+{{- end}}
+
 def cls [] {
   clear
 
-  {{- if lookPath "fastfetch" }}
+  {{- if $hasFastfetch }}
   if (($env.NVIM? | default "") == "") {
     ^fastfetch -c ($nu.home-dir | path join ".config" "fastfetch" "config.jsonc")
   }
   {{- end }}
 }
 
-{{- if lookPath "eza" }}
+{{- if $hasEza }}
 def --wrapped ls [...args] {
   ^eza --icons ...$args
 }
@@ -42,7 +52,7 @@ def --wrapped la [...args] {
 }
 {{- end }}
 
-{{- if lookPath "yazi" }}
+{{- if $hasYazi }}
 def --env yy [...args] {
 	let tmp = (mktemp -t "yazi-cwd.XXXXXX")
 	^yazi ...$args --cwd-file $tmp
@@ -54,7 +64,7 @@ def --env yy [...args] {
 }
 {{- end }}
 
-{{- if and (lookPath "zoxide") (lookPath "yazi") (lookPath "fzf") }}
+{{- if and $hasZoxide $hasYazi $hasFzf }}
 def --env zy [] {
   let dest = (
     ^zoxide query -l
@@ -69,7 +79,7 @@ def --env zy [] {
 }
 {{- end }}
 
-{{- if lookPath "fzf" }}
+{{- if $hasFzf }}
 $env.FZF_DEFAULT_OPTS = ([
   '--color=bg+:#313244,bg:#1E1E2E,spinner:#F5E0DC,hl:#F38BA8'
   '--color=fg:#CDD6F4,header:#F38BA8,info:#CBA6F7,pointer:#F5E0DC'
@@ -78,4 +88,4 @@ $env.FZF_DEFAULT_OPTS = ([
   '--color=border:#6C7086,label:#CDD6F4'
 ] | str join ' ')
 {{- end }}
-{{- /* vim: set filetype=nu.chezmoitemplate: */}}
+{{- /* vim: set filetype=nu.chezmoitmpl: */}}
