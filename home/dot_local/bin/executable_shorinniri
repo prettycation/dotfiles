@@ -5,6 +5,7 @@ set -u
 # ==========================================
 # 1. 国际化与 UI 美化设置 (i18n & UI)
 # ==========================================
+
 C_DEF='\033[0m'
 C_BLU='\033[1;34m'
 C_GRN='\033[1;32m'
@@ -18,7 +19,11 @@ if [[ "${LANG}" == *"zh_CN"* || "${LC_ALL}" == *"zh_CN"* ]]; then
 fi
 
 _t() {
-  if [[ $IS_ZH -eq 1 && -n "$2" ]]; then echo "$2"; else echo "$1"; fi
+  if [[ $IS_ZH -eq 1 && -n "$2" ]]; then
+    echo "$2"
+  else
+    echo "$1"
+  fi
 }
 
 info() { echo -e "${C_BLU}[*]${C_DEF} $1"; }
@@ -30,13 +35,13 @@ step() { echo -e "\n${C_CYA}>>> $1${C_DEF}"; }
 # ==========================================
 # 2. 全局变量与配置
 # ==========================================
-WALLPAPER_SRC_DIR="/usr/share/shorin-niri-wallpapers"
 
 CACHE_FILE="$HOME/.cache/shorin-niri-software.cache"
 
 # ==========================================
 # 3. 软件清单列表
 # ==========================================
+
 TARGET_SOFTWARE=(
   # ==========================================================================
   # [一] Wayland 合成器与会话基础
@@ -117,8 +122,8 @@ TARGET_SOFTWARE=(
   "fcitx5-qt"         # Qt 应用输入法支持
   "fcitx5-rime"       # Rime 引擎前端
   "fcitx5-configtool" # 输入法配置 GUI
-  # "rime-ice-git"                  # 雾凇拼音方案（AUR）；dotfiles fcitx5 配置指定
-  # "rime-wanxiang-gram-zh-hans"    # 万象语法模型（AUR），提升候选词质量
+  # "rime-ice-git"               # 雾凇拼音方案（AUR）；dotfiles fcitx5 配置指定
+  # "rime-wanxiang-gram-zh-hans" # 万象语法模型（AUR），提升候选词质量
 
   # ==========================================================================
   # [九] 字体（基础 + Nerd 图标）
@@ -194,7 +199,7 @@ TARGET_SOFTWARE=(
   "nirius" # niri 工作区跟随/快速聚焦扩展（AUR）；
   # niri 自启动 "niriusd"
   # binds.kdl Mod+Ctrl+G / Mod+Shift+Q/W 调用 nirius
-  # "niri-sidebar-git"              # niri 侧边栏（AUR）；
+  # "niri-sidebar-git"           # niri 侧边栏（AUR）；
   # niri 自启动 ~/.local/bin/niri-sidebar listen
   # binds.kdl Mod+M / Mod+Alt+S/Z/X/R 调用
 
@@ -228,7 +233,7 @@ TARGET_SOFTWARE=(
   # waybar bluetooth 模块左键调用 kitty -e bluetui
 
   # ----- 外接显示器（有外接屏时）-----
-  # "ddcutil-service"             # DDC/CI 协议显示器亮度控制（AUR）；
+  # "ddcutil-service"            # DDC/CI 协议显示器亮度控制（AUR）；
   # waybar group/ddcutil 模块的 3 个按钮调用 ddcutil
   # 安装后还需把当前用户加入 i2c 组并加载 i2c-dev 模块
 
@@ -240,12 +245,12 @@ TARGET_SOFTWARE=(
   # （所以 clipnotify 和 xclip 不用单独列）
 
   # ----- 移动设备访问 -----
-  # "gvfs-mtp"                    # GVFS MTP 后端，连接安卓手机文件传输
-  # "gvfs-gphoto2"                # GVFS PTP 后端，连接数码相机
-  # "gvfs-smb"                    # GVFS SMB 后端，访问 Windows 网络共享
+  # "gvfs-mtp"                   # GVFS MTP 后端，连接安卓手机文件传输
+  # "gvfs-gphoto2"               # GVFS PTP 后端，连接数码相机
+  # "gvfs-smb"                   # GVFS SMB 后端，访问 Windows 网络共享
 
   # ----- 动漫壁纸 AI 超分（用 Mod+Shift+F10 时）-----
-  # "waifu2x-ncnn-vulkan"         # AI 图片放大；
+  # "waifu2x-ncnn-vulkan"        # AI 图片放大；
   # random-anime-wallpaper.sh 第 89 行直接调用
   # 用于把低分辨率随机下载的动漫壁纸 2x 超分
 
@@ -254,52 +259,52 @@ TARGET_SOFTWARE=(
   # waybar custom/screenshot 模块中键调用 wl-longshot
 
   # ----- 其他杂项 -----
-  #   firefox
-  #   python-pywalfox                # firefox 主题联动
-  #   fish
+  # firefox
+  # python-pywalfox              # firefox 主题联动
+  # fish
 
   # 重复 / 冲突 / 仓库零引用：
-  #   ttf-jetbrains-maple-mono-nf-xx-xx  # 与 ttf-jetbrains-mono-nerd 重复
-  #   xdg-desktop-portal-gtk         # 与 xdg-desktop-portal-gnome 冲突
-  #   wl-screenrec-git               # 与 wf-recorder 重复
-  #   timg                           # 与 chafa 重复（chafa 已由 cliphist-tui 拉取）, shorin-contrib-git 可选依赖
-  #   icoextract                     # .exe 图标缩略图，极小众
-  #   webp-pixbuf-loader             # 给 GTK 应用 webp 显示，niri 桌面无引用
-  #   nautilus / nautilus-open-any-terminal  # 走 thunar 路线，不需要
+  # ttf-jetbrains-maple-mono-nf-xx-xx # 与 ttf-jetbrains-mono-nerd 重复
+  # xdg-desktop-portal-gtk       # 与 xdg-desktop-portal-gnome 冲突
+  # wl-screenrec-git             # 与 wf-recorder 重复
+  # timg                         # 与 chafa 重复（chafa 已由 cliphist-tui 拉取）, shorin-contrib-git 可选依赖
+  # icoextract                   # .exe 图标缩略图，极小众
+  # webp-pixbuf-loader           # 给 GTK 应用 webp 显示，niri 桌面无引用
+  # nautilus / nautilus-open-any-terminal # 走 thunar 路线，不需要
 
   # 作者声明可选 / 效果差：
-  #   rime-llm-translator-git
-  #   rime-wubi                      # 五笔方案
+  # rime-llm-translator-git
+  # rime-wubi                    # 五笔方案
 
   # 用户级软件：
-  "bazaar"    # Flatpak 软件商店前端
+  # "bazaar"                     # Flatpak 软件商店前端
   "gdu"       # 磁盘空间管理 TUI 工具
   "downgrade" # pacman 软件包降级工具
   "nwg-look"  # GTK 主题配置 GUI
-
-  "btop"
-  # fastfetch                      # matugen 适配
-
-  "jq"     # 仓库内零调用，作者预留
-  "strace" # 调试工具
+  "btop"      # fastfetch # matugen 适配
+  "jq"        # 仓库内零调用，作者预留
+  "strace"    # 调试工具
 
   # 不用 QQ 时不需要：
-  #   linuxqq-clipsync-git
-  #   clipnotify                     # 仅 linuxqq-clipsync 的硬依赖
-  #   xclip                          # 仅 linuxqq-clipsync 的硬依赖
+  # linuxqq-clipsync-git
+  # clipnotify                   # 仅 linuxqq-clipsync 的硬依赖
+  # xclip                        # 仅 linuxqq-clipsync 的硬依赖
   # ============================================================================
 )
 
 # ==========================================
 # 4. Sudo 智能探针与保活机制 (Keep-alive)
 # ==========================================
+
 ask_for_sudo() {
   # 探针：检查当前是否已被外层自动化脚本赋予了免密权限
   if sudo -n true 2>/dev/null; then
-    (while kill -0 "$$" 2>/dev/null; do
-      sudo -n true >/dev/null 2>&1
-      sleep 60
-    done) 2>/dev/null &
+    (
+      while kill -0 "$$" 2>/dev/null; do
+        sudo -n true >/dev/null 2>&1
+        sleep 60
+      done
+    ) 2>/dev/null &
     return 0
   fi
 
@@ -312,10 +317,12 @@ ask_for_sudo() {
   }
 
   # 后台保活循环
-  (while kill -0 "$$" 2>/dev/null; do
-    sudo -n true >/dev/null 2>&1
-    sleep 60
-  done) 2>/dev/null &
+  (
+    while kill -0 "$$" 2>/dev/null; do
+      sudo -n true >/dev/null 2>&1
+      sleep 60
+    done
+  ) 2>/dev/null &
 
   ok "$(_t "Sudo privileges acquired and kept alive." "管理员权限获取成功。")"
 }
@@ -323,36 +330,46 @@ ask_for_sudo() {
 # ==========================================
 # 5. 软件依赖管理 (差异比对与自动安装)
 # ==========================================
+
 get_aur_helper() {
   if command -v yay >/dev/null 2>&1; then
     echo "yay"
     return
   fi
+
   if command -v paru >/dev/null 2>&1; then
     echo "paru"
     return
   fi
+
   err "$(_t "No AUR helper found. Please install yay or paru." "未找到 AUR 助手，请先安装 yay 或 paru。")"
   exit 1
 }
 
 manage_software() {
-  local helper=$(get_aur_helper)
+  local helper
+  helper=$(get_aur_helper)
+
   step "$(_t "Checking Optional Dependencies" "检查并同步依赖软件")"
 
   # ======== 1. 废弃软件检测 (历史缓存比对) ========
+
   if [[ -f "$CACHE_FILE" ]]; then
     local old_software=()
     mapfile -t old_software <"$CACHE_FILE"
+
     local deprecated=()
+
     for old_pkg in "${old_software[@]}"; do
       local found=0
+
       for new_pkg in "${TARGET_SOFTWARE[@]}"; do
         if [[ "$old_pkg" == "$new_pkg" ]]; then
           found=1
           break
         fi
       done
+
       if [[ $found -eq 0 ]] && pacman -Qq "$old_pkg" >/dev/null 2>&1; then
         deprecated+=("$old_pkg")
       fi
@@ -360,26 +377,34 @@ manage_software() {
 
     if [[ ${#deprecated[@]} -gt 0 ]]; then
       warn "$(_t "The following packages are no longer required by Shorin Niri:" "Shorin Niri 已不再将以下软件作为默认组件:")"
-      for dpkg in "${deprecated[@]}"; do echo -e "  ${C_YEL}- $dpkg${C_DEF}"; done
+      for dpkg in "${deprecated[@]}"; do
+        echo -e " ${C_YEL}- $dpkg${C_DEF}"
+      done
       info "$(_t "You can manually remove them: paru -Rns ${deprecated[*]}" "如果不需要，可手动清理: paru -Rns ${deprecated[*]}")"
       echo ""
     fi
   fi
 
   # ======== 2. 安装缺失软件 ========
+
   local to_install=()
+
   for pkg in "${TARGET_SOFTWARE[@]}"; do
-    if ! pacman -Qq "$pkg" >/dev/null 2>&1; then to_install+=("$pkg"); fi
+    if ! pacman -Qq "$pkg" >/dev/null 2>&1; then
+      to_install+=("$pkg")
+    fi
   done
 
   if [ ${#to_install[@]} -eq 0 ]; then
     ok "$(_t "All required optional software is already installed." "当前版本的所有配套软件均已安装。")"
   else
     info "$(_t "Installing newly added/missing software in the background..." "正在静默安装新增或缺失的软件...")"
-    YAY_NO_CONFIRM=1 $helper -S --needed --noconfirm "${to_install[@]}"
+
+    YAY_NO_CONFIRM=1 "$helper" -S --needed --noconfirm "${to_install[@]}"
 
     # --- 新增：后置严谨验证环节 ---
     local failed_pkgs=()
+
     for pkg in "${to_install[@]}"; do
       if ! pacman -Qq "$pkg" >/dev/null 2>&1; then
         failed_pkgs+=("$pkg")
@@ -391,8 +416,9 @@ manage_software() {
     else
       warn "$(_t "The following packages failed to install/build:" "以下软件安装或编译失败，请检查网络或 AUR 状态:")"
       for fpkg in "${failed_pkgs[@]}"; do
-        echo -e "  ${C_RED}- $fpkg${C_DEF}"
+        echo -e " ${C_RED}- $fpkg${C_DEF}"
       done
+
       # 不阻断流程，允许继续执行系统配置
       info "$(_t "Script will continue, but some features might be missing." "脚本将继续执行，但由于软件缺失，部分功能可能无法正常工作。")"
     fi
@@ -401,7 +427,9 @@ manage_software() {
 
   # ======== 3. 标记免死金牌与写入缓存 ========
   # --- 修复：只把真正安装成功的软件写入缓存，防止由于失败导致下次跳过检测 ---
+
   local actually_installed=()
+
   for pkg in "${TARGET_SOFTWARE[@]}"; do
     if pacman -Qq "$pkg" >/dev/null 2>&1; then
       actually_installed+=("$pkg")
@@ -418,47 +446,24 @@ manage_software() {
 }
 
 # ==========================================
-# 6. 环境应用与系统设置
+# 6. 系统级环境设置
 # ==========================================
-hide_desktop_file() {
-  local source_file="$1"
-  local filename=$(basename "$source_file")
-  local user_dir="$HOME/.local/share/applications"
-  local target_file="$user_dir/$filename"
-  if [[ -f "$source_file" ]]; then
-    mkdir -p "$user_dir"
-    cp -f "$source_file" "$target_file"
-    if grep -q "^NoDisplay=" "$target_file" 2>/dev/null; then
-      sed -i 's/^NoDisplay=.*/NoDisplay=true/' "$target_file"
-    else echo "NoDisplay=true" >>"$target_file"; fi
-  fi
-}
-
-run_hide_desktop_file() {
-  local apps_to_hide=(
-    "lstopo.desktop" "avahi-discover.desktop" "qv4l2.desktop" "qvidcap.desktop" "bssh.desktop" "org.fcitx.Fcitx5.desktop"
-    "org.fcitx.fcitx5-migrator.desktop" "xgps.desktop" "xgpsspeed.desktop" "gvim.desktop" "kbd-layout-viewer5.desktop"
-    "bvnc.desktop" "yazi.desktop" "btop.desktop" "vim.desktop" "nvim.desktop" "nvtop.desktop" "mpv.desktop"
-    "org.gnome.Settings.desktop" "thunar-settings.desktop" "thunar-bulk-rename.desktop" "thunar-volman-settings.desktop"
-    "clipse-gui.desktop" "waypaper.desktop" "xfce4-about.desktop" "cmake-gui.desktop" "assistant.desktop"
-    "qdbusviewer.desktop" "linguist.desktop" "designer.desktop" "org.kde.drkonqi.coredump.gui.desktop"
-    "org.kde.kwrite.desktop" "org.freedesktop.MalcontentControl.desktop" "org.gnome.Nautilus.desktop"
-  )
-  for app in "${apps_to_hide[@]}"; do hide_desktop_file "/usr/share/applications/$app"; done
-}
 
 setup_system_environment() {
   step "$(_t "Configuring System Environment" "正在配置底层系统与硬件服务")"
 
   local NEED_GENERATE=false
+
   if ! locale -a | grep -iq "en_US.utf8"; then
     sudo sed -i 's/^#\s*en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen
     NEED_GENERATE=true
   fi
+
   if ! locale -a | grep -iq "zh_CN.utf8"; then
     sudo sed -i 's/^#\s*zh_CN.UTF-8 UTF-8/zh_CN.UTF-8 UTF-8/' /etc/locale.gen
     NEED_GENERATE=true
   fi
+
   if [ "$NEED_GENERATE" = true ]; then
     sudo locale-gen >/dev/null
     ok "$(_t "Locales generated." "Locales 生成完成。")"
@@ -466,89 +471,38 @@ setup_system_environment() {
 
   sudo systemctl enable --now power-profiles-daemon.service >/dev/null 2>&1 || true
   sudo systemctl enable --now swayosd-libinput-backend.service >/dev/null 2>&1 || true
+
   sudo gpasswd -a "$USER" i2c >/dev/null 2>&1 || true
-  if ! grep -q "i2c-dev" /etc/modules-load.d/i2c-dev.conf 2>/dev/null; then echo "i2c-dev" | sudo tee /etc/modules-load.d/i2c-dev.conf >/dev/null; fi
-}
 
-apply_user_configs() {
-  step "$(_t "Applying User Environment Settings" "正在应用用户环境设置")"
-  LANG=en_US.UTF-8 LANGUAGE=en_US.UTF-8 xdg-user-dirs-update --force || true
-  mkdir -p "$HOME/.config"
-  if ! grep -q "kitty.desktop" "$HOME/.config/xdg-terminals.list" 2>/dev/null; then echo 'kitty.desktop' >>"$HOME/.config/xdg-terminals.list"; fi
-
-  if command -v gsettings >/dev/null 2>&1; then
-    GSETTINGS_CMDS='
-            gsettings set org.gnome.desktop.interface color-scheme "prefer-dark" 2>/dev/null || true
-            gsettings set org.gnome.desktop.interface gtk-theme "adw-gtk3-dark" 2>/dev/null || true
-            gsettings set com.github.stunkymonkey.nautilus-open-any-terminal terminal kitty 2>/dev/null || true
-            gsettings set org.gnome.desktop.wm.preferences button-layout ":close" 2>/dev/null || true
-        '
-    if [ -n "$DBUS_SESSION_BUS_ADDRESS" ]; then
-      eval "$GSETTINGS_CMDS"
-    else
-      USER_DBUS=$(systemctl --user show-environment 2>/dev/null | grep -E '^DBUS_SESSION_BUS_ADDRESS=')
-      if [ -n "$USER_DBUS" ]; then
-        export "$USER_DBUS"
-        eval "$GSETTINGS_CMDS"
-      elif command -v dbus-run-session >/dev/null 2>&1; then
-        dbus-run-session bash -c "$GSETTINGS_CMDS"
-      else eval "$GSETTINGS_CMDS"; fi
-    fi
+  if ! grep -q "i2c-dev" /etc/modules-load.d/i2c-dev.conf 2>/dev/null; then
+    echo "i2c-dev" | sudo tee /etc/modules-load.d/i2c-dev.conf >/dev/null
   fi
-
-  if [[ -f "$HOME/.config/gtk-3.0/bookmarks" ]]; then sed -i "s/shorin/$USER/g" "$HOME/.config/gtk-3.0/bookmarks" 2>/dev/null || true; fi
-
-  mkdir -p "$HOME/Templates"
-  touch "$HOME/Templates/new"
-  echo '#!/usr/bin/env bash' >"$HOME/Templates/new.sh" && chmod +x "$HOME/Templates/new.sh"
-
-  if command -v flatpak >/dev/null 2>&1; then
-    flatpak override --user --filesystem=xdg-data/themes 2>/dev/null || true
-    flatpak override --user --filesystem="$HOME/.themes" 2>/dev/null || true
-    flatpak override --user --filesystem=xdg-config/gtk-4.0 2>/dev/null || true
-    flatpak override --user --filesystem=xdg-config/gtk-3.0 2>/dev/null || true
-    flatpak override --user --env=GTK_THEME=adw-gtk3-dark 2>/dev/null || true
-    flatpak override --user --filesystem=xdg-config/fontconfig 2>/dev/null || true
-  fi
-
-  mkdir -p "$HOME/.local/share" "$HOME/.local/bin"
-  ln -sfn /usr/share/themes "$HOME/.local/share/themes"
-  if command -v kitty >/dev/null 2>&1; then ln -sfn /usr/bin/kitty "$HOME/.local/bin/xterm"; fi
-
-  run_hide_desktop_file
-
-  # 部署默认壁纸
-  if [[ -d "$WALLPAPER_SRC_DIR" ]]; then
-    local wp_dest="$HOME/Pictures/Wallpapers"
-    mkdir -p "$wp_dest"
-    cp -an "$WALLPAPER_SRC_DIR"/. "$wp_dest/" || true
-  fi
-
-  shorin link >/dev/null 2>&1 || true
-
-  ok "$(_t "Environment initialization complete!" "环境初始化全部完成！")"
 }
 
 # ==========================================
-# 8. 路由入口
+# 7. 路由入口
 # ==========================================
-case "$1" in
+
+case "${1:-}" in
 init)
   ask_for_sudo
   manage_software
   setup_system_environment
-  apply_user_configs
+  ok "$(_t "Initialization complete. User configuration is managed by chezmoi." "初始化完成。用户配置由 chezmoi 管理。")"
   ;;
+
 update)
   ask_for_sudo
   manage_software
+  ok "$(_t "Dependency sync complete. User configuration is managed by chezmoi." "依赖同步完成。用户配置由 chezmoi 管理。")"
   ;;
-protect) manage_protection "add" "$2" ;;
-unprotect) manage_protection "remove" "$2" ;;
-protected-list) manage_protection "list" ;;
-hide-icons) run_hide_desktop_file ;;
+
+-h | --help | help)
+  echo -e "${C_BLU}Usage:${C_DEF} shorinniri {init|update}"
+  ;;
+
 *)
-  echo -e "${C_BLU}Usage:${C_DEF} shorinniri {init|update|protect|unprotect|protected-list|hide-icons}"
+  echo -e "${C_BLU}Usage:${C_DEF} shorinniri {init|update}"
   exit 1
   ;;
 esac
