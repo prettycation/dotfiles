@@ -1,4 +1,4 @@
-{{- if eq .chezmoi.os "linux" }}
+{{- if eq .chezmoi.os "linux" -}}
 #!/usr/bin/env bash
 set -euo pipefail
 
@@ -62,5 +62,5 @@ apps_to_hide=(
 for app in "${apps_to_hide[@]}"; do
   hide_desktop_file "$app"
 done
-{{- end }}
+{{- end -}}
 {{/* vim: set filetype=sh.chezmoitmpl: */}}
