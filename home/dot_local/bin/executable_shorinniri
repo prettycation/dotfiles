@@ -14,12 +14,12 @@ C_RED='\033[1;31m'
 C_CYA='\033[1;36m'
 
 IS_ZH=0
-if [[ "${LANG}" == *"zh_CN"* || "${LC_ALL}" == *"zh_CN"* ]]; then
+if [[ "${LANG:-}" == *"zh_CN"* || "${LC_ALL:-}" == *"zh_CN"* ]]; then
   IS_ZH=1
 fi
 
 _t() {
-  if [[ $IS_ZH -eq 1 && -n "$2" ]]; then
+  if [[ $IS_ZH -eq 1 && -n "${2:-}" ]]; then
     echo "$2"
   else
     echo "$1"
@@ -37,6 +37,15 @@ step() { echo -e "\n${C_CYA}>>> $1${C_DEF}"; }
 # ==========================================
 
 CACHE_FILE="$HOME/.cache/shorin-niri-software.cache"
+SUDO_KEEPALIVE_PID=""
+
+cleanup() {
+  if [[ -n "$SUDO_KEEPALIVE_PID" ]]; then
+    kill "$SUDO_KEEPALIVE_PID" >/dev/null 2>&1 || true
+  fi
+}
+
+trap cleanup EXIT
 
 # ==========================================
 # 3. 软件清单列表
@@ -301,10 +310,11 @@ ask_for_sudo() {
   if sudo -n true 2>/dev/null; then
     (
       while kill -0 "$$" 2>/dev/null; do
-        sudo -n true >/dev/null 2>&1
+        sudo -n true >/dev/null 2>&1 || true
         sleep 60
       done
     ) 2>/dev/null &
+    SUDO_KEEPALIVE_PID="$!"
     return 0
   fi
 
@@ -319,10 +329,11 @@ ask_for_sudo() {
   # 后台保活循环
   (
     while kill -0 "$$" 2>/dev/null; do
-      sudo -n true >/dev/null 2>&1
+      sudo -n true >/dev/null 2>&1 || true
       sleep 60
     done
   ) 2>/dev/null &
+  SUDO_KEEPALIVE_PID="$!"
 
   ok "$(_t "Sudo privileges acquired and kept alive." "管理员权限获取成功。")"
 }
@@ -419,7 +430,7 @@ manage_software() {
         echo -e " ${C_RED}- $fpkg${C_DEF}"
       done
 
-      # 不阻断流程，允许继续执行系统配置
+      # 不阻断流程，允许继续执行后续逻辑
       info "$(_t "Script will continue, but some features might be missing." "脚本将继续执行，但由于软件缺失，部分功能可能无法正常工作。")"
     fi
     # ----------------------------
@@ -438,7 +449,7 @@ manage_software() {
 
   if [ ${#actually_installed[@]} -gt 0 ]; then
     info "$(_t "Marking installed software as explicitly installed to prevent accidental removal..." "正在保护已安装软件不被作为孤儿包误删...")"
-    sudo pacman -D --asexplicit "${actually_installed[@]}" >/dev/null 2>&1
+    sudo pacman -D --asexplicit "${actually_installed[@]}" >/dev/null 2>&1 || true
 
     mkdir -p "$(dirname "$CACHE_FILE")"
     printf "%s\n" "${actually_installed[@]}" >"$CACHE_FILE"
@@ -446,63 +457,26 @@ manage_software() {
 }
 
 # ==========================================
-# 6. 系统级环境设置
-# ==========================================
-
-setup_system_environment() {
-  step "$(_t "Configuring System Environment" "正在配置底层系统与硬件服务")"
-
-  local NEED_GENERATE=false
-
-  if ! locale -a | grep -iq "en_US.utf8"; then
-    sudo sed -i 's/^#\s*en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen
-    NEED_GENERATE=true
-  fi
-
-  if ! locale -a | grep -iq "zh_CN.utf8"; then
-    sudo sed -i 's/^#\s*zh_CN.UTF-8 UTF-8/zh_CN.UTF-8 UTF-8/' /etc/locale.gen
-    NEED_GENERATE=true
-  fi
-
-  if [ "$NEED_GENERATE" = true ]; then
-    sudo locale-gen >/dev/null
-    ok "$(_t "Locales generated." "Locales 生成完成。")"
-  fi
-
-  sudo systemctl enable --now power-profiles-daemon.service >/dev/null 2>&1 || true
-  sudo systemctl enable --now swayosd-libinput-backend.service >/dev/null 2>&1 || true
-
-  sudo gpasswd -a "$USER" i2c >/dev/null 2>&1 || true
-
-  if ! grep -q "i2c-dev" /etc/modules-load.d/i2c-dev.conf 2>/dev/null; then
-    echo "i2c-dev" | sudo tee /etc/modules-load.d/i2c-dev.conf >/dev/null
-  fi
-}
-
-# ==========================================
-# 7. 路由入口
+# 6. 路由入口
 # ==========================================
 
 case "${1:-}" in
 init)
   ask_for_sudo
   manage_software
-  setup_system_environment
-  ok "$(_t "Initialization complete. User configuration is managed by chezmoi." "初始化完成。用户配置由 chezmoi 管理。")"
+  ok "$(_t "Dependency initialization complete. System and user configuration are managed by chezmoi." "依赖初始化完成。系统与用户配置由 chezmoi 管理。")"
   ;;
 
 update)
   ask_for_sudo
   manage_software
-  ok "$(_t "Dependency sync complete. User configuration is managed by chezmoi." "依赖同步完成。用户配置由 chezmoi 管理。")"
+  ok "$(_t "Dependency sync complete. System and user configuration are managed by chezmoi." "依赖同步完成。系统与用户配置由 chezmoi 管理。")"
   ;;
 
 -h | --help | help)
-  echo -e "${C_BLU}Usage:${C_DEF} shorinniri {init|update}"
   ;;
 
 *)
-  echo -e "${C_BLU}Usage:${C_DEF} shorinniri {init|update}"
   exit 1
   ;;
 esac
