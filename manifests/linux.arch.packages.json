@@ -40,6 +40,46 @@
     }
   },
   "paruGroups": {
+    "bootstrap-core-cli": {
+      "title": "Bootstrap 核心 CLI",
+      "description": "Linux/Arch bootstrap 自举所需的基础工具；这些包必须能在 paru 安装前通过 pacman 安装",
+      "selection": "required",
+      "promptOrder": 10,
+      "installPriority": 10,
+      "ui": "cli",
+      "domain": "bootstrap",
+      "buckets": {
+        "core": [
+          "base-devel"
+        ],
+        "extra": [
+          "git",
+          "jq"
+        ]
+      },
+      "packageOptions": {
+        "core": {
+          "base-devel": {
+            "notes": [
+              "AUR / makepkg 构建基础工具集合",
+              "paru 自举安装前必须具备"
+            ]
+          }
+        },
+        "extra": {
+          "git": {
+            "notes": [
+              "克隆 AUR 仓库与 dotfiles 仓库"
+            ]
+          },
+          "jq": {
+            "notes": [
+              "shell steps 可用于读取 manifest JSON"
+            ]
+          }
+        }
+      }
+    },
     "niri-desktop-environment": {
       "title": "Niri 桌面环境",
       "description": "Shorin/Niri 桌面环境、Wayland 组件、输入法、主题、文件管理、多媒体与常用桌面工具",
@@ -74,7 +114,6 @@
           "btop",
           "cliphist",
           "clipnotify",
-          "fastfetch",
           "fcitx5",
           "fcitx5-configtool",
           "fcitx5-gtk",
@@ -98,7 +137,6 @@
           "icoextract",
           "imagemagick",
           "imv",
-          "jq",
           "kitty",
           "libgsf",
           "mako",
@@ -533,12 +571,6 @@
             ],
             "selection": "optional"
           },
-          "fastfetch": {
-            "notes": [
-              "matugen 适配"
-            ],
-            "selection": "optional"
-          },
           "clipnotify": {
             "notes": [
               "仅 linuxqq-clipsync 的硬依赖",
@@ -567,11 +599,6 @@
             "notes": [
               "fastfetch",
               "matugen 适配"
-            ]
-          },
-          "jq": {
-            "notes": [
-              "仓库内零调用，作者预留"
             ]
           },
           "strace": {
@@ -615,7 +642,6 @@
         ],
         "core": [
           "base",
-          "base-devel",
           "btrfs-progs",
           "efibootmgr",
           "grub",
@@ -639,9 +665,9 @@
           "cups-pk-helper",
           "duckdb",
           "eza",
+          "fastfetch",
           "fd",
           "fzf",
-          "git",
           "git-filter-repo",
           "github-cli",
           "htop",

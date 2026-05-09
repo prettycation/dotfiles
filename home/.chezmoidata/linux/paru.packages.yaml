@@ -60,6 +60,9 @@ paruClassification:
         core: []
 
         extra:
+          # ==========================================================================
+          # [一] Wayland 合成器与会话基础
+          # ==========================================================================
           - name: niri
             notes:
               - ⭐ 窗口管理器本体
@@ -79,6 +82,9 @@ paruClassification:
               - niri/config.kdl 自启动
               - /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1
 
+          # ==========================================================================
+          # [二] 桌面 UI 组件
+          # ==========================================================================
           - name: waybar
             notes:
               - 顶栏；niri/config.kdl 自启动 "waybar"
@@ -106,6 +112,9 @@ paruClassification:
             notes:
               - 壁纸选择器、thunar 等 gtk 主题，matugen 生成图标需要
 
+          # ==========================================================================
+          # [三] 输入设备与硬件控制
+          # ==========================================================================
           - name: brightnessctl
             notes:
               - 屏幕亮度调节
@@ -117,6 +126,9 @@ paruClassification:
               - niri 自启动 ~/.local/bin/toggle-wlsunset
               - waybar ddcutil 模块右键也调用
 
+          # ==========================================================================
+          # [四] 截图、取色、壁纸工具链
+          # ==========================================================================
           - name: grim
             notes:
               - 截图后端；binds.kdl Mod+F12 调用
@@ -141,6 +153,9 @@ paruClassification:
               - matugen-update.sh 第 110 行 magick 转换 webp
               - random-anime-wallpaper.sh 用 identify 读宽度
 
+          # ==========================================================================
+          # [五] 剪贴板系统
+          # ==========================================================================
           - name: wl-clipboard
             notes:
               - 提供 wl-copy / wl-paste；niri 自启动
@@ -150,6 +165,9 @@ paruClassification:
             notes:
               - 剪贴板历史后端
 
+          # ==========================================================================
+          # [六] 程序启动器与终端
+          # ==========================================================================
           - name: fuzzel
             notes:
               - 应用启动器（dmenu 风格）
@@ -162,6 +180,9 @@ paruClassification:
               - binds.kdl Mod+T/Mod+return 等 6+ 处硬编码
               - waybar 多个模块的 on-click 也用它
 
+          # ==========================================================================
+          # [八] 中文输入法（fcitx5 + rime）
+          # ==========================================================================
           - name: gnome-keyring
             notes:
               - 密钥环服务；GUI 应用密码/SSH 凭证存储
@@ -190,6 +211,9 @@ paruClassification:
             notes:
               - 输入法配置 GUI
 
+          # ==========================================================================
+          # [九] 字体（基础 + Nerd 图标）
+          # ==========================================================================
           - name: noto-fonts
             notes:
               - 基础西文字体
@@ -206,6 +230,9 @@ paruClassification:
             notes:
               - ⭐ Nerd Font，waybar/kitty 大量图标依赖
 
+          # ==========================================================================
+          # [十] 文件管理器（thunar ）
+          # ==========================================================================
           - name: thunar
             notes:
               - ⭐ 文件管理器；binds.kdl Mod+E 优先调用
@@ -227,6 +254,7 @@ paruClassification:
             notes:
               - thunar 自动挂载 U 盘/光盘
 
+          # ----- 多媒体查看器 (mimeapps.list 中绑定) -----
           - name: mpv
             notes:
               - 媒体播放器
@@ -235,6 +263,7 @@ paruClassification:
             notes:
               - 图片查看器
 
+          # ----- tumbler 的可选缩略图插件 -----
           - name: ffmpegthumbnailer
             notes:
               - 视频文件缩略图（tumbler optdepend）
@@ -248,6 +277,9 @@ paruClassification:
             notes:
               - ODF（.odt/.ods 等）缩略图（tumbler optdepend）
 
+          # ==========================================================================
+          # [十一] 多媒体解码与音频
+          # ==========================================================================
           - name: gst-plugins-base
             notes:
               - GStreamer 基础插件（多媒体框架）
@@ -265,20 +297,32 @@ paruClassification:
               - 音量混音器 GUI
               - waybar pulseaudio 模块中键调用 pavucontrol --tab=3
 
+          # ==========================================================================
+          # [十二] 录屏工具链
+          # ==========================================================================
           - name: wf-recorder
             notes:
               - wlroots 录屏后端（保留这个，不装 wl-screenrec-git）
 
+          # ==========================================================================
+          # [十三] 系统命令与便利脚本
+          # ==========================================================================
           - name: pacman-contrib
             notes:
               - 提供 paccache 等
               - shorin-contrib 的 sysup/clean 命令依赖
 
+          # ==========================================================================
+          # [十四] 壁纸与动态主题色（matugen 生态）
+          # ==========================================================================
           - name: matugen
             notes:
               - ⭐ Material You 主题色生成器
               - 切换壁纸时自动给 waybar/kitty/fcitx5/mako/btop/... 等 13+ 个程序生成主题文件
 
+          # ==========================================================================
+          # [十七] waybar 模块依赖（原 TARGET_SOFTWARE 漏声明）
+          # ==========================================================================
           - name: playerctl
             notes:
               - 媒体播放控制
@@ -306,6 +350,7 @@ paruClassification:
               - 蓝牙 TUI 管理器
               - waybar bluetooth 模块左键调用 kitty -e bluetui
 
+          # ----- 移动设备访问 -----
           - name: gvfs-mtp
             selection: optional
             notes:
@@ -330,13 +375,9 @@ paruClassification:
 
           - name: firefox
             selection: optional
-            notes:
-              - 其他杂项
 
           - name: fish
             selection: optional
-            notes:
-              - 其他杂项
 
           - name: xdg-desktop-portal-gtk
             selection: optional
@@ -363,17 +404,6 @@ paruClassification:
             selection: optional
             notes:
               - 走 thunar 路线，不需要
-
-          - name: rime-wubi
-            selection: optional
-            notes:
-              - 五笔方案
-              - 作者声明可选 / 效果差
-
-          - name: fastfetch
-            selection: optional
-            notes:
-              - matugen 适配
 
           - name: clipnotify
             selection: optional
@@ -428,17 +458,6 @@ paruClassification:
             notes:
               - 霞鹜文楷屏显版（AUR），中文美化
 
-          - name: rime-ice-git
-            selection: optional
-            notes:
-              - 雾凇拼音方案（AUR）
-              - dotfiles fcitx5 配置指定
-
-          - name: rime-wanxiang-gram-zh-hans
-            selection: optional
-            notes:
-              - 万象语法模型（AUR），提升候选词质量
-
           - name: shorin-screenrec-menu-git
             notes:
               - 录屏菜单 GUI（AUR）
@@ -449,6 +468,9 @@ paruClassification:
               - ⭐ 作者自制工具集（AUR）
               - 提供 shorin/sysup/pac/clean/quicksave/quickload 命令
 
+          # ==========================================================================
+          # [十四] 壁纸与动态主题色（matugen 生态）
+          # ==========================================================================
           - name: awww
             notes:
               - 壁纸守护进程（AUR），niri 自启动
@@ -461,6 +483,9 @@ paruClassification:
               - python-pillow 是 waypaper-git 依赖；icoextract 的可选依赖；不装 icoextract 就完全无用
               - binds.kdl Mod+Alt+W / Mod+F10 + waybar 多处调用
 
+          # ==========================================================================
+          # [十五] niri 增强扩展
+          # ==========================================================================
           - name: nirius
             notes:
               - niri 工作区跟随/快速聚焦扩展（AUR）
