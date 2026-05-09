@@ -6,13 +6,19 @@
       "type": "pacman-repository",
       "enabledByDefault": true,
       "url": "file:///etc/pacman.d/mirrorlist",
-      "pacmanConfig": ["[core]", "Include = /etc/pacman.d/mirrorlist"]
+      "pacmanConfig": [
+        "[core]",
+        "Include = /etc/pacman.d/mirrorlist"
+      ]
     },
     "extra": {
       "type": "pacman-repository",
       "enabledByDefault": true,
       "url": "file:///etc/pacman.d/mirrorlist",
-      "pacmanConfig": ["[extra]", "Include = /etc/pacman.d/mirrorlist"]
+      "pacmanConfig": [
+        "[extra]",
+        "Include = /etc/pacman.d/mirrorlist"
+      ]
     },
     "archlinuxcn": {
       "type": "pacman-repository",
@@ -20,9 +26,11 @@
       "url": "https://repo.archlinuxcn.org/$arch",
       "pacmanConfig": [
         "[archlinuxcn]",
-        "Server = https://repo.archlinuxcn.org/$arch"
+        "Server = https://mirrors.cernet.edu.cn/archlinuxcn/$arch"
       ],
-      "bootstrapPackages": ["archlinuxcn-keyring"]
+      "bootstrapPackages": [
+        "archlinuxcn-keyring"
+      ]
     },
     "aur": {
       "type": "aur",
@@ -41,12 +49,20 @@
       "ui": "hybrid",
       "domain": "desktop",
       "buckets": {
-        "archlinuxcn": ["downgrade", "xdg-terminal-exec"],
+        "archlinuxcn": [
+          "downgrade",
+          "nautilus-open-any-terminal",
+          "wl-screenrec-git",
+          "xdg-terminal-exec"
+        ],
         "aur": [
           "cliphist-tui-git",
+          "ddcutil-service",
           "linuxqq-clipsync-git",
+          "niri-sidebar-git",
           "shorin-contrib-git",
           "shorin-screenrec-menu-git",
+          "ttf-jetbrains-maple-mono-nf-xx-xx",
           "ttf-lxgw-wenkai-screen",
           "waypaper-git",
           "wl-longshot-git"
@@ -57,6 +73,8 @@
           "brightnessctl",
           "btop",
           "cliphist",
+          "clipnotify",
+          "fastfetch",
           "fcitx5",
           "fcitx5-configtool",
           "fcitx5-gtk",
@@ -72,8 +90,12 @@
           "gst-libav",
           "gst-plugins-base",
           "gst-plugins-good",
+          "gvfs-gphoto2",
+          "gvfs-mtp",
+          "gvfs-smb",
           "hyprlock",
           "hyprpicker",
+          "icoextract",
           "imagemagick",
           "imv",
           "jq",
@@ -81,6 +103,7 @@
           "libgsf",
           "mako",
           "mpv",
+          "nautilus",
           "niri",
           "noto-fonts",
           "noto-fonts-cjk",
@@ -100,15 +123,48 @@
           "ttf-jetbrains-mono-nerd",
           "tumbler",
           "waybar",
+          "webp-pixbuf-loader",
           "wf-recorder",
           "wl-clipboard",
           "wlsunset",
+          "xclip",
           "xdg-desktop-portal-gnome",
+          "xdg-desktop-portal-gtk",
           "xwayland-satellite"
         ]
       },
       "packageOptions": {
+        "archlinuxcn": {
+          "downgrade": {
+            "notes": [
+              "pacman 软件包降级工具"
+            ]
+          },
+          "xdg-terminal-exec": {
+            "notes": [
+              "XDG 终端执行协议",
+              "nautilus/thunar 等“打开终端”调用"
+            ]
+          },
+          "wl-screenrec-git": {
+            "notes": [
+              "与 wf-recorder 重复"
+            ],
+            "selection": "optional"
+          },
+          "nautilus-open-any-terminal": {
+            "notes": [
+              "走 thunar 路线，不需要"
+            ],
+            "selection": "optional"
+          }
+        },
         "aur": {
+          "ttf-lxgw-wenkai-screen": {
+            "notes": [
+              "霞鹜文楷屏显版（AUR），中文美化"
+            ]
+          },
           "shorin-screenrec-menu-git": {
             "notes": [
               "录屏菜单 GUI（AUR）",
@@ -128,12 +184,27 @@
               "binds.kdl Mod+Alt+W / Mod+F10 + waybar 多处调用"
             ]
           },
+          "niri-sidebar-git": {
+            "notes": [
+              "niri 侧边栏（AUR）",
+              "niri 自启动 ~/.local/bin/niri-sidebar listen",
+              "binds.kdl Mod+M / Mod+Alt+S/Z/X/R 调用"
+            ],
+            "selection": "optional"
+          },
           "cliphist-tui-git": {
             "notes": [
               "剪贴板 TUI（AUR）",
               "binds.kdl Mod+Alt+V + waybar custom/clipboard 调用",
               "装它会自动拉硬依赖：chafa + ffmpegthumbnailer + fzf",
               "所以不用单独列 chafa/fzf"
+            ]
+          },
+          "ddcutil-service": {
+            "notes": [
+              "DDC/CI 协议显示器亮度控制（AUR）",
+              "waybar group/ddcutil 模块的 3 个按钮调用 ddcutil",
+              "安装后还需把当前用户加入 i2c 组并加载 i2c-dev 模块"
             ]
           },
           "linuxqq-clipsync-git": {
@@ -151,22 +222,23 @@
               "waybar custom/screenshot 模块中键调用 wl-longshot"
             ]
           },
-          "ttf-lxgw-wenkai-screen": {
-            "notes": ["霞鹜文楷屏显版（AUR），中文美化"]
+          "ttf-jetbrains-maple-mono-nf-xx-xx": {
+            "notes": [
+              "与 ttf-jetbrains-mono-nerd 重复"
+            ],
+            "selection": "optional"
           }
         },
         "extra": {
-          "bluetui": {
+          "niri": {
             "notes": [
-              "蓝牙 TUI 管理器",
-              "waybar bluetooth 模块左键调用 kitty -e bluetui"
+              "⭐ 窗口管理器本体"
             ]
           },
-          "niri": {
-            "notes": ["⭐ 窗口管理器本体"]
-          },
           "xwayland-satellite": {
-            "notes": ["让 X11 应用能在 niri 下运行"]
+            "notes": [
+              "让 X11 应用能在 niri 下运行"
+            ]
           },
           "xdg-desktop-portal-gnome": {
             "notes": [
@@ -175,13 +247,19 @@
             ]
           },
           "waybar": {
-            "notes": ["顶栏；niri/config.kdl 自启动 \"waybar\""]
+            "notes": [
+              "顶栏；niri/config.kdl 自启动 \"waybar\""
+            ]
           },
           "mako": {
-            "notes": ["通知守护；niri/config.kdl 自启动 \"mako\""]
+            "notes": [
+              "通知守护；niri/config.kdl 自启动 \"mako\""
+            ]
           },
           "swayidle": {
-            "notes": ["闲置检测后端"]
+            "notes": [
+              "闲置检测后端"
+            ]
           },
           "swayosd": {
             "notes": [
@@ -197,10 +275,15 @@
             ]
           },
           "adw-gtk-theme": {
-            "notes": ["壁纸选择器、thunar 等 gtk 主题，matugen 生成图标需要"]
+            "notes": [
+              "壁纸选择器、thunar 等 gtk 主题，matugen 生成图标需要"
+            ]
           },
           "brightnessctl": {
-            "notes": ["屏幕亮度调节", "binds.kdl XF86MonBrightnessUp/Down 绑定"]
+            "notes": [
+              "屏幕亮度调节",
+              "binds.kdl XF86MonBrightnessUp/Down 绑定"
+            ]
           },
           "wlsunset": {
             "notes": [
@@ -217,7 +300,9 @@
             ]
           },
           "satty": {
-            "notes": ["截图标注编辑器"]
+            "notes": [
+              "截图标注编辑器"
+            ]
           },
           "imagemagick": {
             "notes": [
@@ -233,7 +318,9 @@
             ]
           },
           "cliphist": {
-            "notes": ["剪贴板历史后端"]
+            "notes": [
+              "剪贴板历史后端"
+            ]
           },
           "fuzzel": {
             "notes": [
@@ -250,37 +337,59 @@
             ]
           },
           "gnome-keyring": {
-            "notes": ["密钥环服务；GUI 应用密码/SSH 凭证存储"]
+            "notes": [
+              "密钥环服务；GUI 应用密码/SSH 凭证存储"
+            ]
           },
           "fcitx5": {
-            "notes": ["输入法框架本体；niri 自启动 \"fcitx5\""]
+            "notes": [
+              "输入法框架本体；niri 自启动 \"fcitx5\""
+            ]
           },
           "fcitx5-gtk": {
-            "notes": ["GTK 应用输入法支持"]
+            "notes": [
+              "GTK 应用输入法支持"
+            ]
           },
           "fcitx5-qt": {
-            "notes": ["Qt 应用输入法支持"]
+            "notes": [
+              "Qt 应用输入法支持"
+            ]
           },
           "fcitx5-rime": {
-            "notes": ["Rime 引擎前端"]
+            "notes": [
+              "Rime 引擎前端"
+            ]
           },
           "fcitx5-configtool": {
-            "notes": ["输入法配置 GUI"]
+            "notes": [
+              "输入法配置 GUI"
+            ]
           },
           "noto-fonts": {
-            "notes": ["基础西文字体"]
+            "notes": [
+              "基础西文字体"
+            ]
           },
           "noto-fonts-cjk": {
-            "notes": ["中日韩字体"]
+            "notes": [
+              "中日韩字体"
+            ]
           },
           "noto-fonts-emoji": {
-            "notes": ["彩色 Emoji"]
+            "notes": [
+              "彩色 Emoji"
+            ]
           },
           "ttf-jetbrains-mono-nerd": {
-            "notes": ["⭐ Nerd Font，waybar/kitty 大量图标依赖"]
+            "notes": [
+              "⭐ Nerd Font，waybar/kitty 大量图标依赖"
+            ]
           },
           "thunar": {
-            "notes": ["⭐ 文件管理器；binds.kdl Mod+E 优先调用"]
+            "notes": [
+              "⭐ 文件管理器；binds.kdl Mod+E 优先调用"
+            ]
           },
           "tumbler": {
             "notes": [
@@ -289,19 +398,29 @@
             ]
           },
           "file-roller": {
-            "notes": ["压缩文件 GUI（thunar 右键解压调用）"]
+            "notes": [
+              "压缩文件 GUI（thunar 右键解压调用）"
+            ]
           },
           "thunar-archive-plugin": {
-            "notes": ["thunar 右键归档操作"]
+            "notes": [
+              "thunar 右键归档操作"
+            ]
           },
           "thunar-volman": {
-            "notes": ["thunar 自动挂载 U 盘/光盘"]
+            "notes": [
+              "thunar 自动挂载 U 盘/光盘"
+            ]
           },
           "mpv": {
-            "notes": ["媒体播放器"]
+            "notes": [
+              "媒体播放器"
+            ]
           },
           "imv": {
-            "notes": ["图片查看器"]
+            "notes": [
+              "图片查看器"
+            ]
           },
           "ffmpegthumbnailer": {
             "notes": [
@@ -310,19 +429,29 @@
             ]
           },
           "poppler-glib": {
-            "notes": ["PDF 缩略图（tumbler optdepend）"]
+            "notes": [
+              "PDF 缩略图（tumbler optdepend）"
+            ]
           },
           "libgsf": {
-            "notes": ["ODF（.odt/.ods 等）缩略图（tumbler optdepend）"]
+            "notes": [
+              "ODF（.odt/.ods 等）缩略图（tumbler optdepend）"
+            ]
           },
           "gst-plugins-base": {
-            "notes": ["GStreamer 基础插件（多媒体框架）"]
+            "notes": [
+              "GStreamer 基础插件（多媒体框架）"
+            ]
           },
           "gst-plugins-good": {
-            "notes": ["GStreamer 高质量插件"]
+            "notes": [
+              "GStreamer 高质量插件"
+            ]
           },
           "gst-libav": {
-            "notes": ["GStreamer 的 ffmpeg 后端（视频解码）"]
+            "notes": [
+              "GStreamer 的 ffmpeg 后端（视频解码）"
+            ]
           },
           "pavucontrol": {
             "notes": [
@@ -331,7 +460,9 @@
             ]
           },
           "wf-recorder": {
-            "notes": ["wlroots 录屏后端（保留这个，不装 wl-screenrec-git）"]
+            "notes": [
+              "wlroots 录屏后端（保留这个，不装 wl-screenrec-git）"
+            ]
           },
           "pacman-contrib": {
             "notes": [
@@ -340,36 +471,113 @@
             ]
           },
           "gnome-clocks": {
-            "notes": ["时钟 GUI；waybar clock 模块左键调用"]
+            "notes": [
+              "时钟 GUI；waybar clock 模块左键调用"
+            ]
           },
           "gnome-calendar": {
-            "notes": ["日历 GUI；waybar clock 模块右键调用"]
+            "notes": [
+              "日历 GUI；waybar clock 模块右键调用"
+            ]
           },
           "power-profiles-daemon": {
-            "notes": ["电源模式控制"]
+            "notes": [
+              "电源模式控制"
+            ]
+          },
+          "bluetui": {
+            "notes": [
+              "蓝牙 TUI 管理器",
+              "waybar bluetooth 模块左键调用 kitty -e bluetui"
+            ]
+          },
+          "gvfs-mtp": {
+            "notes": [
+              "GVFS MTP 后端，连接安卓手机文件传输"
+            ],
+            "selection": "optional"
+          },
+          "gvfs-gphoto2": {
+            "notes": [
+              "GVFS PTP 后端，连接数码相机"
+            ],
+            "selection": "optional"
+          },
+          "gvfs-smb": {
+            "notes": [
+              "GVFS SMB 后端，访问 Windows 网络共享"
+            ],
+            "selection": "optional"
+          },
+          "xdg-desktop-portal-gtk": {
+            "notes": [
+              "与 xdg-desktop-portal-gnome 冲突"
+            ],
+            "selection": "optional"
+          },
+          "icoextract": {
+            "notes": [
+              ".exe 图标缩略图，极小众"
+            ],
+            "selection": "optional"
+          },
+          "webp-pixbuf-loader": {
+            "notes": [
+              "给 GTK 应用 webp 显示，niri 桌面无引用"
+            ],
+            "selection": "optional"
+          },
+          "nautilus": {
+            "notes": [
+              "走 thunar 路线，不需要"
+            ],
+            "selection": "optional"
+          },
+          "fastfetch": {
+            "notes": [
+              "matugen 适配"
+            ],
+            "selection": "optional"
+          },
+          "clipnotify": {
+            "notes": [
+              "仅 linuxqq-clipsync 的硬依赖",
+              "不用 QQ 时不需要"
+            ],
+            "selection": "optional"
+          },
+          "xclip": {
+            "notes": [
+              "仅 linuxqq-clipsync 的硬依赖",
+              "不用 QQ 时不需要"
+            ],
+            "selection": "optional"
           },
           "gdu": {
-            "notes": ["磁盘空间管理 TUI 工具"]
+            "notes": [
+              "磁盘空间管理 TUI 工具"
+            ]
           },
           "nwg-look": {
-            "notes": ["GTK 主题配置 GUI"]
+            "notes": [
+              "GTK 主题配置 GUI"
+            ]
           },
           "btop": {
-            "notes": ["fastfetch", "matugen 适配"]
+            "notes": [
+              "fastfetch",
+              "matugen 适配"
+            ]
           },
           "jq": {
-            "notes": ["仓库内零调用，作者预留"]
+            "notes": [
+              "仓库内零调用，作者预留"
+            ]
           },
           "strace": {
-            "notes": ["调试工具"]
-          }
-        },
-        "archlinuxcn": {
-          "downgrade": {
-            "notes": ["pacman 软件包降级工具"]
-          },
-          "xdg-terminal-exec": {
-            "notes": ["XDG 终端执行协议", "nautilus/thunar 等“打开终端”调用"]
+            "notes": [
+              "调试工具"
+            ]
           }
         }
       }
@@ -383,16 +591,13 @@
       "buckets": {
         "archlinuxcn": [
           "archlinuxcn-keyring",
-          "nautilus-open-any-terminal",
           "paru",
-          "paru-debug",
-          "wl-screenrec-git"
+          "paru-debug"
         ],
         "aur": [
           "awww-bin",
           "catppuccin-cursors-mocha",
           "clash-verge-rev-bin",
-          "ddcutil-service",
           "dgop-bin",
           "envx-bin",
           "espanso-wayland",
@@ -402,10 +607,8 @@
           "matugen-bin",
           "mihomo-bin",
           "mouseless",
-          "niri-sidebar-git",
           "rime-wanxiang-updater",
           "rustdesk-bin",
-          "ttf-jetbrains-maple-mono-nf-xx-xx",
           "ttf-lxgw-wenkai-gb",
           "ttf-material-symbols-variable-git",
           "xremap-niri-bin"
@@ -433,21 +636,15 @@
           "cava",
           "chafa",
           "chezmoi",
-          "clipnotify",
           "cups-pk-helper",
           "duckdb",
           "eza",
-          "fastfetch",
           "fd",
           "fzf",
           "git",
           "git-filter-repo",
           "github-cli",
-          "gvfs-gphoto2",
-          "gvfs-mtp",
-          "gvfs-smb",
           "htop",
-          "icoextract",
           "intel-media-driver",
           "intel-ucode",
           "iwd",
@@ -460,7 +657,6 @@
           "man-pages-zh_cn",
           "mediainfo",
           "meld",
-          "nautilus",
           "network-manager-applet",
           "networkmanager",
           "npm",
@@ -489,12 +685,9 @@
           "vulkan-intel",
           "vulkan-nouveau",
           "vulkan-radeon",
-          "webp-pixbuf-loader",
           "wget",
           "wireless_tools",
           "wtype",
-          "xclip",
-          "xdg-desktop-portal-gtk",
           "xdg-utils",
           "xf86-video-amdgpu",
           "xf86-video-ati",

@@ -270,7 +270,6 @@ paruClassification:
               - 电源模式控制
 
           - name: bluetui
-            selection: optional
             notes:
               - 蓝牙 TUI 管理器
               - waybar bluetooth 模块左键调用 kitty -e bluetui
@@ -456,14 +455,12 @@ paruClassification:
               - waybar custom/settings 模块调用
 
           - name: ddcutil-service
-            selection: optional
             notes:
               - DDC/CI 协议显示器亮度控制（AUR）
               - waybar group/ddcutil 模块的 3 个按钮调用 ddcutil
               - 安装后还需把当前用户加入 i2c 组并加载 i2c-dev 模块
 
           - name: linuxqq-clipsync-git
-            selection: optional
             notes:
               - X11↔Wayland 剪贴板同步服务（AUR）
               - 修复 Linux QQ 在 Wayland 下复制粘贴异常
@@ -472,7 +469,6 @@ paruClassification:
               - 所以 clipnotify 和 xclip 不用单独列
 
           - name: wl-longshot-git
-            selection: optional
             notes:
               - Wayland 滚动截图（AUR）
               - waybar custom/screenshot 模块中键调用 wl-longshot
