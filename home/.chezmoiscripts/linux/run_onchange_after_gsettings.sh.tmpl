@@ -2,31 +2,110 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+log_info() {
+  printf '[gsettings] %s\n' "$*"
+}
+
+log_ok() {
+  printf '[gsettings] ok: %s\n' "$*"
+}
+
+log_skip() {
+  printf '[gsettings] skip: %s\n' "$*"
+}
+
+log_warn() {
+  printf '[gsettings] warn: %s\n' "$*"
+}
+
 if ! command -v gsettings >/dev/null 2>&1; then
+  log_skip "gsettings is not installed"
   exit 0
 fi
 
-GSETTINGS_CMDS='
-gsettings set org.gnome.desktop.interface color-scheme "prefer-dark" 2>/dev/null || true
-gsettings set org.gnome.desktop.interface gtk-theme "adw-gtk3-dark" 2>/dev/null || true
-gsettings set com.github.stunkymonkey.nautilus-open-any-terminal terminal kitty 2>/dev/null || true
-gsettings set org.gnome.desktop.wm.preferences button-layout ":close" 2>/dev/null || true
-'
+log_info "applying GNOME/GTK user settings"
 
-if [[ -n "${DBUS_SESSION_BUS_ADDRESS:-}" ]]; then
-  eval "$GSETTINGS_CMDS"
-else
-  USER_DBUS="$(systemctl --user show-environment 2>/dev/null | grep -E '^DBUS_SESSION_BUS_ADDRESS=' || true)"
+if [[ -z "${DBUS_SESSION_BUS_ADDRESS:-}" ]]; then
+  user_dbus="$(
+    systemctl --user show-environment 2>/dev/null |
+      grep -E '^DBUS_SESSION_BUS_ADDRESS=' ||
+      true
+  )"
 
-  if [[ -n "$USER_DBUS" ]]; then
-    export "$USER_DBUS"
-    eval "$GSETTINGS_CMDS"
-  elif command -v dbus-run-session >/dev/null 2>&1; then
-    dbus-run-session bash -c "$GSETTINGS_CMDS"
+  if [[ -n "$user_dbus" ]]; then
+    export "$user_dbus"
+    log_info "loaded DBUS_SESSION_BUS_ADDRESS from systemd user environment"
   else
-    eval "$GSETTINGS_CMDS"
+    log_warn "DBUS_SESSION_BUS_ADDRESS is not available; gsettings may fail outside a graphical session"
   fi
 fi
 
+applied=0
+unchanged=0
+skipped=0
+failed=0
+
+set_gsetting() {
+  local schema="$1"
+  local key="$2"
+  local value="$3"
+  local label="$4"
+
+  if ! gsettings writable "$schema" "$key" >/dev/null 2>&1; then
+    log_skip "$label ($schema $key is not writable or schema is unavailable)"
+    ((skipped += 1))
+    return 0
+  fi
+
+  local before=""
+  local after=""
+
+  before="$(gsettings get "$schema" "$key" 2>/dev/null || true)"
+
+  if gsettings set "$schema" "$key" "$value" >/dev/null 2>&1; then
+    after="$(gsettings get "$schema" "$key" 2>/dev/null || true)"
+
+    if [[ "$before" == "$after" ]]; then
+      log_ok "$label unchanged ($after)"
+      ((unchanged += 1))
+    else
+      log_ok "$label set: $before -> $after"
+      ((applied += 1))
+    fi
+  else
+    log_warn "$label failed ($schema $key -> $value)"
+    ((failed += 1))
+  fi
+}
+
+set_gsetting \
+  "org.gnome.desktop.interface" \
+  "color-scheme" \
+  "prefer-dark" \
+  "color scheme"
+
+set_gsetting \
+  "org.gnome.desktop.interface" \
+  "gtk-theme" \
+  "adw-gtk3-dark" \
+  "GTK theme"
+
+set_gsetting \
+  "com.github.stunkymonkey.nautilus-open-any-terminal" \
+  "terminal" \
+  "kitty" \
+  "Nautilus open-any-terminal terminal"
+
+set_gsetting \
+  "org.gnome.desktop.wm.preferences" \
+  "button-layout" \
+  ":close" \
+  "window button layout"
+
+log_info "summary: applied=$applied unchanged=$unchanged skipped=$skipped failed=$failed"
+
+if ((failed > 0)); then
+  exit 1
+fi
 {{- end -}}
 {{/* vim: set ft=sh.chezmoitmpl: */}}
