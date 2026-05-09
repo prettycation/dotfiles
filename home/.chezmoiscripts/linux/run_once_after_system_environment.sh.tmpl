@@ -1,0 +1,146 @@
+{{- if eq .chezmoi.os "linux" -}}
+#!/usr/bin/env bash
+set -euo pipefail
+
+log_info() {
+  printf '[system-environment] %s\n' "$*"
+}
+
+log_ok() {
+  printf '[system-environment] ok: %s\n' "$*"
+}
+
+log_skip() {
+  printf '[system-environment] skip: %s\n' "$*"
+}
+
+log_warn() {
+  printf '[system-environment] warn: %s\n' "$*"
+}
+
+log_error() {
+  printf '[system-environment] error: %s\n' "$*" >&2
+}
+
+require_sudo() {
+  if sudo -n true 2>/dev/null; then
+    return 0
+  fi
+
+  log_info "requesting sudo privileges for system-level setup"
+  sudo -v
+}
+
+enable_locale_in_locale_gen() {
+  local locale_line="$1"
+  local locale_name="$2"
+
+  if locale -a | grep -iq "^${locale_name}$"; then
+    log_skip "${locale_name} already generated"
+    return 1
+  fi
+
+  if [[ ! -f /etc/locale.gen ]]; then
+    log_warn "/etc/locale.gen not found; cannot enable ${locale_line}"
+    return 1
+  fi
+
+  if grep -Eq "^[[:space:]]*${locale_line//./\\.}[[:space:]]*$" /etc/locale.gen; then
+    log_info "${locale_line} already enabled in /etc/locale.gen"
+  elif grep -Eq "^[[:space:]]*#[[:space:]]*${locale_line//./\\.}[[:space:]]*$" /etc/locale.gen; then
+    sudo sed -i "s|^[[:space:]]*#[[:space:]]*${locale_line//./\\.}[[:space:]]*$|${locale_line}|" /etc/locale.gen
+    log_ok "enabled ${locale_line} in /etc/locale.gen"
+  else
+    printf '%s\n' "$locale_line" | sudo tee -a /etc/locale.gen >/dev/null
+    log_ok "appended ${locale_line} to /etc/locale.gen"
+  fi
+
+  return 0
+}
+
+enable_systemd_service() {
+  local service="$1"
+
+  if ! command -v systemctl >/dev/null 2>&1; then
+    log_skip "systemctl is not available; cannot enable ${service}"
+    return 0
+  fi
+
+  if ! systemctl list-unit-files "$service" >/dev/null 2>&1; then
+    log_skip "${service} is not installed"
+    return 0
+  fi
+
+  if sudo systemctl enable --now "$service" >/dev/null 2>&1; then
+    log_ok "enabled and started ${service}"
+  else
+    log_warn "failed to enable/start ${service}"
+  fi
+}
+
+ensure_i2c_group() {
+  if ! getent group i2c >/dev/null 2>&1; then
+    log_warn "group i2c does not exist; package or udev setup may be missing"
+    return 0
+  fi
+
+  if id -nG "$USER" | tr ' ' '\n' | grep -qx 'i2c'; then
+    log_skip "user ${USER} is already in i2c group"
+    return 0
+  fi
+
+  if sudo gpasswd -a "$USER" i2c >/dev/null 2>&1; then
+    log_ok "added ${USER} to i2c group"
+    log_warn "you may need to log out and back in for the new group to take effect"
+  else
+    log_warn "failed to add ${USER} to i2c group"
+  fi
+}
+
+ensure_i2c_dev_module() {
+  local modules_file="/etc/modules-load.d/i2c-dev.conf"
+
+  if [[ -f "$modules_file" ]] && grep -qx 'i2c-dev' "$modules_file"; then
+    log_skip "i2c-dev is already configured in ${modules_file}"
+    return 0
+  fi
+
+  printf 'i2c-dev\n' | sudo tee "$modules_file" >/dev/null
+  log_ok "configured i2c-dev in ${modules_file}"
+}
+
+log_info "applying Niri system-level setup"
+
+require_sudo
+
+need_locale_gen=0
+
+if enable_locale_in_locale_gen "en_US.UTF-8 UTF-8" "en_US.utf8"; then
+  need_locale_gen=1
+fi
+
+if enable_locale_in_locale_gen "zh_CN.UTF-8 UTF-8" "zh_CN.utf8"; then
+  need_locale_gen=1
+fi
+
+if ((need_locale_gen == 1)); then
+  log_info "running locale-gen"
+  if sudo locale-gen >/dev/null; then
+    log_ok "locales generated"
+  else
+    log_error "locale-gen failed"
+    exit 1
+  fi
+else
+  log_skip "locale-gen not needed"
+fi
+
+enable_systemd_service "power-profiles-daemon.service"
+enable_systemd_service "swayosd-libinput-backend.service"
+
+ensure_i2c_group
+ensure_i2c_dev_module
+
+log_ok "system-level setup complete"
+{{- end -}}
+{{/* vim: set filetype=sh.chezmoitmpl: */}}

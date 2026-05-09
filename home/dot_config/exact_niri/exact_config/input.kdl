@@ -1,0 +1,71 @@
+// -------------------------------------------------------------------
+// 输入设备配置
+// 在 Wiki 上查找完整的选项列表:
+// https://yalter.github.io/niri/Configuration:-Input
+// -------------------------------------------------------------------
+input {
+    keyboard {
+        xkb {
+            // 您可以设置 rules, model, layout, variant 和 options。
+            // 更多信息, 请查阅手册页 xkeyboard-config(7)。
+
+            // 示例:
+            // layout "us,ru" // 设置美式和俄语两种键盘布局
+            // options "grp:win_space_toggle,compose:ralt,ctrl:nocaps" // Win+Space切换布局, 右Alt作Compose键, CapsLock作Ctrl
+            // options "caps:swapescape"
+
+            // 如果此部分为空, niri 将从 org.freedesktop.locale1 获取 xkb 设置。
+            // 您可以使用 `localectl set-x11-keymap` 来控制这些设置。
+        }
+
+        // 启动时启用数字小键盘 (NumLock)。省略此设置则默认禁用。
+        numlock
+    }
+
+
+    // 以下部分包含 libinput 的设置。
+    // 省略设置将禁用它们, 或使其保持默认值。
+    // 这里所有被注释掉的设置都是示例, 而非默认值。
+    touchpad {
+        // off // 完全禁用触摸板
+        tap // 启用轻触点击
+        disabled-on-external-mouse // 连接外部鼠标时禁用触摸板
+        // dwt // 打字时禁用触摸板 (Disable While Typing)
+        // dwtp // 打字时禁用触摸板并忽略指针移动
+        // drag false // 禁用拖动
+        // drag-lock // 启用拖动锁定
+        natural-scroll // 启用自然滚动 (滚动方向与手指移动方向一致)
+        // accel-speed 0.2 // 设置指针加速度, 范围 -1.0 到 1.0
+        // accel-profile "flat" // 加速度配置文件 (adaptive 或 flat)
+        // scroll-method "two-finger" // 滚动方式 (two-finger, edge, on-button-down)
+        // disabled-on-external-mouse // 连接外部鼠标时禁用触摸板
+    }
+
+    mouse {
+
+        // off // 禁用鼠标
+        // natural-scroll // 启用自然滚动
+        // accel-speed 0.2 // 指针加速度
+        // accel-profile "flat" // 加速度配置文件
+        // scroll-method "no-scroll" // 滚动方式 (on-button-down, no-scroll)
+    }
+
+    trackpoint {
+        // off // 禁用指点杆
+        // natural-scroll // 启用自然滚动
+        // accel-speed 0.2 // 指针加速度
+        // accel-profile "flat" // 加速度配置文件
+        // scroll-method "on-button-down" // 滚动方式
+        // scroll-button 273 // 用于滚动的按钮代码
+        // scroll-button-lock // 启用滚动按钮锁定
+        // middle-emulation // 模拟中键点击
+    }
+
+
+    // 取消注释此行, 可使鼠标指针在新窗口获得焦点时, 自动移动到窗口中央。
+    // warp-mouse-to-focus
+
+    // 当鼠标移动到窗口或显示器上时, 自动使其获得焦点。
+    // 设置 max-scroll-amount="0%" 使其仅对已完全在屏幕上的窗口生效。
+    // focus-follows-mouse max-scroll-amount="0%"
+}
