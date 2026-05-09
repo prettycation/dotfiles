@@ -1,0 +1,66 @@
+{{- if eq .chezmoi.os "linux" }}
+#!/usr/bin/env bash
+set -euo pipefail
+
+hide_desktop_file() {
+  local desktop_id="$1"
+  local source_file="/usr/share/applications/${desktop_id}"
+  local user_dir="${HOME}/.local/share/applications"
+  local target_file="${user_dir}/${desktop_id}"
+
+  if [[ ! -f "$source_file" ]]; then
+    return 0
+  fi
+
+  mkdir -p "$user_dir"
+  cp -f "$source_file" "$target_file"
+
+  if grep -q "^NoDisplay=" "$target_file" 2>/dev/null; then
+    sed -i 's/^NoDisplay=.*/NoDisplay=true/' "$target_file"
+  else
+    printf '\nNoDisplay=true\n' >>"$target_file"
+  fi
+}
+
+apps_to_hide=(
+  "lstopo.desktop"
+  "avahi-discover.desktop"
+  "qv4l2.desktop"
+  "qvidcap.desktop"
+  "bssh.desktop"
+  "org.fcitx.Fcitx5.desktop"
+  "org.fcitx.fcitx5-migrator.desktop"
+  "xgps.desktop"
+  "xgpsspeed.desktop"
+  "gvim.desktop"
+  "kbd-layout-viewer5.desktop"
+  "bvnc.desktop"
+  "yazi.desktop"
+  "btop.desktop"
+  "vim.desktop"
+  "nvim.desktop"
+  "nvtop.desktop"
+  "mpv.desktop"
+  "org.gnome.Settings.desktop"
+  "thunar-settings.desktop"
+  "thunar-bulk-rename.desktop"
+  "thunar-volman-settings.desktop"
+  "clipse-gui.desktop"
+  "waypaper.desktop"
+  "xfce4-about.desktop"
+  "cmake-gui.desktop"
+  "assistant.desktop"
+  "qdbusviewer.desktop"
+  "linguist.desktop"
+  "designer.desktop"
+  "org.kde.drkonqi.coredump.gui.desktop"
+  "org.kde.kwrite.desktop"
+  "org.freedesktop.MalcontentControl.desktop"
+  "org.gnome.Nautilus.desktop"
+)
+
+for app in "${apps_to_hide[@]}"; do
+  hide_desktop_file "$app"
+done
+{{- end }}
+{{/* vim: set filetype=sh.chezmoitmpl: */}}
