@@ -16,6 +16,38 @@ paruClassification:
     aur: AUR / foreign packages
 
   groups:
+    bootstrap-core-cli:
+      title: Bootstrap 核心 CLI
+      description: Linux/Arch bootstrap 自举所需的基础工具；这些包必须能在 paru 安装前通过 pacman 安装
+      selection: required
+      promptOrder: 10
+      installPriority: 10
+      ui: cli
+      domain: bootstrap
+      buckets:
+        core:
+          - name: base-devel
+            notes:
+              - AUR / makepkg 构建基础工具集合
+              - paru 自举安装前必须具备
+
+        extra:
+          - name: git
+            notes:
+              - 克隆 AUR 仓库与 dotfiles 仓库
+          - name: python
+            notes:
+              - bootstrap / export scripts 使用 python3 处理 JSON
+          - name: jq
+            notes:
+              - shell steps 可用于读取 manifest JSON
+          - name: curl
+            notes:
+              - 下载与网络探测工具
+          - name: rsync
+            notes:
+              - 文件同步工具，供后续脚本复用
+
     niri-desktop-environment:
       title: Niri 桌面环境
       description: Shorin/Niri 桌面环境、Wayland 组件、输入法、主题、文件管理、多媒体与常用桌面工具
