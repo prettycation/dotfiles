@@ -1,0 +1,521 @@
+paruClassification:
+  schemaVersion: 1
+  matchKeyFormat: repository/packageName
+
+  defaults:
+    fallbackGroup: misc-lab
+    selection: optional
+    installPriority: 500
+    requiresAdmin: false
+    installMode: auto
+
+  bucketDescriptions:
+    core: Arch core repository packages
+    extra: Arch extra repository packages
+    archlinuxcn: Arch Linux CN repository packages
+    aur: AUR / foreign packages
+
+  groups:
+    niri-desktop-environment:
+      title: Niri 桌面环境
+      description: Shorin/Niri 桌面环境、Wayland 组件、输入法、主题、文件管理、多媒体与常用桌面工具
+      selection: default
+      promptOrder: 120
+      installPriority: 120
+      ui: hybrid
+      domain: desktop
+      buckets:
+        core: []
+
+        extra:
+          - name: niri
+            notes:
+              - ⭐ 窗口管理器本体
+
+          - name: xwayland-satellite
+            notes:
+              - 让 X11 应用能在 niri 下运行
+
+          - name: xdg-desktop-portal-gnome
+            notes:
+              - Portal 后端，处理屏幕分享/文件选择器
+              - niri/config.kdl 自启动 /usr/lib/xdg-desktop-portal-gnome
+
+          - name: polkit-gnome
+            notes:
+              - 管理员权限弹窗（authentication agent）
+              - niri/config.kdl 自启动
+              - /usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1
+
+          - name: waybar
+            notes:
+              - 顶栏；niri/config.kdl 自启动 "waybar"
+
+          - name: mako
+            notes:
+              - 通知守护；niri/config.kdl 自启动 "mako"
+
+          - name: swayidle
+            notes:
+              - 闲置检测后端
+
+          - name: swayosd
+            notes:
+              - 音量/亮度/CapsLock 的 OSD 弹窗
+              - niri/config.kdl 自启动 "swayosd-server"
+              - binds.kdl XF86Audio 等键调用 swayosd-client
+
+          - name: hyprlock
+            notes:
+              - 锁屏；binds.kdl Mod+Alt+L 绑定
+              - waybar 电源菜单 lockscreen 也调用
+
+          - name: adw-gtk-theme
+            notes:
+              - 壁纸选择器、thunar 等 gtk 主题，matugen 生成图标需要
+
+          - name: brightnessctl
+            notes:
+              - 屏幕亮度调节
+              - binds.kdl XF86MonBrightnessUp/Down 绑定
+
+          - name: wlsunset
+            notes:
+              - 夜间色温/护眼模式
+              - niri 自启动 ~/.local/bin/toggle-wlsunset
+              - waybar ddcutil 模块右键也调用
+
+          - name: grim
+            notes:
+              - 截图后端；binds.kdl Mod+F12 调用
+
+          - name: slurp
+            notes:
+              - 区域选择（grim 配套）
+
+          - name: hyprpicker
+            notes:
+              - 颜色拾取
+              - niri-pick 脚本 + waybar custom/colorpicker 模块调用
+              - 原 TARGET_SOFTWARE 漏声明
+
+          - name: satty
+            notes:
+              - 截图标注编辑器
+
+          - name: imagemagick
+            notes:
+              - 图像处理
+              - matugen-update.sh 第 110 行 magick 转换 webp
+              - random-anime-wallpaper.sh 用 identify 读宽度
+
+          - name: wl-clipboard
+            notes:
+              - 提供 wl-copy / wl-paste；niri 自启动
+              - spawn-at-startup "wl-paste" "--watch" "cliphist" "store"
+
+          - name: cliphist
+            notes:
+              - 剪贴板历史后端
+
+          - name: fuzzel
+            notes:
+              - 应用启动器（dmenu 风格）
+              - binds.kdl Mod+Z + waybar 多处调用
+              - 也可换成 fuzzel-ime-git（带输入法支持）
+
+          - name: kitty
+            notes:
+              - ⭐ 默认终端
+              - binds.kdl Mod+T/Mod+return 等 6+ 处硬编码
+              - waybar 多个模块的 on-click 也用它
+
+          - name: gnome-keyring
+            notes:
+              - 密钥环服务；GUI 应用密码/SSH 凭证存储
+
+          - name: libnotify
+            notes:
+              - 提供 notify-send；waybar 模块 + 各脚本调用
+
+          - name: fcitx5
+            notes:
+              - 输入法框架本体；niri 自启动 "fcitx5"
+
+          - name: fcitx5-gtk
+            notes:
+              - GTK 应用输入法支持
+
+          - name: fcitx5-qt
+            notes:
+              - Qt 应用输入法支持
+
+          - name: fcitx5-rime
+            notes:
+              - Rime 引擎前端
+
+          - name: fcitx5-configtool
+            notes:
+              - 输入法配置 GUI
+
+          - name: noto-fonts
+            notes:
+              - 基础西文字体
+
+          - name: noto-fonts-cjk
+            notes:
+              - 中日韩字体
+
+          - name: noto-fonts-emoji
+            notes:
+              - 彩色 Emoji
+
+          - name: ttf-jetbrains-mono-nerd
+            notes:
+              - ⭐ Nerd Font，waybar/kitty 大量图标依赖
+
+          - name: thunar
+            notes:
+              - ⭐ 文件管理器；binds.kdl Mod+E 优先调用
+
+          - name: tumbler
+            notes:
+              - 缩略图守护进程（D-Bus 服务）
+              - 硬依赖：gdk-pixbuf2 + libxfce4util（自动拉）
+
+          - name: file-roller
+            notes:
+              - 压缩文件 GUI（thunar 右键解压调用）
+
+          - name: thunar-archive-plugin
+            notes:
+              - thunar 右键归档操作
+
+          - name: thunar-volman
+            notes:
+              - thunar 自动挂载 U 盘/光盘
+
+          - name: mpv
+            notes:
+              - 媒体播放器
+
+          - name: imv
+            notes:
+              - 图片查看器
+
+          - name: ffmpegthumbnailer
+            notes:
+              - 视频文件缩略图（tumbler optdepend）
+              - 同时是 cliphist-tui-git 的硬依赖
+
+          - name: poppler-glib
+            notes:
+              - PDF 缩略图（tumbler optdepend）
+
+          - name: libgsf
+            notes:
+              - ODF（.odt/.ods 等）缩略图（tumbler optdepend）
+
+          - name: gst-plugins-base
+            notes:
+              - GStreamer 基础插件（多媒体框架）
+
+          - name: gst-plugins-good
+            notes:
+              - GStreamer 高质量插件
+
+          - name: gst-libav
+            notes:
+              - GStreamer 的 ffmpeg 后端（视频解码）
+
+          - name: pavucontrol
+            notes:
+              - 音量混音器 GUI
+              - waybar pulseaudio 模块中键调用 pavucontrol --tab=3
+
+          - name: wf-recorder
+            notes:
+              - wlroots 录屏后端（保留这个，不装 wl-screenrec-git）
+
+          - name: pacman-contrib
+            notes:
+              - 提供 paccache 等
+              - shorin-contrib 的 sysup/clean 命令依赖
+
+          - name: matugen
+            notes:
+              - ⭐ Material You 主题色生成器
+              - 切换壁纸时自动给 waybar/kitty/fcitx5/mako/btop/... 等 13+ 个程序生成主题文件
+
+          - name: playerctl
+            notes:
+              - 媒体播放控制
+              - waybar custom/cava 模块 on-click 调用
+
+          - name: nm-connection-editor
+            notes:
+              - NetworkManager 高级配置 GUI
+              - waybar network 模块右键调用
+
+          - name: gnome-clocks
+            notes:
+              - 时钟 GUI；waybar clock 模块左键调用
+
+          - name: gnome-calendar
+            notes:
+              - 日历 GUI；waybar clock 模块右键调用
+
+          - name: power-profiles-daemon
+            notes:
+              - 电源模式控制
+
+          - name: bluetui
+            selection: optional
+            notes:
+              - 蓝牙 TUI 管理器
+              - waybar bluetooth 模块左键调用 kitty -e bluetui
+
+          - name: gvfs-mtp
+            selection: optional
+            notes:
+              - GVFS MTP 后端，连接安卓手机文件传输
+
+          - name: gvfs-gphoto2
+            selection: optional
+            notes:
+              - GVFS PTP 后端，连接数码相机
+
+          - name: gvfs-smb
+            selection: optional
+            notes:
+              - GVFS SMB 后端，访问 Windows 网络共享
+
+          - name: waifu2x-ncnn-vulkan
+            selection: optional
+            notes:
+              - AI 图片放大
+              - random-anime-wallpaper.sh 第 89 行直接调用
+              - 用于把低分辨率随机下载的动漫壁纸 2x 超分
+
+          - name: firefox
+            selection: optional
+            notes:
+              - 其他杂项
+
+          - name: fish
+            selection: optional
+            notes:
+              - 其他杂项
+
+          - name: xdg-desktop-portal-gtk
+            selection: optional
+            notes:
+              - 与 xdg-desktop-portal-gnome 冲突
+
+          - name: timg
+            selection: optional
+            notes:
+              - 与 chafa 重复（chafa 已由 cliphist-tui 拉取）
+              - shorin-contrib-git 可选依赖
+
+          - name: icoextract
+            selection: optional
+            notes:
+              - .exe 图标缩略图，极小众
+
+          - name: webp-pixbuf-loader
+            selection: optional
+            notes:
+              - 给 GTK 应用 webp 显示，niri 桌面无引用
+
+          - name: nautilus
+            selection: optional
+            notes:
+              - 走 thunar 路线，不需要
+
+          - name: rime-wubi
+            selection: optional
+            notes:
+              - 五笔方案
+              - 作者声明可选 / 效果差
+
+          - name: fastfetch
+            selection: optional
+            notes:
+              - matugen 适配
+
+          - name: clipnotify
+            selection: optional
+            notes:
+              - 仅 linuxqq-clipsync 的硬依赖
+              - 不用 QQ 时不需要
+
+          - name: xclip
+            selection: optional
+            notes:
+              - 仅 linuxqq-clipsync 的硬依赖
+              - 不用 QQ 时不需要
+
+          - name: gdu
+            notes:
+              - 磁盘空间管理 TUI 工具
+
+          - name: nwg-look
+            notes:
+              - GTK 主题配置 GUI
+
+          - name: btop
+            notes:
+              - fastfetch
+              - matugen 适配
+
+          - name: jq
+            notes:
+              - 仓库内零调用，作者预留
+
+          - name: strace
+            notes:
+              - 调试工具
+
+        archlinuxcn:
+          - name: downgrade
+            notes:
+              - pacman 软件包降级工具
+
+          - name: xdg-terminal-exec
+            notes:
+              - XDG 终端执行协议
+              - nautilus/thunar 等“打开终端”调用
+
+        aur:
+          - name: catppuccin-mocha-dark-cursors
+            notes:
+              - 鼠标光标主题
+              - niri/config.kdl 中 xcursor-theme
+
+          - name: ttf-lxgw-wenkai-screen
+            notes:
+              - 霞鹜文楷屏显版（AUR），中文美化
+
+          - name: rime-ice-git
+            selection: optional
+            notes:
+              - 雾凇拼音方案（AUR）
+              - dotfiles fcitx5 配置指定
+
+          - name: rime-wanxiang-gram-zh-hans
+            selection: optional
+            notes:
+              - 万象语法模型（AUR），提升候选词质量
+
+          - name: shorin-screenrec-menu-git
+            notes:
+              - 录屏菜单 GUI（AUR）
+              - waybar custom/wfrec 模块调用 shorin-screenrec-menu
+
+          - name: shorin-contrib-git
+            notes:
+              - ⭐ 作者自制工具集（AUR）
+              - 提供 shorin/sysup/pac/clean/quicksave/quickload 命令
+
+          - name: awww
+            notes:
+              - 壁纸守护进程（AUR），niri 自启动
+              - spawn-at-startup "awww-daemon"
+              - matugen-update.sh 用 awww query 读取当前壁纸
+
+          - name: waypaper-git
+            notes:
+              - 壁纸切换 GUI（AUR）
+              - python-pillow 是 waypaper-git 依赖；icoextract 的可选依赖；不装 icoextract 就完全无用
+              - binds.kdl Mod+Alt+W / Mod+F10 + waybar 多处调用
+
+          - name: nirius
+            notes:
+              - niri 工作区跟随/快速聚焦扩展（AUR）
+              - niri 自启动 "niriusd"
+              - binds.kdl Mod+Ctrl+G / Mod+Shift+Q/W 调用 nirius
+
+          - name: niri-sidebar-git
+            selection: optional
+            notes:
+              - niri 侧边栏（AUR）
+              - niri 自启动 ~/.local/bin/niri-sidebar listen
+              - binds.kdl Mod+M / Mod+Alt+S/Z/X/R 调用
+
+          - name: cliphist-tui-git
+            notes:
+              - 剪贴板 TUI（AUR）
+              - binds.kdl Mod+Alt+V + waybar custom/clipboard 调用
+              - 装它会自动拉硬依赖：chafa + ffmpegthumbnailer + fzf
+              - 所以不用单独列 chafa/fzf
+
+          - name: better-control
+            notes:
+              - 设置中心 GUI（AUR）
+              - waybar custom/settings 模块调用
+
+          - name: ddcutil-service
+            selection: optional
+            notes:
+              - DDC/CI 协议显示器亮度控制（AUR）
+              - waybar group/ddcutil 模块的 3 个按钮调用 ddcutil
+              - 安装后还需把当前用户加入 i2c 组并加载 i2c-dev 模块
+
+          - name: linuxqq-clipsync-git
+            selection: optional
+            notes:
+              - X11↔Wayland 剪贴板同步服务（AUR）
+              - 修复 Linux QQ 在 Wayland 下复制粘贴异常
+              - niri 自启动 systemctl --user start linuxqq-clipsync
+              - 装它会自动拉硬依赖：clipnotify + xclip + wl-clipboard
+              - 所以 clipnotify 和 xclip 不用单独列
+
+          - name: wl-longshot-git
+            selection: optional
+            notes:
+              - Wayland 滚动截图（AUR）
+              - waybar custom/screenshot 模块中键调用 wl-longshot
+
+          - name: wl-screenrec-git
+            selection: optional
+            notes:
+              - 与 wf-recorder 重复
+
+          - name: python-pywalfox
+            selection: optional
+            notes:
+              - firefox 主题联动
+
+          - name: nautilus-open-any-terminal
+            selection: optional
+            notes:
+              - 走 thunar 路线，不需要
+
+          - name: rime-llm-translator-git
+            selection: optional
+            notes:
+              - 作者声明可选 / 效果差
+
+          - name: bazaar
+            selection: optional
+            notes:
+              - Flatpak 软件商店前端
+              - 当前不使用 Flatpak，因此设为 optional
+
+          - name: ttf-jetbrains-maple-mono-nf-xx-xx
+            selection: optional
+            notes:
+              - 与 ttf-jetbrains-mono-nerd 重复
+
+    misc-lab:
+      title: 未分类 / 实验
+      description: 显式安装但尚未归类的 Arch / AUR 软件包
+      selection: optional
+      promptOrder: 999
+      installPriority: 999
+      buckets:
+        core: []
+        extra: []
+        archlinuxcn: []
+        aur: []

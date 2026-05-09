@@ -1,0 +1,558 @@
+{{- if and (eq .chezmoi.os "linux") (ne (lookPath "pacman") "") (ne (lookPath "python3") "") -}}
+#!/usr/bin/env bash
+# 3-day-trigger: {{ div (now | unixEpoch | int64) 259200 }}
+
+# Export explicitly installed Arch packages into manifests/linux.arch.packages.json.
+
+# Source of truth:
+#   - Classification and notes:
+#     home/.chezmoidata/linux/paru.packages.yaml
+#   - Installed package state:
+#     pacman -Qqe
+
+# Important:
+#   - Only explicit packages are exported.
+#   - Dependencies are intentionally excluded.
+#   - Foreign packages from pacman -Qqm are exported into the aur bucket.
+#   - Sync packages are bucketed by local sync database membership:
+#     core, extra, archlinuxcn.
+#   - The generated manifest does not duplicate all packages in top-level
+#     systemPackages/packageBuckets fields. Packages live under paruGroups only.
+#   - Top-level repositorySources only describes how repositories are enabled,
+#     similar to Scoop bucket source metadata.
+
+set -euo pipefail
+
+target_file="${1:-manifests/linux.arch.packages.json}"
+
+chezmoi_source_dir="{{ .chezmoi.sourceDir }}"
+chezmoi_repo_root="$(dirname "$chezmoi_source_dir")"
+target_path="${chezmoi_repo_root}/${target_file}"
+
+known_repositories=(
+  core
+  extra
+  archlinuxcn
+)
+
+log_info() {
+  printf '[paru-export] %s\n' "$*"
+}
+
+log_warn() {
+  printf '[paru-export] warn: %s\n' "$*" >&2
+}
+
+script_start_epoch="$(date +%s)"
+tmp_dir="$(mktemp -d)"
+
+cleanup() {
+  rm -rf "$tmp_dir"
+}
+trap cleanup EXIT
+
+classification_json_file="${tmp_dir}/classification.json"
+explicit_packages_file="${tmp_dir}/explicit-packages.txt"
+foreign_packages_file="${tmp_dir}/foreign-packages.txt"
+repo_map_file="${tmp_dir}/repo-map.tsv"
+
+log_info "starting paru package export"
+log_info "reading package classification from home/.chezmoidata/linux/paru.packages.yaml"
+log_info "only explicitly installed packages from pacman -Qqe will be exported"
+log_info "target manifest: ${target_path}"
+
+cat >"$classification_json_file" <<'JSON'
+{{- if .paruClassification }}
+{{ .paruClassification | toJson }}
+{{- else }}
+{}
+{{- end }}
+JSON
+
+log_info "running 'pacman -Qqe' to list explicit packages"
+pacman -Qqe | LC_ALL=C sort -u >"$explicit_packages_file"
+explicit_count="$(wc -l <"$explicit_packages_file" | tr -d ' ')"
+log_info "explicit packages found: ${explicit_count}"
+
+log_info "running 'pacman -Qqm' to list foreign packages"
+pacman -Qqm 2>/dev/null | LC_ALL=C sort -u >"$foreign_packages_file" || true
+foreign_count="$(wc -l <"$foreign_packages_file" | tr -d ' ')"
+log_info "foreign packages found: ${foreign_count}"
+
+log_info "reading local sync package databases"
+: >"$repo_map_file"
+
+for repo in "${known_repositories[@]}"; do
+  repo_packages_file="${tmp_dir}/repo-${repo}.txt"
+
+  if pacman -Slq "$repo" >"$repo_packages_file" 2>/dev/null; then
+    repo_count="$(wc -l <"$repo_packages_file" | tr -d ' ')"
+    log_info "repository ${repo}: ${repo_count} packages available"
+
+    awk -v repo="$repo" '
+      NF > 0 {
+        print $0 "\t" repo
+      }
+    ' "$repo_packages_file" >>"$repo_map_file"
+  else
+    log_warn "repository ${repo} is not available in local pacman sync databases"
+  fi
+done
+
+export PARU_EXPORT_START_EPOCH="$script_start_epoch"
+
+log_info "generating manifest"
+
+python3 - \
+  "$target_path" \
+  "$classification_json_file" \
+  "$explicit_packages_file" \
+  "$foreign_packages_file" \
+  "$repo_map_file" <<'PY'
+import json
+import os
+import sys
+import time
+from collections import OrderedDict
+from pathlib import Path
+
+target_path = Path(sys.argv[1])
+classification_json_file = Path(sys.argv[2])
+explicit_packages_file = Path(sys.argv[3])
+foreign_packages_file = Path(sys.argv[4])
+repo_map_file = Path(sys.argv[5])
+
+try:
+    classification = json.loads(classification_json_file.read_text(encoding="utf-8") or "{}")
+except json.JSONDecodeError as exc:
+    raise SystemExit(f"Failed to parse embedded paru classification data: {exc}") from exc
+
+explicit_packages = set(
+    line.strip()
+    for line in explicit_packages_file.read_text(encoding="utf-8").splitlines()
+    if line.strip()
+)
+
+foreign_packages = set(
+    line.strip()
+    for line in foreign_packages_file.read_text(encoding="utf-8").splitlines()
+    if line.strip()
+)
+
+KNOWN_BUCKETS = ("core", "extra", "archlinuxcn", "aur")
+
+# Repository priority matters when the same package name appears in multiple
+# enabled sync repositories. Prefer official repos before archlinuxcn.
+REPOSITORY_PRIORITY = {
+    "core": 10,
+    "extra": 20,
+    "archlinuxcn": 30,
+}
+
+sync_repository_map = {}
+
+for line in repo_map_file.read_text(encoding="utf-8").splitlines():
+    if not line.strip():
+        continue
+
+    package_name, repo = line.split("\t", 1)
+
+    if package_name not in sync_repository_map:
+        sync_repository_map[package_name] = repo
+        continue
+
+    old_repo = sync_repository_map[package_name]
+    if REPOSITORY_PRIORITY.get(repo, 999) < REPOSITORY_PRIORITY.get(old_repo, 999):
+        sync_repository_map[package_name] = repo
+
+
+def get_value(obj, key, fallback=None):
+    if isinstance(obj, dict) and key in obj and obj[key] is not None:
+        return obj[key]
+    return fallback
+
+
+def normalize_package_entry(entry):
+    if isinstance(entry, str):
+        return entry, OrderedDict()
+
+    if isinstance(entry, dict):
+        name = entry.get("name")
+        if not name:
+            raise ValueError(f"Package entry is missing name: {entry!r}")
+
+        metadata = OrderedDict()
+        for key in (
+            "notes",
+            "selection",
+            "installPriority",
+            "requiresAdmin",
+            "installMode",
+            "ui",
+            "domain",
+        ):
+            if key in entry:
+                metadata[key] = entry[key]
+
+        return str(name), metadata
+
+    raise ValueError(f"Unsupported package entry type: {entry!r}")
+
+
+def sort_group_items(group_definitions):
+    def sort_key(item):
+        group_id, group_def = item
+        return (
+            int(get_value(group_def, "promptOrder", 999)),
+            int(get_value(group_def, "installPriority", 500)),
+            str(group_id),
+        )
+
+    return sorted(group_definitions.items(), key=sort_key)
+
+
+def new_output_group(group_id, group_def, defaults):
+    group = OrderedDict()
+    group["title"] = str(get_value(group_def, "title", group_id))
+    group["description"] = str(get_value(group_def, "description", ""))
+    group["selection"] = str(get_value(group_def, "selection", get_value(defaults, "selection", "optional")))
+    group["promptOrder"] = int(get_value(group_def, "promptOrder", 999))
+    group["installPriority"] = int(get_value(group_def, "installPriority", get_value(defaults, "installPriority", 500)))
+
+    ui = get_value(group_def, "ui", None)
+    if ui:
+        group["ui"] = str(ui)
+
+    domain = get_value(group_def, "domain", None)
+    if domain:
+        group["domain"] = str(domain)
+
+    group["buckets"] = OrderedDict((bucket, []) for bucket in KNOWN_BUCKETS)
+    return group
+
+
+def get_package_override(classification_data, bucket_name, package_name):
+    package_overrides = get_value(classification_data, "packageOverrides", {}) or {}
+    bucket_overrides = get_value(package_overrides, bucket_name, {}) or {}
+    global_overrides = get_value(package_overrides, "all", {}) or {}
+
+    if package_name in bucket_overrides:
+        return bucket_overrides[package_name]
+
+    return global_overrides.get(package_name)
+
+
+def merge_metadata(entry_metadata, override):
+    merged = OrderedDict()
+
+    if isinstance(entry_metadata, dict):
+        for key, value in entry_metadata.items():
+            merged[key] = value
+
+    if isinstance(override, dict):
+        for key, value in override.items():
+            merged[key] = value
+
+    return merged
+
+
+def add_package_option_if_needed(group, bucket_name, package_name, metadata):
+    if not isinstance(metadata, dict) or not metadata:
+        return
+
+    option = OrderedDict()
+
+    for prop_name in (
+        "notes",
+        "selection",
+        "installPriority",
+        "requiresAdmin",
+        "installMode",
+        "ui",
+        "domain",
+    ):
+        if prop_name in metadata:
+            option[prop_name] = metadata[prop_name]
+
+    if not option:
+        return
+
+    if "packageOptions" not in group:
+        group["packageOptions"] = OrderedDict()
+
+    if bucket_name not in group["packageOptions"]:
+        group["packageOptions"][bucket_name] = OrderedDict()
+
+    group["packageOptions"][bucket_name][package_name] = option
+
+
+def actual_bucket_for_package(package_name):
+    if package_name in foreign_packages:
+        return "aur"
+
+    repo = str(sync_repository_map.get(package_name, ""))
+
+    if repo in KNOWN_BUCKETS:
+        return repo
+
+    if repo:
+        return repo
+
+    return "unknown"
+
+
+def add_package_to_group(group, bucket_name, package_name, metadata):
+    if bucket_name not in group["buckets"]:
+        group["buckets"][bucket_name] = []
+
+    group["buckets"][bucket_name].append(package_name)
+    add_package_option_if_needed(group, bucket_name, package_name, metadata)
+
+
+def repository_sources():
+    sources = OrderedDict()
+
+    sources["core"] = OrderedDict()
+    sources["core"]["type"] = "pacman-repository"
+    sources["core"]["enabledByDefault"] = True
+    sources["core"]["url"] = "file:///etc/pacman.d/mirrorlist"
+    sources["core"]["pacmanConfig"] = [
+        "[core]",
+        "Include = /etc/pacman.d/mirrorlist",
+    ]
+
+    sources["extra"] = OrderedDict()
+    sources["extra"]["type"] = "pacman-repository"
+    sources["extra"]["enabledByDefault"] = True
+    sources["extra"]["url"] = "file:///etc/pacman.d/mirrorlist"
+    sources["extra"]["pacmanConfig"] = [
+        "[extra]",
+        "Include = /etc/pacman.d/mirrorlist",
+    ]
+
+    sources["archlinuxcn"] = OrderedDict()
+    sources["archlinuxcn"]["type"] = "pacman-repository"
+    sources["archlinuxcn"]["enabledByDefault"] = False
+    sources["archlinuxcn"]["url"] = "https://repo.archlinuxcn.org/$arch"
+    sources["archlinuxcn"]["pacmanConfig"] = [
+        "[archlinuxcn]",
+        "Server = https://repo.archlinuxcn.org/$arch",
+    ]
+    sources["archlinuxcn"]["bootstrapPackages"] = [
+        "archlinuxcn-keyring",
+    ]
+
+    sources["aur"] = OrderedDict()
+    sources["aur"]["type"] = "aur"
+    sources["aur"]["enabledByDefault"] = False
+    sources["aur"]["url"] = "https://aur.archlinux.org"
+    sources["aur"]["helper"] = "paru"
+
+    return sources
+
+
+defaults = get_value(classification, "defaults", {}) or {}
+fallback_group_id = str(get_value(defaults, "fallbackGroup", "misc-lab"))
+
+group_definitions = get_value(classification, "groups", {}) or {}
+
+if fallback_group_id not in group_definitions:
+    group_definitions[fallback_group_id] = {
+        "title": fallback_group_id,
+        "description": "Unclassified explicitly installed Arch packages",
+        "selection": get_value(defaults, "selection", "optional"),
+        "promptOrder": 999,
+        "installPriority": get_value(defaults, "installPriority", 500),
+        "buckets": {},
+    }
+
+output_groups = OrderedDict()
+assigned_packages = {}
+unknown_repository_packages = []
+
+# 1. Export explicitly installed packages that are known to paru.packages.yaml.
+for group_id, group_def in sort_group_items(group_definitions):
+    output_group = new_output_group(group_id, group_def, defaults)
+    has_any_package = False
+
+    configured_buckets = get_value(group_def, "buckets", {}) or {}
+
+    for configured_bucket_name in configured_buckets.keys():
+        configured_packages = configured_buckets.get(configured_bucket_name) or []
+
+        for package_entry in configured_packages:
+            package_name, entry_metadata = normalize_package_entry(package_entry)
+
+            if package_name not in explicit_packages:
+                continue
+
+            if package_name in assigned_packages:
+                previous_group = assigned_packages[package_name]
+                print(
+                    f"[paru-export] warn: package '{package_name}' appears in multiple groups; "
+                    f"keeping first group '{previous_group}'.",
+                    file=sys.stderr,
+                )
+                continue
+
+            actual_bucket = actual_bucket_for_package(package_name)
+            if actual_bucket == "unknown":
+                unknown_repository_packages.append(package_name)
+                actual_bucket = "extra"
+
+            override = get_package_override(classification, actual_bucket, package_name)
+            metadata = merge_metadata(entry_metadata, override)
+
+            install_mode = str(get_value(metadata, "installMode", "auto"))
+            if install_mode == "skip":
+                continue
+
+            add_package_to_group(output_group, actual_bucket, package_name, metadata)
+            assigned_packages[package_name] = group_id
+            has_any_package = True
+
+    if has_any_package:
+        output_groups[group_id] = output_group
+
+# 2. Export explicitly installed but unclassified packages into fallback group.
+unassigned_packages = sorted(pkg for pkg in explicit_packages if pkg not in assigned_packages)
+
+if unassigned_packages:
+    if fallback_group_id in output_groups:
+        fallback_group = output_groups[fallback_group_id]
+    else:
+        fallback_group = new_output_group(fallback_group_id, group_definitions[fallback_group_id], defaults)
+        output_groups[fallback_group_id] = fallback_group
+
+    for package_name in unassigned_packages:
+        actual_bucket = actual_bucket_for_package(package_name)
+        if actual_bucket == "unknown":
+            unknown_repository_packages.append(package_name)
+            actual_bucket = "extra"
+
+        override = get_package_override(classification, actual_bucket, package_name)
+        metadata = merge_metadata({}, override)
+
+        install_mode = str(get_value(metadata, "installMode", "auto"))
+        if install_mode == "skip":
+            continue
+
+        add_package_to_group(fallback_group, actual_bucket, package_name, metadata)
+
+# 3. Normalize and sort packages inside each group bucket.
+normalized_groups = OrderedDict()
+
+for group_id, group in output_groups.items():
+    normalized_buckets = OrderedDict()
+
+    for bucket_name in sorted(group["buckets"].keys()):
+        packages = list(OrderedDict.fromkeys(group["buckets"][bucket_name]))
+        packages = sorted(packages)
+
+        if not packages:
+            continue
+
+        normalized_buckets[bucket_name] = packages
+
+    if not normalized_buckets:
+        continue
+
+    normalized_group = OrderedDict()
+    normalized_group["title"] = group["title"]
+    normalized_group["description"] = group["description"]
+    normalized_group["selection"] = group["selection"]
+    normalized_group["promptOrder"] = group["promptOrder"]
+    normalized_group["installPriority"] = group["installPriority"]
+
+    if "ui" in group:
+        normalized_group["ui"] = group["ui"]
+
+    if "domain" in group:
+        normalized_group["domain"] = group["domain"]
+
+    normalized_group["buckets"] = normalized_buckets
+
+    if "packageOptions" in group:
+        normalized_group["packageOptions"] = group["packageOptions"]
+
+    normalized_groups[group_id] = normalized_group
+
+existing_manifest = None
+
+if target_path.exists():
+    try:
+        existing_manifest = json.loads(target_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise SystemExit(f"Failed to parse existing manifest {target_path}: {exc}") from exc
+
+new_manifest = OrderedDict()
+new_manifest["packageManager"] = "paru"
+new_manifest["notes"] = (
+    "Generated by home/.chezmoiscripts/linux/export/"
+    "run_onchange_after_convert-paru-export.sh.tmpl. "
+    "Edit home/.chezmoidata/linux/paru.packages.yaml instead."
+)
+new_manifest["repositorySources"] = repository_sources()
+new_manifest["paruGroups"] = normalized_groups
+
+if unknown_repository_packages:
+    new_manifest["unknownRepositoryPackages"] = sorted(set(unknown_repository_packages))
+
+if isinstance(existing_manifest, dict):
+    for key, value in existing_manifest.items():
+        if key in {
+            "packageManager",
+            "notes",
+            "repositorySources",
+            "packageBuckets",
+            "repoPackages",
+            "aurPackages",
+            "systemPackages",
+            "packages",
+            "paruGroups",
+            "unknownRepositoryPackages",
+        }:
+            continue
+
+        new_manifest[key] = value
+else:
+    new_manifest["miseRuntimes"] = []
+
+target_path.parent.mkdir(parents=True, exist_ok=True)
+target_path.write_text(
+    json.dumps(new_manifest, ensure_ascii=False, indent=2) + "\n",
+    encoding="utf-8",
+)
+
+elapsed_seconds = max(0, int(time.time()) - int(os.environ.get("PARU_EXPORT_START_EPOCH", "0") or "0"))
+minutes, seconds = divmod(elapsed_seconds, 60)
+elapsed_text = f"{minutes}m {seconds:02d}s" if minutes else f"{seconds}s"
+
+bucket_counts = OrderedDict((bucket, 0) for bucket in KNOWN_BUCKETS)
+exported_package_names = set()
+
+for group in normalized_groups.values():
+    for bucket_name, packages in group.get("buckets", {}).items():
+        if bucket_name not in bucket_counts:
+            bucket_counts[bucket_name] = 0
+
+        bucket_counts[bucket_name] += len(packages)
+        exported_package_names.update(packages)
+
+print("")
+print(f"[paru-export] ok: successfully updated {target_path}")
+
+for bucket_name, count in bucket_counts.items():
+    if count:
+        print(f"[paru-export] {bucket_name}: {count}")
+
+print(f"[paru-export] groups: {len(normalized_groups)}")
+print(f"[paru-export] exported explicit packages: {len(exported_package_names)}")
+
+if unknown_repository_packages:
+    print(f"[paru-export] warn: unknown repository packages: {len(set(unknown_repository_packages))}")
+
+print(f"[paru-export] elapsed: {elapsed_text}")
+PY
+{{- end -}}
+{{/* vim: set filetype=sh.chezmoitmpl: */}}
