@@ -4,7 +4,7 @@ patch:
   "menu/page_size": 6
   "menu/alternative_select_labels": [〡, 〢, 〣, 〤, 〥, 〦, 〧, 〨, 〩]
   # "menu/alternative_select_keys": ASDFGHJKL
-  schema_list:
-    - { schema: wanxiang_pro }
+  "schema_list/+":
+    - { schema: wanxiang_english }
   "translator/contextual_suggestions": false
   "translator/max_homophones": 5
