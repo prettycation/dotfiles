@@ -1,4 +1,15 @@
 patch:
   speller/algebra:
     __include: wanxiang_algebra:/english/通用规则
-    __patch: wanxiang_algebra:/english/小鹤双拼   #可选的选项有（全拼, 自然码, 小鹤双拼, 微软双拼, 搜狗双拼, 智能ABC, 紫光双拼, 拼音加加, 自然龙, 汉心龙）
+    __patch: wanxiang_algebra:/english/小鹤双拼 #可选的选项有（全拼, 自然码, 小鹤双拼, 微软双拼, 搜狗双拼, 智能ABC, 紫光双拼, 拼音加加, 自然龙, 汉心龙）
+
+  # 将分词符指向一个不常用的按键（冒号）,第一位为视觉分词符，第二位为手动分词符
+  speller/delimiter: "':"
+
+  key_binder/bindings/+: # 追加
+    # 翻页键设置
+    - { accept: minus, send: Page_Up, when: paging }
+    - { accept: equal, send: Page_Down, when: has_menu }
+    # 次选和三选
+    - { accept: semicolon, send: 2, when: has_menu } # 分号次选
+    - { accept: apostrophe, send: 3, when: has_menu } # 单引号三选
