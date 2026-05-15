@@ -1,5 +1,11 @@
 source ./themes/catppuccin_mocha.nu
 
+# 补全匹配忽略大小写
+$env.config.completions.case_sensitive = false
+
+# 命令名补全使用前缀匹配，避免 git fuzzy 到 registry query
+$env.config.completions.algorithm = "prefix"
+
 {{- if and (ne .chezmoi.os "windows") (lookPath "atuin") }}
 source ~/.local/share/atuin/hex-init.nu
 {{- end }}

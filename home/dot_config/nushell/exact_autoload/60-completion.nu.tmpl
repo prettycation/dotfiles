@@ -1,0 +1,78 @@
+{{- $hasScoop := lookPath "scoop" -}}
+{{- $hasUv := lookPath "uv" -}}
+
+# -----------------------------------------------------------------------------
+# 60-completion.nu
+# -----------------------------------------------------------------------------
+
+# nu_scripts：Bitwarden CLI 补全脚本
+const bitwarden_completion = $"($nu.default-config-dir)/custom-completions/bitwarden-cli/bitwarden-cli-completions.nu"
+
+# 导入 bw 补全
+source $bitwarden_completion
+
+{{- if $hasScoop }}
+
+# nu_scripts：Scoop 补全脚本
+const scoop_completion = $"($nu.default-config-dir)/custom-completions/scoop/scoop-completions.nu"
+
+# 导入 scoop 补全
+source $scoop_completion
+
+{{- end }}
+
+{{- if $hasUv }}
+
+# nu_scripts：uv 补全脚本
+const uv_completion = $"($nu.default-config-dir)/custom-completions/uv/uv-completions.nu"
+
+# 导入 uv 补全
+source $uv_completion
+
+{{- end }}
+
+# 包装外部补全结果
+def wrap-completions [items] {
+  if ($items | is-empty) {
+    # 无候选时回退到 Nushell 默认文件补全
+    null
+  } else {
+    {
+      options: {
+        # 当前外部补全结果忽略大小写
+        case_sensitive: false
+
+        # 当前外部补全结果使用 fuzzy
+        completion_algorithm: "fuzzy"
+
+        # 保留 Carapace 返回顺序
+        sort: false
+      }
+
+      completions: $items
+    }
+  }
+}
+
+# 调用 Carapace CLI
+let carapace_completer = {|spans|
+  if (($spans | is-empty) or (which carapace | is-empty)) {
+    null
+  } else {
+    try {
+      with-env { CARAPACE_LENIENT: "1" } {
+        carapace $spans.0 nushell ...$spans | from json
+      }
+    } catch {
+      null
+    }
+  }
+}
+
+# 注册 Nushell external completer
+$env.config.completions.external = {
+  enable: true       # 启用外部补全器
+  max_results: 200   # 外部补全最多显示数量
+  completer: $carapace_completer
+}
+{{/* vim: set filetype=nu.chezmoitmpl: */}}

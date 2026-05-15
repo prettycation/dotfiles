@@ -1,3 +1,8 @@
+{{- $isWindows := eq .chezmoi.os "windows" -}}
+{{- $hasNu := lookPath "nu" -}}
+{{- $hasScoop := lookPath "scoop" -}}
+{{- $hasUv := lookPath "uv" -}}
+
 {{ if not .ephemeral }}
 
 {{/* --- Linux 专用工具下载 --- */}}
@@ -21,7 +26,7 @@
 {{- end }}
 
 {{/* --- Zsh 环境与插件 (非 Windows 平台) --- */}}
-{{- if ne .chezmoi.os "windows" -}}
+{{- if not $isWindows }}
 # zimfw
 [".zim/zimfw.zsh"]
     type = "file"
@@ -29,5 +34,29 @@
         refreshPeriod = "168h"
 {{- end }}
 
+{{/* --- Nushell 来自 nushell/nu_scripts 的自定义补全 --- */}}
+{{- if $hasNu -}}
+
+[".config/nushell/custom-completions/bitwarden-cli/bitwarden-cli-completions.nu"]
+type = "file"
+url = "https://raw.githubusercontent.com/nushell/nu_scripts/main/custom-completions/bitwarden-cli/bitwarden-cli-completions.nu"
+refreshPeriod = "168h"
+
+{{-   if $hasScoop }}
+[".config/nushell/custom-completions/scoop/scoop-completions.nu"]
+type = "file"
+url = "https://raw.githubusercontent.com/nushell/nu_scripts/main/custom-completions/scoop/scoop-completions.nu"
+refreshPeriod = "168h"
+{{-   end }}
+
+{{-   if $hasUv }}
+[".config/nushell/custom-completions/uv/uv-completions.nu"]
+type = "file"
+url = "https://raw.githubusercontent.com/nushell/nu_scripts/main/custom-completions/uv/uv-completions.nu"
+refreshPeriod = "168h"
+{{-   end }}
+
+{{- end }}
+
 {{- end -}}
-{{- /* vim: set filetype=toml.chezmoitemplate: */}}
+{{- /* vim: set filetype=toml.chezmoitmpl: */}}
