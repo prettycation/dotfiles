@@ -4,6 +4,7 @@ return {
     cmd = "CodeDiff",
     opts = {
       explorer = {
+        hidden = true,
         width = 30,
         view_mode = "tree",
       },
