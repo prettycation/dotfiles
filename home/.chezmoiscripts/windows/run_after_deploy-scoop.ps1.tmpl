@@ -83,7 +83,8 @@ $utf8BomEncoding = [System.Text.UTF8Encoding]::new($true)
 
 # 默认 UTF-8 使用无 BOM，避免 btop4win 等简单配置解析器误读第一行。
 $utf8Encoding = $utf8NoBomEncoding
-$utf16LeEncoding = [System.Text.Encoding]::Unicode
+$utf16NoBomLeEncoding = [System.Text.UnicodeEncoding]::new($false, $false)
+$utf16BomLeEncoding = [System.Text.UnicodeEncoding]::new($false, $true)
 $ansiEncoding = [System.Text.Encoding]::GetEncoding([System.Globalization.CultureInfo]::CurrentCulture.TextInfo.ANSICodePage)
 $gbkEncoding = [System.Text.Encoding]::GetEncoding(936)
 
@@ -194,11 +195,14 @@ foreach ($app in $apps) {
         "utf8-bom"      { $utf8BomEncoding }
         "utf-8-bom"     { $utf8BomEncoding }
 
-        "utf16"         { $utf16LeEncoding }
-        "utf-16"        { $utf16LeEncoding }
-        "utf16le"       { $utf16LeEncoding }
-        "utf-16le"      { $utf16LeEncoding }
-        "unicode"       { $utf16LeEncoding }
+        "utf16"         { $utf16NoBomLeEncoding }
+        "utf-16"        { $utf16NoBomLeEncoding }
+        "utf16le"       { $utf16NoBomLeEncoding }
+        "utf-16le"      { $utf16NoBomLeEncoding }
+        "unicode"       { $utf16NoBomLeEncoding }
+
+        "utf16-bom"     { $utf16BomLeEncoding }
+        "utf-16-bom"    { $utf16BomLeEncoding }
 
         default         { $utf8NoBomEncoding }
     }
