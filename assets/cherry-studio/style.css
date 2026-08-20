@@ -1,99 +1,177 @@
 /* ==================================================================================
- * Cherry Studio 自定义 CSS - Catppuccin Mocha & Windhawk Taskbar 风格
+ * Cherry Studio V2 自定义 CSS - Catppuccin Mocha 风格适配
  * ================================================================================== */
 
-/* --- 全局变量定义 --- */
+/* --- 全局字体与基础变量覆盖 --- */
 :root {
-  /* 字体 */
-  --font-code: "JetBrainsMono Nerd Font", "FiraCode Nerd Font Mono", "Consolas",
-    monospace !important;
   --font-ui: "Microsoft YaHei", "Segoe UI", sans-serif !important;
+  --font-code:
+    "JetBrainsMono Nerd Font", "FiraCode Nerd Font Mono", "Consolas", monospace !important;
 
   /* Catppuccin Mocha 调色板 */
-  --ctp-base: #1e1e2e; /* 主内容背景 */
-  --ctp-mantle: #181825; /* 侧边栏/顶栏 */
-  --ctp-crust: #11111b; /* 最深背景 (用于代码块) */
-  --ctp-text: #cdd6f4; /* 主要文字 */
-  --ctp-subtext: #a6adc8; /* 次要文字 */
-  --ctp-overlay: #6c7086; /* 提示文字 */
-  --ctp-surface1: #45475a; /* 边框颜色 */
-  --ctp-mauve: #cba6f7; /* 主题色 (紫) */
-  --ctp-blue: #89b4fa; /* 链接/高亮 (蓝) */
-  --ctp-red: #f38ba8; /* 错误/强调 */
+  --ctp-base: #1e1e2e;
+  --ctp-mantle: #181825;
+  --ctp-crust: #11111b;
+  --ctp-text: #cdd6f4;
+  --ctp-subtext: #a6adc8;
+  --ctp-overlay: #6c7086;
+  --ctp-surface0: #313244;
+  --ctp-surface1: #45475a;
+  --ctp-mauve: #cba6f7;
+  --ctp-blue: #89b4fa;
+  --ctp-red: #f38ba8;
+
+  /* 覆盖 V2 默认变量 */
+  --background: var(--ctp-base);
+  --foreground: var(--ctp-text);
+  --card: var(--ctp-mantle);
+  --popover: var(--ctp-mantle);
+  --primary: var(--ctp-mauve);
+  --primary-foreground: var(--ctp-crust);
+  --secondary: var(--ctp-surface0);
+  --muted: var(--ctp-surface0);
+  --muted-foreground: var(--ctp-subtext);
+  --accent: var(--ctp-blue);
+  --border: var(--ctp-surface1);
+  --input: var(--ctp-surface0);
+  --ring: var(--ctp-mauve);
+  --radius: 0.75rem;
 }
 
-/* 全局字体应用 */
-body {
-  font-family: var(--font-ui);
-}
-
-/* --- 深色主题设置 --- */
-body[theme-mode="dark"] {
-  /* 覆盖 Cherry Studio 默认变量 */
-  --color-background: var(--ctp-base);
-  --color-text: var(--ctp-text);
-
-  /* 侧边栏 & 顶部导航栏 - 使用更深的 Mantle 色 (#181825) */
-  --navbar-background: var(--ctp-mantle);
+/* --- 深色主题核心覆盖 --- */
+.dark {
+  --background: var(--ctp-base);
+  --foreground: var(--ctp-text);
+  --card: var(--ctp-mantle);
+  --popover: var(--ctp-mantle);
+  --primary: var(--ctp-mauve);
+  --primary-foreground: var(--ctp-crust);
+  --secondary: var(--ctp-surface0);
+  --muted: var(--ctp-surface0);
+  --muted-foreground: var(--ctp-subtext);
+  --accent: var(--ctp-blue);
+  --border: var(--ctp-surface1);
+  --input: var(--ctp-surface0);
+  --ring: var(--ctp-mauve);
   --sidebar-background: var(--ctp-mantle);
-
-  /* 聊天区域 */
+  --sidebar-foreground: var(--ctp-subtext);
+  --sidebar-border: var(--ctp-surface1);
   --chat-background: var(--ctp-base);
-  --chat-background-user: #313244; /* Surface0 - 用户气泡颜色 */
-  --chat-background-assistant: transparent; /* 助手气泡透明，融入背景 */
-
-  /* 边框线条 */
-  --border-color: var(--ctp-surface1);
 }
 
-/* --- 细节组件优化 --- */
+/* --- 组件细节优化 --- */
 
-/* 1. 输入框区域 */
-body[theme-mode="dark"] .inputbar-container {
-  /* 悬浮卡片感 */
+/* 输入框区域 - 悬浮卡片感 */
+.dark .chat-input-container,
+.dark .chat-input-wrapper,
+.dark [class*="chat-input"]:not(textarea):not(pre):not(code) {
   background-color: var(--ctp-mantle) !important;
-  border: 1px solid var(--ctp-surface1) !important; /* #45475a */
-  border-radius: 12px !important; /* 圆角 10-12px */
-  margin: 10px !important; /* 增加外边距，制造悬浮感 */
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); /* 阴影 */
+  border: 1px solid var(--ctp-surface1) !important;
+  border-radius: var(--radius) !important;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  margin: 10px 0;
+  padding: 10px !important;
 }
 
-/* 输入框内的文本颜色 */
-body[theme-mode="dark"] .inputbar-container textarea {
+/* 清除输入框内部所有元素的边框和背景 */
+/* 使用通配符 * 确保内部所有容器（工具栏、文本框包裹层等）都透明 */
+.dark .chat-input-container *,
+.dark .chat-input-wrapper *,
+.dark [class*="chat-input"] * {
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+/* 恢复 textarea 的字体颜色 */
+.dark .chat-input-container textarea,
+.dark .chat-input-wrapper textarea,
+.dark [class*="chat-input"] textarea {
   color: var(--ctp-text) !important;
 }
 
-/* 2. 消息气泡 */
-/* 用户消息 - 圆润的块状 */
-body[theme-mode="dark"] .message-user .message-content {
-  border-radius: 12px !important;
-  background-color: var(--ctp-surface1) !important;
-  color: var(--ctp-text);
+/* 消息气泡样式 */
+.dark [class*="message-user"],
+.dark [class*="message-row-user"],
+.dark [class*="message-container-user"],
+.dark [class*="message-item-user"],
+.dark .message-user,
+.dark .message-row-user {
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
 }
 
-/* 助手消息 - 移除背景，沉浸式阅读 */
-body[theme-mode="dark"] .message-assistant .message-content {
+.dark .message-user [class*="message-content"],
+.dark .message-row-user [class*="message-content"],
+.dark .message-container-user [class*="message-content"],
+.dark .message-item-user [class*="message-content"],
+.dark .message-user .message-content,
+.dark .message-row-user .message-content {
+  background-color: var(--ctp-surface0) !important;
+  border-radius: var(--radius) !important;
+  border: 1px solid var(--ctp-surface1) !important;
+  padding: 10px 15px !important;
+  color: var(--ctp-text) !important;
+  box-shadow: none !important;
+}
+
+.dark [class*="message-assistant"],
+.dark [class*="message-row-assistant"],
+.dark [class*="message-container-assistant"],
+.dark [class*="message-item-assistant"],
+.dark .message-assistant,
+.dark .message-row-assistant {
   background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
+
+.dark .message-assistant [class*="message-content"],
+.dark .message-row-assistant [class*="message-content"],
+.dark .message-container-assistant [class*="message-content"],
+.dark .message-item-assistant [class*="message-content"],
+.dark .message-assistant .message-content,
+.dark .message-row-assistant .message-content {
+  background-color: transparent !important;
+  border: none !important;
   padding-left: 0 !important;
 }
 
-/* 3. 代码块样式 */
-body[theme-mode="dark"] code {
-  font-family: var(--font-code);
-  background-color: rgba(205, 214, 244, 0.1); /* 淡淡的背景 */
-  color: var(--ctp-mauve); /* 紫色代码文字 */
+/* 代码块样式 */
+.dark .code-block,
+.dark [class*="code-block-wrapper"] {
+  background-color: var(--ctp-crust) !important;
+  border: 1px solid var(--ctp-surface1) !important;
+  border-radius: 8px !important;
+  overflow: hidden;
+}
+
+.dark pre,
+.dark code {
+  background-color: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+}
+
+.dark pre {
+  padding: 1em !important;
+  margin: 0;
+}
+
+.dark :not(pre) > code {
+  background-color: rgba(205, 214, 244, 0.1) !important;
+  color: var(--ctp-mauve) !important;
   border-radius: 4px;
   padding: 2px 5px;
 }
 
-body[theme-mode="dark"] pre {
-  background-color: var(--ctp-crust) !important; /* 最深的背景 #11111b */
-  border: 1px solid var(--ctp-surface1);
-  border-radius: 8px;
-}
-
-/* 4. 深度思考 (Deep Thinking) 样式 */
-.ant-collapse-content-box .markdown {
+/* 深度思考 区域样式 */
+.dark [class*="thinking-content"],
+.dark .collapse-content-box {
   color: var(--ctp-subtext) !important;
   font-style: italic;
   font-size: 0.9em;
@@ -101,7 +179,7 @@ body[theme-mode="dark"] pre {
   padding-left: 10px;
 }
 
-/* 5. 滚动条美化 - 隐藏原本粗大的滚动条，改用细条 */
+/* 滚动条美化 */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -117,22 +195,33 @@ body[theme-mode="dark"] pre {
   background: var(--ctp-overlay);
 }
 
-/* 6. 侧边栏选中项高亮 */
-body[theme-mode="dark"] .sidebar-item-active {
-  background-color: var(--ctp-surface1) !important;
+/* 侧边栏选中项高亮 */
+.dark [class*="sidebar-item-active"],
+.dark .sidebar-item.selected {
+  background-color: var(--ctp-surface0) !important;
   color: var(--ctp-mauve) !important;
   border-radius: 8px;
+  font-weight: 500;
 }
 
-/* --- 浅色模式 (Light Mode) 简单适配 --- */
-body[theme-mode="light"] {
-  --color-background: #eff1f5; /* Latte Base */
-  --navbar-background: #e6e9ef; /* Latte Mantle */
-  --chat-background-user: #e6e9ef;
-  --chat-background-assistant: transparent;
+/* --- 浅色模式适配 --- */
+:root {
+  --background-light: #eff1f5;
+  --foreground-light: #4c4f69;
+  --card-light: #e6e9ef;
+  --primary-light: #8839ef;
+  --secondary-light: #dce0e8;
+  --border-light: #bcc0cc;
+}
 
-  code {
-    background-color: #e6e9ef;
-    color: #8839ef;
-  }
+body[theme-mode="light"] {
+  --background: var(--background-light);
+  --foreground: var(--foreground-light);
+  --card: var(--card-light);
+  --primary: var(--primary-light);
+  --secondary: var(--secondary-light);
+  --border: var(--border-light);
+  --sidebar-background: var(--card-light);
+  --chat-user: var(--secondary-light);
+  --chat-assistant: transparent;
 }
