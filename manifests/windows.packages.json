@@ -163,7 +163,8 @@
           "Nushell.Nushell"
         ],
         "extras": [
-          "sfsu"
+          "sfsu",
+          "carapace-bin"
         ],
         "main": [
           "direnv",
@@ -629,7 +630,11 @@
       "installPriority": 220,
       "buckets": {
         "abyss": [
-          "SST.opencode"
+          "SST.opencode",
+          "OpenAI.Codex"
+        ],
+        "main": [
+          "rtk"
         ],
         "margin": [
           "hfd",
@@ -649,6 +654,9 @@
       "buckets": {
         "jam": [
           "cherry-studio"
+        ],
+        "margin": [
+          "Skills-Hub"
         ]
       }
     },
@@ -667,12 +675,20 @@
         "jam": [
           "mpv-config"
         ],
+        "lemon": [
+          "lada"
+        ],
         "margin": [
           "mpv-handler",
           "faster-whisper-xxl"
         ]
       },
       "packageOptions": {
+        "lemon": {
+          "lada": {
+            "selection": "optional"
+          }
+        },
         "margin": {
           "mpv-handler": {
             "selection": "optional",
@@ -945,7 +961,21 @@
           "LocalSend.LocalSend",
           "viarotel.Escrcpy",
           "RustDesk.RustDesk"
+        ],
+        "main": [
+          "syncthing"
+        ],
+        "margin": [
+          "uuyc"
         ]
+      },
+      "packageOptions": {
+        "margin": {
+          "uuyc": {
+            "selection": "optional",
+            "requiresAdmin": true
+          }
+        }
       }
     }
   },

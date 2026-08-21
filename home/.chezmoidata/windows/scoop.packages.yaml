@@ -253,6 +253,7 @@ scoopClassification:
           - scoop-search
         extras:
           - sfsu
+          - carapace-bin
         abyss:
           - abgox.PSCompletions
           - abgox.scoop-i18n
@@ -540,8 +541,11 @@ scoopClassification:
       promptOrder: 220
       installPriority: 220
       buckets:
+        main:
+          - rtk
         abyss:
           - SST.opencode
+          - OpenAI.Codex
         margin:
           - hfd
           - CLIProxyAPI
@@ -559,6 +563,8 @@ scoopClassification:
           - legeling.PromptHub
         jam:
           - cherry-studio
+        margin:
+          - Skills-Hub
 
     media-playback-gui:
       title: 媒体播放 / 媒体库
@@ -576,6 +582,8 @@ scoopClassification:
         margin:
           - mpv-handler
           - faster-whisper-xxl
+        lemon:
+          - lada
 
     download-transfer-cli:
       title: 下载 / 传输 CLI
@@ -738,10 +746,14 @@ scoopClassification:
       promptOrder: 370
       installPriority: 370
       buckets:
+        main:
+          - syncthing
         abyss:
           - LocalSend.LocalSend
           - viarotel.Escrcpy
           - RustDesk.RustDesk
+        margin:
+          - uuyc
 
     misc-lab:
       title: 未分类 / 实验
@@ -830,6 +842,9 @@ scoopClassification:
     margin:
       logi-options-plus-mini:
         requiresAdmin: true
+      uuyc:
+        requiresAdmin: true
+        selection: optional
       freetex:
         selection: optional
       websocat:
@@ -868,6 +883,8 @@ scoopClassification:
         installMode: manual
       cava:
         notes: yasb widget 依赖
+      lada:
+        selection: optional
 
     ZhangTianrong_scoop-bucket:
       emeditor-pro:
