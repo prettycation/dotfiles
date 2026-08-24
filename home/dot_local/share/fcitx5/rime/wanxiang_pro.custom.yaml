@@ -104,14 +104,17 @@ patch:
   "super_comment/candidate_length": 6 # 候选词辅助码提醒的生效长度，0为关闭  但同时清空其它，应当使用上面开关来处理
   "super_comment/corrector_type": "comment" # 错音措字，随意更换左右括号，比如"〔comment〕" 不加括号为无括号，comment占位不能动
   "super_comment/chaifen": "chaifen" # 拆分显示，随意更换左右括号，比如"〔chaifen〕" 不加括号为无括号，chaifen占位不能动
-  "super_comment/cand_type/sentence": "∞"
-  "super_comment/cand_type/predict": "*"
+  "super_comment/cand_type/user_phrase": "⁺" # 用户自造词
+  "super_comment/cand_type/sentence": "∞" # 整句
+  "super_comment/cand_type/table": "✬" # mix词库里的词
   "super_comment/cand_type/user_table": "⌥" # 自定义短语
+  "super_comment/cand_type/typo": "⇄" # 纠错
   "super_comment/cand_type/completion": "☯" # 长词联想
   "super_comment/cand_type/abbrev": "ϟ" # 简码
+  "super_comment/cand_type/predict": "⋙" # 预测候选
+  "super_comment/cand_type/pinned": "📌" # pin 候选
   "super_comment/cand_type/fallback": "~"
-  # phrase: ""                  # cn词库里的词
-  # table: ""                   # mix词库里的词
+  # "super_comment/cand_type/phrase": "" # cn词库里的词
 
   # 字符集过滤lua
   # a,通用规范汉字表
