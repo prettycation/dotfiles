@@ -341,7 +341,7 @@ patch:
     - xform=(<sf>|<jl>)=l= # s+f 或 j+l -> l
 
     # 边缘补字母：n m
-    - xform=(<af>|<jA>)=n= # a+f 或 j+; -> n
+    - xform=(<sc>|<ml>)=n= # s+c 或 m+l -> n
     - xform=(<cv>|<mC>)=m= # c+v 或 m+, -> m
 
 # 并击大写：辅码/筛选用
@@ -394,8 +394,8 @@ patch:
     - xform=(<as>)=/= # a+s -> /
     - xform=(<lA>)=;= # l+; -> ;
     - xform=(<ad>)=\= # a+d -> \
-    - xform=(<ml>)=@= # m+l -> @
-    - xform=(<sc>)=~= # s+c -> ~
+    - xform=(<af>)=@= # a+f -> @
+    - xform=(<jA>)=~= # j+; -> ~
     - xform=(<fg>)=*= # f+g -> *
     - xform=(<hj>)=+= # h+j -> +
     - xform=(<yu>)=-= # y+u -> -
