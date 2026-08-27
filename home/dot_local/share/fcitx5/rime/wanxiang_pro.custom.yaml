@@ -8,20 +8,19 @@ patch:
       - 小鹤双拼飞键
   ##########################以上格式受指令初始化控制，最好保持格式不变，如果发生变更请不要使用指令修改相关数据#####################################
 
-  # 把并击基础对象挂进 patch
-  __patch:
-    - 并击基础
-
-  "engine/processors/@before 3": chord_composer
-
-  # 把并击的 algebra 规则按模块拼起来
-  chord_composer/algebra:
-    __patch:
-      - 并击预处理
-      - 并击字母
-      - 并击大写
-      - 并击符号
-      - 并击清理
+  # __patch:
+  #   - 并击基础
+  #
+  # "engine/processors/@before 3": chord_composer
+  #
+  # # 把并击的 algebra 规则按模块拼起来
+  # chord_composer/algebra:
+  #   __patch:
+  #     - 并击预处理
+  #     - 并击字母
+  #     - 并击大写
+  #     - 并击符号
+  #     - 并击清理
 
   # 开关
   # reset: 默认状态。注释掉后，切换窗口时不会重置到默认状态。
