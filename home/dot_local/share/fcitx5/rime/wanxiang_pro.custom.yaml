@@ -42,8 +42,9 @@ patch:
 
   #通过下面的设置可以让你自己的文件引入而与仓库custom_phrase.txt不同，防止更新时被仓库文件覆盖
   custom_phrase/user_dict: custom_phrase01 # 这里改成什么就需要手动创建同名的 custom_phrasexx.txt 文件在用户目录，这个文件主要用于置顶，编码为自定义编码的词汇
-  translator/packs/+:
-    - "moqi_moe" #导入根目录下xx.dict.yaml作为自定义固定词典，名称为name字段的值，编码要与固定词库一致，编码权重都不要少，形如姓名、专有名词公司名称等等
+  # translator/packs/+:
+  #   - "moqi_moe" #导入根目录下xx.dict.yaml作为自定义固定词典，名称为name字段的值，编码要与固定词库一致，编码权重都不要少，形如姓名、专有名词公司名称等等
+  translator/dictionary: wan.extended
 
   # 输入引擎
   # 使用 *文件名*对象名 的语法直接加载 Lua 插件
@@ -350,65 +351,48 @@ patch:
     #
     # 上排大写：Q W E R T Y U I O P
     - xform=(<sef>|<jil>)=Q= # s+e+f 或 j+i+l -> Q
-    - xform=(<wt>|<yo>)=W= # w+t 或 y+o -> W
+    - xform=(<wv>|<on>|<om>)=W= # w+v 或 o+n 或 o+m -> W
     - xform=(<et>|<yi>)=R= # e+t 或 y+i -> R
-    - xform=(<ed>|<ik>)=E= # e+d 或 i+k -> E
+    - xform=(<ev>|<in>|<im>)=E= # e+v 或 i+n 或  i+m -> E
     - xform=(<qt>|<yp>)=T= # q+t 或 y+p -> T
-    - xform=(<qe>|<ip>)=Y= # q+e 或 i+p -> Y
+    - xform=(<wt>|<yo>)=Y= # w+t 或 y+o -> Y
     - xform=(<ser>|<uil>)=U= # s+e+r 或 u+i+l -> U
     - xform=(<wef>|<jio>)=I= # w+e+f 或 j+i+o -> I
     - xform=(<aw>|<oA>)=O= # a+w 或 o+; -> O
     - xform=(<qf>|<jp>)=P= # q+f 或 j+p -> P
 
     # 中排大写：A S D F G H J K L
-    - xform=(<ar>|<uA>)=A= # a+r 或 u+; -> A
-    - xform=(<sr>|<ul>)=S= # s+r 或 u+l -> S
-    - xform=(<dr>|<uk>)=D= # d+r 或 u+k -> D
-    - xform=(<rf>|<uj>)=F= # r+f 或 u+j -> F
-    - xform=(<tg>|<yh>)=G= # t+g 或 y+h -> G
-    - xform=(<qwf>|<jop>)=H= # q+w+f 或 j+o+p -> H
-    - xform=(<dg>|<hk>)=J= # d+g 或 h+k -> J
-    - xform=(<sdf>|<jkl>)=K= # s+d+f 或 j+k+l -> K
-    - xform=(<asf>|<jlA>)=L= # a+s+f 或 j+l+; -> L
+    - xform=(<av>|<Am>)=H= # a+v 或 ;+m -> A
+    - xform=(<sv>|<ln>)=S= # s+v 或 l+n -> S
+    - xform=(<dv>|<km>)=D= # d+v 或 k+m -> D
+    - xform=(<sg>|<lh>)=F= # s+g 或 l+h -> F
+    - xform=(<dg>|<kh>)=G= # d+g 或 k+h -> G
+    - xform=(<ar>|<uA>)=A= # a+r 或 u+; -> H
+    - xform=(<xf>|<jX>)=J= # x+f 或 j+. -> J
+    - xform=(<dr>|<uk>)=K= # d+r 或 u+k -> K
+    - xform=(<sr>|<ul>)=L= # s+r 或 u+l -> L
 
     # 下排及补位大写：Z X C V B N M
     - xform=(<zf>|<jZ>)=Z= # z+f 或 j+/ -> Z
-    - xform=(<xf>|<jX>)=X= # x+f 或 j+. -> X
-    - xform=(<asr>|<ulA>)=C= # a+s+r 或 u+l+; -> C
-    - xform=(<ac>|<mA>)=V= # a+c 或 m+; -> V
-    - xform=(<dc>|<mk>)=B= # d+c 或 m+k -> B
+    - xform=(<dx>|<kX>)=X= # d+x 或 k+. -> X
+    - xform=(<sdv>|<klm>)=C= # s+d+v 或 k+l+m -> C
+    - xform=(<zs>|<lZ>)=V= # z+s 或 l+/ -> V
+    - xform=(<qw>|<op>)=B= # q+w 或 o+p -> B
     - xform=(<se>|<il>)=N= # s+e 或 i+l -> N
-    - xform=(<qw>|<op>)=M= # q+w 或 o+p -> M
+    - xform=(<dw>|<ko>)=M= # d+w 或 k+o -> M
 
 # 并击符号：直接出标点或配对符号
 并击符号:
   __append:
     # 常用符号
-    - xform=(<zx>|<XZ>)=!= # z+x 或 .+/ -> !
+    - xform=(<ag>|<hA>)=!= # a+g 或 h+; -> !
     - xform=(<xc>|<CX>)=,= # x+c 或 ,+. -> ,
     - xform=(<xv>|<mX>)=.= # x+v 或 m+. -> .
-    - xform=(<zv>|<mZ>)=?= # z+v 或 m+/ -> ?
-    - xform=(<zc>|<CZ>)=:= # z+c 或 ,+/ -> :
-    # - xform=(<kA>)=;= # k+; -> ;
-    - xform=(<as>)=/= # a+s -> /
-    - xform=(<lA>)=;= # l+; -> ;
-    - xform=(<ad>)=\= # a+d -> \
-    - xform=(<af>)=@= # a+f -> @
-    - xform=(<jA>)=~= # j+; -> ~
-    - xform=(<fg>)=*= # f+g -> *
-    - xform=(<hj>)=+= # h+j -> +
-    - xform=(<yu>)=-= # y+u -> -
-    - xform=(<rt>)=%= # r+t -> %
-    - xform=(<rg>)=^= # r+g -> ^
-    - xform=(<hu>)=#= # h+u -> #
-
-    # 括号 / 引号 / 成组符号区
-    - xform=(<ag>)=[= # a+g -> [
-    - xform=(<hA>)=]= # h+; -> ]
-    - xform=(<vb>)=“= # v+b -> 左双引号
-    - xform=(<nm>)=”= # n+m -> 右双引号
-    - xform=(<wd>)=:“= # w+d -> :“
-    - xform=(<ko>)=,“= # k+o -> ,“
+    - xform=(<zx>|<XZ>)=?= # z+x 或 .+/ -> ?
+    - xform=(<as>|<lA>)=:= # a+s 或 l+; -> :
+    - xform=(<af>|<jA>)=;= # a+f 或 j+; -> ;
+    - xform=(<at>|<yA>)=<= # a+t 或 y+; -> <
+    - xform=(<zv>|<mZ>)=/= # z+v 或 m+/ -> /
 
 # 并击清理：收尾、兜底、防脏码
 并击清理:
