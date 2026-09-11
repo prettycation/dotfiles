@@ -3,8 +3,8 @@ patch:
     __patch:
       #- 模糊音                                  # 这里启用后，本文件末尾可配置具体条目
       - wanxiang_algebra:/pro/小鹤双拼 # 可选输入方案名称：自然码, 自然龙, 小鹤双拼, 搜狗双拼, 微软双拼, 智能ABC, 紫光双拼, 国标双拼
-      - wanxiang_algebra:/pro/直接辅助 #辅助码升级为：直接辅助和间接辅助两种类型，都是句中任意，不同点在于直接辅助是nire=你  而间接则需要/引导  ni/re=你 ，在这个基础上直接辅助支持拼音后任意位置数字声调参与，间接辅助声调在/引导前参与
       - 小鹤双拼提权 #本文件末尾，有自然码和小鹤的可以用
+      - wanxiang_algebra:/pro/直接辅助 #辅助码升级为：直接辅助和间接辅助两种类型，都是句中任意，不同点在于直接辅助是nire=你  而间接则需要/引导  ni/re=你 ，在这个基础上直接辅助支持拼音后任意位置数字声调参与，间接辅助声调在/引导前参与
       - 小鹤双拼飞键
   ##########################以上格式受指令初始化控制，最好保持格式不变，如果发生变更请不要使用指令修改相关数据#####################################
 
@@ -33,52 +33,45 @@ patch:
   switches/@5/reset: 1 # 开启候选辅助码拆分
   switches/@6/reset: 1 # 开启小字集
   switches/@7/reset: 1 # 开启tips提示
-  switches/@8/reset: 1 # 开启预测功能
+  switches/@8/reset: 0 # context_reorder：关闭上下文调频
   switches/@9/reset: 0 # 显示原编码
   switches/@10/reset: 1 # 开启候选辅助码注释
   switches/@11/reset: 0 # 默认简体
   switches/@12/reset: 1 # 开启简码
   switches/@13/reset: 0 # 词组优先
+  switches/@14/reset: 1 # 英文开
 
   #通过下面的设置可以让你自己的文件引入而与仓库custom_phrase.txt不同，防止更新时被仓库文件覆盖
   custom_phrase/user_dict: custom_phrase01 # 这里改成什么就需要手动创建同名的 custom_phrasexx.txt 文件在用户目录，这个文件主要用于置顶，编码为自定义编码的词汇
   # translator/packs/+:
   #   - "moqi_moe" #导入根目录下xx.dict.yaml作为自定义固定词典，名称为name字段的值，编码要与固定词库一致，编码权重都不要少，形如姓名、专有名词公司名称等等
+
+  # 主翻译器与新版两处造词翻译器统一使用个人扩展词典。
   translator/dictionary: wan.extended
+  user_dict_set/dictionary: wan.extended
+  add_user_dict/dictionary: wan.extended
 
   # 输入引擎
   # 使用 *文件名*对象名 的语法直接加载 Lua 插件
 
+  # rime-trans 是额外插件，不包含在万象资源包内。
+  # 需保留 input_text.lua 及其依赖；未安装时应同时注释以下两条挂载。
+  # 提前捕获插件快捷键，避免追加在 express_editor 后面而错过按键。
+
   # rime-trans 翻译插件
   # 挂载处理器 (处理快捷键)
-  "engine/processors/@next": lua_processor@*input_text*processor
+  "engine/processors/@before 0": lua_processor@*input_text*processor
 
   # 在去重前挂载过滤器 (生成翻译候选词)
   "engine/filters/@before 7": lua_filter@*input_text*filter
 
-  grammar:
-    language: wanxiang-lts-zh-hans
-    collocation_max_length: 8
-    collocation_min_length: 3
-    collocation_penalty: -10
-    non_collocation_penalty: -17
-    rear_penalty: -18
-    weak_collocation_penalty: -24
-
-  user_predict:
-    enable_post_predict: true # 引擎 A：是否开启上屏后的联想预测
-    enable_context_reorder: true # 引擎 B：是否开启输入过程中的实时上下文调频
-    max_candidates: 5 # 候选栏中最多显示的联想词数量
-    max_predictions: 3 # 级联深度：允许连续自动预测的最大跳数
-    expiry_days: 90 # 物理生命周期：超 90 天未使用的 1/2-Gram 将被销毁
-    activation_days: 7 # 激活锁：新词若 7 天内不再使用，将被视为噪音冷冻
-    decay_rate: 0.85 # 遗忘衰减率：数值越小，旧词权重掉得越快
-    context_timeout: 5000 # 语境熔断 (ms)：停顿超 5 秒自动切断上下文，防远距离穿透
-    enable_predict_space: false # 键盘双模式 AB 面开关
-    db_name: "lua/predict"
-  # 模式 B (默认 false，沉浸预测流)：Space 空格键交由 Rime 原生系统顺滑选词；按下 Tab、→、\ 或 Alt 等替身键时，打断联想并强制输出物理空格。
-
-  # 模式 A (true，精准空格流)：Space 强制打断联想并输出物理空格；替身键仅作纯粹的打断清空。
+  grammar/language: wanxiang-lts-zh-hans
+  grammar/collocation_max_length: 8
+  grammar/collocation_min_length: 3
+  grammar/collocation_penalty: -10
+  grammar/non_collocation_penalty: -17
+  grammar/weak_collocation_penalty: -24
+  grammar/rear_penalty: -18
 
   # Tips 配置项
   "super_tips/disabled_types/+":
@@ -97,7 +90,6 @@ patch:
 
   # 关闭数字后自动半角功能
   punctuator/digit_separators: commit
-  #下面是候选数量，未来7890分别代表1234声，请候选长度不要大于6避免冲突
 
   #下面是超级注释相关
   # 超级注释模块，子项配置 true 开启，false 关闭
@@ -133,12 +125,10 @@ patch:
   # 你可以定义多个开关，多个开启状态的开关求并集，比如charset_filter开着，s2hk也开着，那么就会显示这两个集合的所有汉字
   # 优雅的地方在于s2hk开着，charset_filter关着 我们照样能使用 港繁能用到的所有字，是真正的本体，无关字会被过滤，而当都开着则是享受简体转换成繁体的后的结果
   # 这个设计真正的兼容了简繁转换与字符集过滤的矛盾，还能满足用户多种自定义需求，你可以在开关增加类别，并在charset下面新增option类去选择按照字区去过滤，等多种组合方式
-  "charset/+":
-    - option: charset_filter
-      base: aj #可以填入多个类别如aj
-      addlist:
-        - "诶濛硷氽尛躝〇冇吔咗囧屌鲶芶咲畑垅燐"
-      blacklist: [鹵, 彔, 䵽, 䌬, 罿, 繱, 総]
+  charset_filter/@0/base: aj
+  charset_filter/@0/addlist:
+    - "诶濛硷氽尛躝〇冇吔咗囧屌鲶芶咲畑垅燐"
+  charset_filter/@0/blacklist: [鹵, 彔, 䵽, 䌬, 罿, 繱, 総]
 
   #下面用于对/rq和N20250101这样的日期候选自定义（顺序、类型、候选个数）由你完全掌控，前面是对于公历后面默认携带农历
   # 通用日期时间格式化函数（供 /rq、/sj、/dt、N0101、N20150101 场景复用）
