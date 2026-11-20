@@ -329,7 +329,6 @@ scoopClassification:
           - ffmpeg
           - resvg
           - chafa
-          - trashy
 
     terminal-cli:
       title: 终端增强 CLI
@@ -797,8 +796,6 @@ scoopClassification:
       imagemagick:
         notes: yazi 依赖
       duckdb:
-        notes: yazi 插件依赖
-      trashy:
         notes: yazi 插件依赖
 
     extras:

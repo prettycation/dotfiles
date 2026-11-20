@@ -1,7 +1,5 @@
 {{- $hasStarship := lookPath "starship" -}}
 {{- $hasDuckDB := lookPath "duckdb" -}}
-{{- $hasRecycleBinCli := lookPath "trash-list" -}}
-{{- $hasTrashy := lookPath "trash" -}}
 {{- $isWindows := eq .chezmoi.os "windows" -}}
 
 {{- if $hasStarship }}
@@ -14,8 +12,8 @@ require("easyjump"):setup({
 })
 
 require("full-border"):setup {
-  -- Available values: ui.Border.PLAIN, ui.Border.ROUNDED
-  type = ui.Border.ROUNDED,
+  -- Available values: "plain", "rounded"
+  set = "rounded",
 }
 
 {{- if $hasDuckDB }}
@@ -27,17 +25,6 @@ require("duckdb"):setup({
   column_fit_factor = 10.0        -- 列宽自适应因子
 })
 {{- end }}
-
-{{- if or $hasTrashy $hasRecycleBinCli }}
-{{- $trashPlugin := "" -}}
-{{- if $hasRecycleBinCli -}}
-{{- $trashPlugin = "recycle-bin" -}}
-{{- else if $hasTrashy -}}
-{{- $trashPlugin = "trashbox" -}}
-{{- end }}
-
-require({{ $trashPlugin | quote }}):setup()
-{{ end }}
 
 require("projects"):setup({
 	event = {

@@ -1,11 +1,4 @@
 {{- $hasTv := lookPath "tv" -}}
-{{- $hasRecycleBinCli := lookPath "trash-list" -}}
-{{- $hasTrashy := false -}}
-{{- if eq .chezmoi.os "windows" -}}
-{{-   $hasTrashy = lookPath "trash" -}}
-{{- else -}}
-{{-   $hasTrashy = lookPath "trashy" -}}
-{{- end -}}
 {{- $hasMediainfo := lookPath "mediainfo" -}}
 {{- $hasDuckdb := lookPath "duckdb" -}}
 {{- $hasSudo := lookPath "sudo" -}}
@@ -54,22 +47,6 @@ prepend_keymap = [
   { on = ["P", "m"], run = "plugin projects 'merge current'", desc = "将当前 tab 合并到另一个项目" },
   { on = ["P", "M"], run = "plugin projects 'merge all'", desc = "将当前项目合并到另一个项目" },
   { on = ["P", "u"], run = "plugin projects 'load chezmoi'", desc = "加载 chezmoi 项目" },
-
-  {{- if or $hasTrashy $hasRecycleBinCli }}
-  {{- $trashPlugin := "" -}}
-  {{- if $hasRecycleBinCli -}}
-  {{- $trashPlugin = "recycle-bin" -}}
-  {{- else if $hasTrashy -}}
-  {{- $trashPlugin = "trashbox" -}}
-  {{- end }}
- 
-  # {{ $trashPlugin }}
-  { on = ["R", "o"], run = "plugin {{ $trashPlugin }} -- open",      desc = "打开回收站" },
-  { on = ["R", "e"], run = "plugin {{ $trashPlugin }} -- empty",     desc = "清空回收站" },
-  { on = ["R", "D"], run = "plugin {{ $trashPlugin }} -- emptyDays", desc = "按删除天数清空回收站" },
-  { on = ["R", "d"], run = "plugin {{ $trashPlugin }} -- delete",    desc = "从回收站删除" },
-  { on = ["R", "r"], run = "plugin {{ $trashPlugin }} -- restore",   desc = "从回收站恢复" },
-  {{- end }}
 
   {{- if $hasMediainfo }}
   # mediainfo

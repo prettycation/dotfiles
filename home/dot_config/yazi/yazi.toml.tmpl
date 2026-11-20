@@ -129,6 +129,9 @@ sqlite_shell = [
 # 这里改为在 Yazi 默认规则基础上增量混入，而不是整段重写。
 [open]
 prepend_rules = [
+  # 回收站条目优先使用 Yazi 内置的恢复与清空操作。
+  { mime = "trash/**", use = ["open", "trash"] },
+
   # 最高优先级：.txt 和 .md 文件默认使用 'edit_nvim' (Neovim) 动作。
   # { url = "*.{txt,md}", use = [ "edit_emeditor", "reveal" ], desc = "Open with EmEditor" },
   { url = "*.{txt,md}", use = [
@@ -228,6 +231,7 @@ suppress_preload = false
 [plugin]
 # "spotters" 在新版中用于快速识别文件特征。
 spotters = [
+  { mime = "trash/**", run = "trash" },
   { url = "*/", run = "folder" },
   { mime = "text/*", run = "code" },
   { mime = "application/{mbox,javascript,wine-extension-ini}", run = "code" },
@@ -243,6 +247,7 @@ spotters = [
 # "preloaders" 在文件进入视野时提前加载预览内容。
 # 这里改为在默认 preloader 基础上追加自定义规则。
 prepend_preloaders = [
+  { mime = "trash/**", run = "trash" },
   {{- if $hasDuckdb }}
   # DuckDB：按最新官方 preloader 规则字段配置；旧版 README 里的 `multi = false` 已不再属于合法字段。
   { url = "*.{csv,tsv,json,parquet,txt}", run = "duckdb" },
@@ -250,17 +255,10 @@ prepend_preloaders = [
 
   {{- if $hasSoffice }}
   # --- Office 文档预览规则开始 ---
-  # 规则1: 匹配所有 Office Open XML 格式的MIME类型。
-  # 这包括了 .docx, .xlsx, .pptx 等现代Office文件。
-  { mime = "application/openxmlformats-officedocument.*", run = "office" },
-  # 规则2: 匹配所有 OpenDocument 格式的MIME类型。
-  # 这包括了 .odt, .ods, .odp 等 LibreOffice/OpenOffice 的标准格式。
-  { mime = "application/oasis.opendocument.*", run = "office" },
-  # 规则3: 匹配一些旧的或特殊的微软 Office MIME 类型。
-  { mime = "application/ms-*", run = "office" },
-  { mime = "application/msword", run = "office" }, # 专门匹配旧版 .doc 文件
+  # 匹配 OOXML、OpenDocument 和旧版 Microsoft Office MIME 类型。
+  { mime = "application/{vnd.openxmlformats-officedocument.*,vnd.oasis.opendocument.*,ms-*,msword}", run = "office" },
 
-  # 规则4: 作为备用方案，通过文件名后缀来匹配。
+  # 作为备用方案，通过文件名后缀来匹配。
   # 这在系统未能正确识别MIME类型时非常有用。
   { url = "*.{docx,xlsx,pptx,doc,xls,ppt}", run = "office" },
 
@@ -277,6 +275,7 @@ prepend_preloaders = [
 # "previewers" 定义了针对不同文件类型，应该使用哪个内置的预览器插件。
 # 这里改为在默认 previewer 基础上插入自定义规则。
 prepend_previewers = [
+  { mime = "trash/**", run = "trash" },
   {{- if $hasSqlite3 }}
   # SQLite：使用 preview-sqlite.yazi 预览 schema / table information。
   { url = "*.sqlite3", run = "preview-sqlite" },

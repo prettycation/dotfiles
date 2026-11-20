@@ -2,13 +2,6 @@
 {{- $hasStarship := lookPath "starship" -}}
 {{- $hasMediaInfo := lookPath "mediainfo" -}}
 {{- $hasDuckDB := lookPath "duckdb" -}}
-{{- $hasRecycleBinCli := lookPath "trash-list" -}}
-{{- $hasTrashy := false -}}
-{{- if eq .chezmoi.os "windows" -}}
-{{-   $hasTrashy = lookPath "trash" -}}
-{{- else -}}
-{{-   $hasTrashy = lookPath "trashy" -}}
-{{- end -}}
 {{- $hasSqlite3 := lookPath "sqlite3" -}}
 {{- $hasSudo := lookPath "sudo" -}}
 
@@ -58,17 +51,6 @@ use = "boydaihungst/mediainfo"
 [[plugin.deps]]
 use = "prettycation/duckdb"
 {{- end }}
-
-{{ if or $hasTrashy $hasRecycleBinCli }}
-{{- $trashPlugin := "" -}}
-{{- if $hasRecycleBinCli -}}
-{{- $trashPlugin = "uhs-robert/recycle-bin" -}}
-{{- else if $hasTrashy -}}
-{{- $trashPlugin = "prettycation/trashbox" -}}
-{{- end }}
-[[plugin.deps]]
-use = {{ $trashPlugin | quote }}
-{{ end }}
 
 {{ if $hasSqlite3 }}
 [[plugin.deps]]
