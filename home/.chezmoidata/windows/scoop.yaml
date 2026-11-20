@@ -3,12 +3,14 @@ scoop:
     - name: "bat"
       scoop_app: "sharkdp.bat"
       source_base: "dot_config/bat"
+      # Scoop 的 persist 属于应用，默认部署到 $SCOOP/persist/<scoop_app>/<target_base>
+      # abyss bucket 的 link 可指向共享或应用专属目录，具体以已安装记录为准
       # 单目录 target_base 可留空，单文件需指定
       target_base: "AppData/Roaming/bat"
-      # 若无 persist 目录，直接改 current
+      # 配置位于应用安装目录时，使用 current_path 部署到 apps/<scoop_app>/current
       # current_path: ""
       ignore_path: ".config/bat" # 供 .chezmoiignore 使用，Windows 下忽略 ~/.config/bat，防止与 scoop 自动创建的 junction 冲突
-      # 如果不写 includes，默认包含了 dot_config/wezterm 下的所有文件
+      # 如果不写 includes，默认包含 source_base 目录下的所有文件
       # includes:
       #   - "**"
       # excludes:
@@ -82,7 +84,7 @@ scoop:
 
     - name: "Starship"
       scoop_app: "Starship.Starship"
-      source_base: "dot_config/starship.toml"
+      source_base: "dot_config/starship.toml.tmpl"
       target_base: ".config/starship.toml"
       ignore_path: ".config/starship.toml"
 

@@ -229,16 +229,64 @@ foreach ($app in $apps) {
             Write-Host "[$appName] Target mode: App Directory ($targetRoot)" -ForegroundColor DarkGray
         }
     } else {
-        # --- 模式 B: 传统的 persist 目录 (后备默认) ---
-        $persistBase = if ($isGlobal) {
-            [System.IO.Path]::Combine($scoopGlobalRoot, "persist", $scoopApp)
+        # --- 模式 B: 按安装记录中的 link 目标或应用自身的 persist 目录部署 ---
+        $appBase = if ($isGlobal) {
+            [System.IO.Path]::Combine($scoopGlobalRoot, "apps", $scoopApp, "current")
         } else {
-            [System.IO.Path]::Combine($scoopRoot, "persist", $scoopApp)
+            [System.IO.Path]::Combine($scoopRoot, "apps", $scoopApp, "current")
         }
-        $targetRoot = if ([string]::IsNullOrWhiteSpace($targetBase)) {
-            $persistBase
+        $targetSuffix = $targetBase.Replace('/', '\').TrimStart($trimChars)
+        $linkTarget = $null
+        if ($targetSuffix) {
+            foreach ($recordName in @('abgox-abyss-A-New-LinkDirectory.json', 'abgox-abyss-A-New-LinkFile.json')) {
+                $recordPath = [System.IO.Path]::Combine($appBase, $recordName)
+                if (-not [System.IO.File]::Exists($recordPath)) { continue }
+                try {
+                    $record = ConvertFrom-Json -InputObject ([System.IO.File]::ReadAllText($recordPath)) -AsHashtable
+                    foreach ($candidate in (ConvertTo-StringArray $record['LinkTargets'])) {
+                        if ($candidate.TrimEnd($trimChars).EndsWith("\$targetSuffix", [System.StringComparison]::OrdinalIgnoreCase)) {
+                            $linkTarget = $candidate
+                            break
+                        }
+                    }
+                } catch {
+                    Write-Warning "[$appName] Could not read link record '$recordPath': $_"
+                }
+                if ($linkTarget) { break }
+            }
+        }
+
+        if ($linkTarget) {
+            $targetRoot = $linkTarget
         } else {
-            [System.IO.Path]::Combine($persistBase, $targetBase)
+            $manifestPath = @('scoop-manifest.json', 'manifest.json') |
+                ForEach-Object { [System.IO.Path]::Combine($appBase, $_) } |
+                Where-Object { [System.IO.File]::Exists($_) } |
+                Select-Object -First 1
+            if ($manifestPath) {
+                $manifest = ConvertFrom-Json -InputObject ([System.IO.File]::ReadAllText($manifestPath)) -AsHashtable
+                if ($manifest['link']) {
+                    Write-Warning "[$appName] No matching abyss link target for '$targetBase'; skipping deployment."
+                    continue
+                }
+            }
+            $persistBase = if ($isGlobal) {
+                [System.IO.Path]::Combine($scoopGlobalRoot, "persist", $scoopApp)
+            } else {
+                [System.IO.Path]::Combine($scoopRoot, "persist", $scoopApp)
+            }
+            if (-not [System.IO.Directory]::Exists($persistBase)) {
+                Write-Warning "[$appName] Persist directory '$persistBase' does not exist; use current_path if configuration belongs in the app directory."
+                continue
+            }
+            $targetRoot = if ([string]::IsNullOrWhiteSpace($targetBase)) {
+                $persistBase
+            } else {
+                [System.IO.Path]::Combine($persistBase, $targetBase)
+            }
+        }
+        if ($verboseDeploy) {
+            Write-Host "[$appName] Target mode: Persist ($targetRoot)" -ForegroundColor DarkGray
         }
     }
 
@@ -360,6 +408,7 @@ foreach ($app in $apps) {
         if (-not $forceRefresh -and $cached -and $tgtFileInfo.Exists) {
             $expectedMode = if ($isTmpl) { "tmpl" } else { "copy" }
             if (
+                $cached['targetPath'] -eq $targetFile -and
                 $cached['mode'] -eq $expectedMode -and
                 $cached['encoding'] -eq $targetEncodingKey -and
                 $cached['srcLen'] -eq $srcLen -and
@@ -434,6 +483,7 @@ foreach ($app in $apps) {
         # ----------------------------------------------------
         $finalTgtItem = [System.IO.FileInfo]::new($targetFile)
         $state['entries'][$entryKey] = @{
+            targetPath = $targetFile
             mode     = if ($isTmpl) { "tmpl" } else { "copy" }
             encoding = $targetEncodingKey
             srcLen   = $srcLen
