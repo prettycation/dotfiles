@@ -1,0 +1,12 @@
+# Rime dictionary
+# encoding: utf-8
+#https://github.com/amzxyz/RIME-LMDG
+#简码库
+---
+name: wan.abbrev
+version: "LTS"
+sort: by_weight
+use_preset_vocabulary: false
+import_tables:
+  - dicts/custom_phrase
+...

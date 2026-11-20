@@ -1,0 +1,8 @@
+patch:
+  speller/algebra:
+    __patch:
+      - wanxiang_algebra:/26jian
+      #- wanxiang_algebra:/18jian
+      #- wanxiang_algebra:/14jian
+  translator/dictionary: wan.abbrev
+  translator/prism: wan.abbrev
