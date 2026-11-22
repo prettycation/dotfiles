@@ -442,7 +442,21 @@ foreach ($app in $apps) {
 
             if ($tgtFileInfo.Exists -and -not $forceRefresh) {
                 $existingContent = [System.IO.File]::ReadAllText($targetFile, $targetEncoding)
-                if ($existingContent -eq $renderedContent) { $shouldWrite = $false }
+                if ($existingContent -eq $renderedContent) {
+                    $preamble = $targetEncoding.GetPreamble()
+                    $hasExpectedPreamble = $preamble.Length -eq 0
+                    if ($preamble.Length -gt 0 -and $tgtFileInfo.Length -ge $preamble.Length) {
+                        $stream = [System.IO.File]::OpenRead($targetFile)
+                        try {
+                            $actualPreamble = [byte[]]::new($preamble.Length)
+                            $hasExpectedPreamble = $stream.Read($actualPreamble, 0, $actualPreamble.Length) -eq $preamble.Length -and
+                                [System.Linq.Enumerable]::SequenceEqual[byte]($actualPreamble, $preamble)
+                        } finally {
+                            $stream.Dispose()
+                        }
+                    }
+                    if ($hasExpectedPreamble) { $shouldWrite = $false }
+                }
             }
 
             if ($forceRefresh -or $shouldWrite) {

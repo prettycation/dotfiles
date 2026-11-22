@@ -103,7 +103,7 @@ scoop:
       scoop_app: "windhawk"
       source_base: ".chezmoitemplates/windows/windows-apps/windhawk/Engine/Mods"
       target_base: "AppData/Engine/Mods"
-      target_encoding: "utf-16le"
+      target_encoding: "utf-16-bom"
 
     # - name: "wezterm"
     #   scoop_app: "wez.wezterm"
